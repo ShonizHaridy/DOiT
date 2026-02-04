@@ -1,0 +1,224 @@
+'use client'
+
+import { useEffect, useRef, useState } from 'react'
+import { useRouter, usePathname } from '@/i18n/navigation'
+import { useTransition } from 'react'
+import Link from 'next/link'
+import { useTranslations } from 'next-intl'
+import { cn } from '@/lib/utils'
+import Logo from '@/components/ui/Logo'
+import USFlagIcon from '@/components/ui/USFlagIcon'
+import SaudiFlagIcon from '@/components/ui/SaudiFlagIcon'
+
+interface MobileMenuProps {
+  isOpen: boolean
+  onClose: () => void
+  locale: string
+}
+
+const menuItems = [
+  { key: 'men', href: '/men' },
+  { key: 'women', href: '/women' },
+  { key: 'kids', href: '/kids' },
+  { key: 'accessories', href: '/accessories' },
+  { key: 'sport', href: '/sport' },
+]
+
+export default function MobileMenu({ isOpen, onClose, locale }: MobileMenuProps) {
+  const t = useTranslations('header')
+  const menuRef = useRef<HTMLDivElement>(null)
+  const isRTL = locale === 'ar'
+
+  const router = useRouter()
+  const pathname = usePathname()
+  const [isPending, startTransition] = useTransition()
+  const [accountOpen, setAccountOpen] = useState(false)
+
+  const handleLanguageSwitch = () => {
+    const newLocale = locale === 'en' ? 'ar' : 'en'
+    startTransition(() => {
+      router.replace(pathname, { locale: newLocale })
+    })
+    onClose()
+  }
+
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    if (isOpen) {
+      document.addEventListener('keydown', handleEscape)
+    }
+    return () => document.removeEventListener('keydown', handleEscape)
+  }, [isOpen, onClose])
+
+  useEffect(() => {
+    if (isOpen && menuRef.current) {
+      const firstFocusable = menuRef.current.querySelector('button, a') as HTMLElement
+      firstFocusable?.focus()
+    }
+  }, [isOpen])
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        className={cn(
+          'fixed inset-0 bg-black/50 z-modal-backdrop transition-opacity duration-base',
+          isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        )}
+        onClick={onClose}
+        aria-hidden="true"
+      />
+
+      {/* Menu Panel */}
+      <div
+        ref={menuRef}
+        className={cn(
+          'fixed top-0 bottom-0 w-[375px] max-w-[90%] bg-white z-modal transition-transform duration-slow overflow-y-auto shadow-lg',
+          'rounded-r-lg',
+          isRTL ? 'right-0' : 'left-0',
+          isOpen 
+            ? 'translate-x-0' 
+            : isRTL 
+              ? 'translate-x-full' 
+              : '-translate-x-full'
+        )}
+        style={{
+          boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.10), 0 4px 6px -2px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(0, 0, 0, 0.05)'
+        }}
+        role="dialog"
+        aria-modal="true"
+        aria-label={t('menu')}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between p-5 pb-6">
+          <Link href="/" className="flex items-center" onClick={onClose}>
+            <Logo  />
+          </Link>
+
+          <button
+            onClick={onClose}
+            className="flex items-center justify-center w-10 h-10 text-neutral-500 hover:text-primary transition-colors rounded-md hover:bg-neutral-50"
+            aria-label={t('closeMenu')}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6 18L18 6M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+        </div>
+
+        {/* Search Bar */}
+        <div className="px-5 pb-6">
+          <div className="flex items-center justify-between h-[45px] px-4 border border-neutral-100 rounded-lg bg-white">
+            <input
+              type="search"
+              placeholder={t('searchPlaceholder')}
+              className="flex-1 bg-transparent text-base text-neutral-500 placeholder:text-neutral-400 outline-none"
+            />
+            <button
+              type="button"
+              className="flex items-center justify-center text-neutral-500 hover:text-primary transition-colors"
+              aria-label={t('search')}
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M11.5 21C16.7467 21 21 16.7467 21 11.5C21 6.25329 16.7467 2 11.5 2C6.25329 2 2 6.25329 2 11.5C2 16.7467 6.25329 21 11.5 21Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M22 22L20 20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        {/* Navigation Items */}
+        <div className="flex flex-col gap-4 px-5 pb-6">
+          {menuItems.map((item) => (
+            <Link
+              key={item.key}
+              href={item.href}
+              className="flex items-center justify-between py-3 group"
+              onClick={onClose}
+            >
+              <span className="text-base font-medium text-primary uppercase tracking-wide">
+                {t(`nav.${item.key}`)}
+              </span>
+              <svg 
+                width="16" 
+                height="16" 
+                viewBox="0 0 16 16" 
+                fill="none" 
+                xmlns="http://www.w3.org/2000/svg"
+                className={cn(
+                  'transition-transform group-hover:translate-x-1',
+                  isRTL && 'rotate-180'
+                )}
+              >
+                <path d="M10.1331 6.99328L8.81979 5.67995L6.67979 3.53995C6.22646 3.09328 5.45312 3.41328 5.45312 4.05328V8.20662V11.9466C5.45312 12.5866 6.22646 12.9066 6.67979 12.4533L10.1331 8.99995C10.6865 8.45328 10.6865 7.54662 10.1331 6.99328Z" fill="#1A1A1A"/>
+              </svg>
+            </Link>
+          ))}
+        </div>
+
+        {/* Divider */}
+        <div className="h-[2px] bg-neutral-100 mx-5" />
+
+        {/* Bottom Section */}
+        <div className="flex flex-col gap-6 px-5 py-6">
+          {/* My Account */}
+          <button
+            onClick={() => setAccountOpen(!accountOpen)}
+            className="flex items-center justify-between py-3 hover:opacity-80 transition-opacity"
+          >
+            <div className="flex items-center gap-1">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" stroke="#888787" strokeWidth="1.66667"/>
+                <path d="M17.0001 14H17.3521C18.0831 14.0002 18.789 14.2674 19.337 14.7513C19.885 15.2352 20.2374 15.9026 20.3281 16.628L20.7191 19.752C20.7542 20.0334 20.7291 20.3191 20.6455 20.5901C20.5618 20.8611 20.4214 21.1112 20.2337 21.3238C20.046 21.5364 19.8152 21.7066 19.5566 21.8232C19.2981 21.9398 19.0177 22.0001 18.7341 22H5.26606C4.98244 22.0001 4.70206 21.9398 4.44351 21.8232C4.18496 21.7066 3.95416 21.5364 3.76644 21.3238C3.57871 21.1112 3.43835 20.8611 3.35467 20.5901C3.27098 20.3191 3.24589 20.0334 3.28106 19.752L3.67106 16.628C3.76176 15.9022 4.11448 15.2346 4.66289 14.7506C5.21131 14.2667 5.91764 13.9997 6.64906 14H7.00006" stroke="#888787" strokeWidth="1.66667" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <span className="text-base font-medium text-primary">
+                {t('myAccount')}
+              </span>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M11.9465 5.45337H7.79316H4.05317C3.41317 5.45337 3.09317 6.2267 3.5465 6.68004L6.99983 10.1334C7.55317 10.6867 8.45317 10.6867 9.0065 10.1334L10.3198 8.82004L12.4598 6.68004C12.9065 6.2267 12.5865 5.45337 11.9465 5.45337Z" fill="#1A1A1A"/>
+            </svg>
+          </button>
+
+          {/* Wishlist */}
+          <Link
+            href="/wishlist"
+            className="flex items-center py-3 hover:opacity-80 transition-opacity"
+            onClick={onClose}
+          >
+            <div className="relative mr-1">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M7 3C4.239 3 2 5.216 2 7.95C2 10.157 2.875 15.395 11.488 20.69C11.6423 20.7839 11.8194 20.8335 12 20.8335C12.1806 20.8335 12.3577 20.7839 12.512 20.69C21.125 15.395 22 10.157 22 7.95C22 5.216 19.761 3 17 3C14.239 3 12 6 12 6C12 6 9.761 3 7 3Z" stroke="#888787" strokeWidth="1.66667" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <span className="absolute -top-1 -right-1 min-w-[11px] h-[11px] px-1 bg-[#00A3FF] border border-neutral-100 text-white text-[8px] font-normal rounded-full flex items-center justify-center">
+                5
+              </span>
+            </div>
+            <span className="text-base font-medium text-primary">
+              {t('wishlist')}
+            </span>
+          </Link>
+
+          {/* Language Selector */}
+          <div className="flex items-start">
+            <button
+              onClick={handleLanguageSwitch}
+              disabled={isPending}
+              className="flex items-center gap-1 py-1 disabled:opacity-50 hover:opacity-80 transition-opacity"
+            >
+              {locale === 'en' ? <USFlagIcon /> : <SaudiFlagIcon />}
+              <span className="text-xs font-normal text-primary">
+                {isPending ? '...' : locale.toUpperCase()}
+              </span>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="ml-20">
+                <path d="M11.9465 5.45337H7.79316H4.05317C3.41317 5.45337 3.09317 6.2267 3.5465 6.68004L6.99983 10.1334C7.55317 10.6867 8.45317 10.6867 9.0065 10.1334L10.3198 8.82004L12.4598 6.68004C12.9065 6.2267 12.5865 5.45337 11.9465 5.45337Z" fill="#1A1A1A"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
+  )
+}

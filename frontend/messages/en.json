@@ -1,0 +1,138 @@
+{
+  "header": {
+    "menu": "Menu",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "search": "Search",
+    "searchPlaceholder": "Search Product Here",
+    "account": "Account",
+    "myAccount": "My Account",
+    "wishlist": "Wishlist",
+    "cart": "Cart",
+    "language": "Language",
+    "switchLanguage": "Switch language",
+    "nav": {
+      "men": "Men",
+      "women": "Women",
+      "kids": "Kids",
+      "accessories": "Accessories",
+      "sport": "Sport"
+    }
+  },
+  "footer": {
+    "categories": "Categories",
+    "services": "Services",
+    "categoryItems": {
+      "men": "Men",
+      "women": "Women",
+      "kids": "Kids",
+      "accessories": "Accessories",
+      "sports": "Sports"
+    },
+    "serviceItems": {
+      "locate": "Locate our stores",
+      "returns": "Return & Refund Policy",
+      "shipping": "Shipping",
+      "privacy": "Privacy Policy",
+      "terms": "Terms of service"
+    }
+  },
+  "home": {
+    "featured": "FEATURED",
+    "products": "PRODUCTS",
+    "selectYour": "SELECT YOUR",
+    "style": "STYLE",
+    "now": "NOW",
+    "custom": "CUSTOM",
+    "made": "MADE",
+    "hero": {
+      "title": "ESSENTIAL ITEMS FOR",
+      "description": "Nulla accumsan habitasse aperiam cum dignissim. Quis vulputate blandit duis.",
+      "addToCart": "ADD TO CART"
+    },
+    "categories": {
+      "running": "RUNNING",
+      "training": "TRAINING",
+      "lifestyle": "LIFESTYLE"
+    },
+    "customMade": {
+      "form": {
+        "productType": "Product Type",
+        "gender": "Gender",
+        "color": "Color",
+        "colorPlaceholder": "Navy Blue",
+        "size": "Size",
+        "quantity": "Quantity",
+        "details": "Details",
+        "detailsPlaceholder": "Manchester united logo with name 'Yousef' on the back",
+        "images": "Images",
+        "selectFile": "Select File",
+        "maxFileSize": "Maximum size: 5MB, .png, .jpg, etc.",
+        "selectOption": "Select...",
+        "confirmOrder": "Confirm Order"
+      }
+    }
+  },
+  "shipping": {
+    "title": "SHIPPING POLICY:",
+    "orderProcessing": {
+      "title": "Order Processing Times",
+      "content": "Orders are typically processed within 3-5 working days inside Cairo, and within 5-7 working days outside Cairo."
+    },
+    "tracking": {
+      "title": "Tracking Your Order",
+      "content": "Once your order is shipped, you will receive a shipping confirmation email with tracking information."
+    },
+    "delivery": {
+      "title": "Delivery",
+      "content": "In order for items to be delivered, you'll receive a phone call from the shipping company to arrange the most convenient time for delivery. You'll be contacted after the confirmation mail has been sent."
+    },
+    "damages": {
+      "title": "Damages and Lost Packages",
+      "content": "If you receive a damaged package, please contact us immediately. We will work with you to resolve the issue as quickly as possible. Lost packages are rare, but they do happen. If you have not received your package within the estimated delivery window, please contact us. We will investigate the matter and work with you to resolve it."
+    }
+  },
+  "search": {
+    "title": "Search Results",
+    "placeholder": "Search products...",
+    "results": "results found",
+    "noResults": "No products found",
+    "pagination": {
+      "next": "Next",
+      "previous": "Previous"
+    }
+  },
+  "category": {
+    "men": "Men",
+    "women": "Women",
+    "kids": "Kids",
+    "accessories": "Accessories",
+    "sport": "Sport",
+    "filters": "Filters",
+    "colors": "Colors",
+    "sort": "Sort",
+    "sortOptions": {
+      "relevant": "Most Relevant",
+      "priceAsc": "Price: Low to High",
+      "priceDesc": "Price: High to Low",
+      "newest": "Newest"
+    }
+  },
+  "product": {
+    "productDetails": "Product Details",
+    "vendor": "Vendor",
+    "sku": "SKU",
+    "availability": "Availability",
+    "inStock": "In Stock",
+    "outOfStock": "Out of Stock",
+    "selectSize": "Select Size",
+    "selectColor": "Select Color",
+    "addToCart": "Add to Cart",
+    "addToWishlist": "Add to Wishlist",
+    "youMayAlsoLike": "You May Also Like",
+    "price": "Price",
+    "originalPrice": "Original Price",
+    "discount": "Discount",
+    "quantity": "Quantity"
+  }
+}

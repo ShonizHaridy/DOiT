@@ -1,0 +1,41 @@
+# IDE and editor files
+.vscode/
+.idea/
+.config/
+
+# Claude AI files
+.claude/
+
+# Personal notes (not for GitHub)
+Notes.md
+UpToDo.md
+
+# Temporary/generated files
+files_to_word_latest.py
+file_paths.docx
+check this about growingdotsbg.docx
+doit_header_prev.html
+
+# Backups
+*_backup/
+frontend_backup/
+backend_backup/
+
+# Environment variables
+*.env
+.env.local
+.env.production
+
+# OS files
+.DS_Store
+Thumbs.db
+
+
+# Ignoring test and dev data files
+# Ignore any .py or .docx as my scripts that i use with ai have them
+*.py
+*.docx
+
+# Ignoring specific files I want to ignore
+doit_header_prev.html
+

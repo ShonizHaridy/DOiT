@@ -1,0 +1,102 @@
+import type { Config } from 'tailwindcss'
+
+const config: Config = {
+  // ============================================
+  // CONTENT PATHS (optional - auto-detected in v4)
+  // ============================================
+  // Uncomment only if you need to override auto-detection
+  // content: [
+  //   './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+  //   './src/components/**/*.{js,ts,jsx,tsx,mdx}',
+  // ],
+
+  // ============================================
+  // THEME EXTENSIONS
+  // ============================================
+  theme: {
+    extend: {
+      // Your CSS @theme values work automatically!
+      // Only add here if you need JS-based config
+      
+      // CUSTOM BREAKPOINTS (uncomment when needed)
+      // screens: {
+      //   'xs': '480px',
+      //   'sm': '640px',
+      //   'md': '768px',
+      //   'lg': '1024px',
+      //   'xl': '1280px',
+      //   '2xl': '1440px',
+      // },
+
+      // CUSTOM FONT FAMILIES (uncomment when needed)
+      // fontFamily: {
+      //   'custom': ['YourFont', 'sans-serif'],
+      // },
+
+      // CUSTOM ANIMATIONS (uncomment when needed)
+      // keyframes: {
+      //   'slide-in': {
+      //     '0%': { transform: 'translateX(-100%)' },
+      //     '100%': { transform: 'translateX(0)' },
+      //   },
+      // },
+      // animation: {
+      //   'slide-in': 'slide-in 0.3s ease-out',
+      // },
+    },
+  },
+
+  // ============================================
+  // PLUGINS (Add when you need them)
+  // ============================================
+  plugins: [
+    // FORMS PLUGIN (for checkout, contact forms)
+    // Install: npm install @tailwindcss/forms
+    // require('@tailwindcss/forms'),
+
+    // TYPOGRAPHY PLUGIN (for blog, product descriptions)
+    // Install: npm install @tailwindcss/typography
+    // require('@tailwindcss/typography'),
+
+    // ASPECT RATIO PLUGIN (for product images)
+    // Install: npm install @tailwindcss/aspect-ratio
+    // require('@tailwindcss/aspect-ratio'),
+
+    // RTL PLUGIN (enhanced RTL support)
+    // Install: npm install tailwindcss-rtl
+    // require('tailwindcss-rtl'),
+
+    // CONTAINER QUERIES (for advanced responsive)
+    // Install: npm install @tailwindcss/container-queries
+    // require('@tailwindcss/container-queries'),
+  ],
+
+  // ============================================
+  // ADVANCED OPTIONS (rarely needed)
+  // ============================================
+  
+  // Safelist classes that are generated dynamically
+  // safelist: [
+  //   'bg-primary',
+  //   'text-primary',
+  //   {
+  //     pattern: /bg-(red|green|blue)-(100|200|300)/,
+  //   },
+  // ],
+
+  // Block certain utilities from being generated
+  // blocklist: [
+  //   'container',  // If you want to use your own container
+  // ],
+
+  // Dark mode strategy
+  // darkMode: 'class',  // or 'media'
+
+  // Prefix all Tailwind classes (e.g., tw-flex)
+  // prefix: 'tw-',
+
+  // Important strategy
+  // important: true,  // or '#app'
+}
+
+export default config
