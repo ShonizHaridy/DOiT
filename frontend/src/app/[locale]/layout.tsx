@@ -1,37 +1,59 @@
-import { NextIntlClientProvider } from 'next-intl';
-import { getMessages } from 'next-intl/server';
-import { notFound } from 'next/navigation';
-import Header from '@/components/layout/Header';
-import Footer from '@/components/layout/Footer';
-import DirProvider from '@/components/DirProvider';
-import GlobalProviders from '@/components/providers/GlobalProviders';
+import { NextIntlClientProvider } from 'next-intl'
+import { getMessages } from 'next-intl/server'
+import { notFound } from 'next/navigation'
+import { QueryProvider } from '@/providers/QueryProvider'
+import Header from '@/components/layout/Header'
+import Footer from '@/components/layout/Footer'
+import DirProvider from '@/components/DirProvider'
+import GlobalProviders from '@/components/providers/GlobalProviders'
+import { serverFetch } from '@/lib/server-fetch'
+import type { Category } from '@/types/category'
+import '../globals.css'
 
-const locales = ['en', 'ar'];
+const locales = ['en', 'ar']
+
+async function getCategories(): Promise<Category[]> {
+  try {
+    return await serverFetch<Category[]>('/categories?includeChildren=true', {
+      revalidate: 3600,
+      tags: ['categories'],
+    })
+  } catch {
+    return []
+  }
+}
 
 export default async function LocaleLayout({
   children,
   params
 }: {
-  children: React.ReactNode;
-  params: Promise<{ locale: string }>;
+  children: React.ReactNode
+  params: Promise<{ locale: string }>
 }) {
-  const { locale } = await params;
-  
+  const { locale } = await params
+
   if (!locales.includes(locale)) {
-    notFound();
+    notFound()
   }
 
-  const messages = await getMessages();
+  const messages = await getMessages()
+  const categories = await getCategories()
 
   return (
-    <NextIntlClientProvider locale={locale} messages={messages}>
-      <DirProvider>
-        <GlobalProviders>
-          <Header locale={locale} />
-          <main>{children}</main>
-          <Footer locale={locale} />
-        </GlobalProviders>
-      </DirProvider>
-    </NextIntlClientProvider>
-  );
+    <html lang={locale} dir={locale === 'ar' ? 'rtl' : 'ltr'}>
+      <body>
+        <QueryProvider>
+          <NextIntlClientProvider locale={locale} messages={messages}>
+            <DirProvider>
+              <GlobalProviders>
+                <Header locale={locale} categories={categories} />
+                <main>{children}</main>
+                <Footer locale={locale} />
+              </GlobalProviders>
+            </DirProvider>
+          </NextIntlClientProvider>
+        </QueryProvider>
+      </body>
+    </html>
+  )
 }

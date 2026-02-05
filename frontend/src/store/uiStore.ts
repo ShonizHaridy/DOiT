@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { Product } from '@/data/products'
+import type { Product } from '@/types/product'
 
 interface QuickAddState {
   isOpen: boolean

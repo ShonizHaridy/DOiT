@@ -35,6 +35,7 @@ export interface ProductFilters {
 export interface Product {
   id: string;
   sku: string;
+  productListId: string
   nameEn: string;
   nameAr: string;
   descriptionEn?: string;

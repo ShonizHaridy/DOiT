@@ -62,7 +62,7 @@ async function main() {
     data: {
       nameEn: 'Men',
       nameAr: 'رجال',
-      icon: '/icons/men.svg',
+      icon: '/uploads/icons/men.svg',
       status: true,
       order: 1,
     },
@@ -73,7 +73,7 @@ async function main() {
       categoryId: menCategory.id,
       nameEn: 'Footwear',
       nameAr: 'أحذية',
-      icon: '/icons/shoes.svg',
+      icon: '/uploads/icons/shoes.svg',
       order: 1,
     },
   });
@@ -110,7 +110,7 @@ async function main() {
       categoryId: menCategory.id,
       nameEn: 'Clothing',
       nameAr: 'ملابس',
-      icon: '/icons/clothing.svg',
+      icon: '/uploads/icons/clothing.svg',
       order: 2,
     },
   });
@@ -129,7 +129,7 @@ async function main() {
     data: {
       nameEn: 'Women',
       nameAr: 'نساء',
-      icon: '/icons/women.svg',
+      icon: '/uploads/icons/women.svg',
       status: true,
       order: 2,
     },
@@ -140,7 +140,7 @@ async function main() {
     data: {
       nameEn: 'Accessories',
       nameAr: 'إكسسوارات',
-      icon: '/icons/accessories.svg',
+      icon: '/uploads/icons/accessories.svg',
       status: true,
       order: 3,
     },
@@ -363,7 +363,7 @@ async function main() {
     await prisma.vendor.create({
       data: {
         name: vendors[i],
-        logoUrl: `/brands/brand${i + 1}.jpg`,
+        logoUrl: `/uploads/brands/brand${i + 1}.jpg`,
         order: i,
         status: true,
       },
@@ -373,7 +373,7 @@ async function main() {
   await prisma.bannerAd.createMany({
     data: [
       {
-        imageUrl: '/banners/black-friday.jpg',
+        imageUrl: '/uploads/banners/black-friday.png',
         titleEn: 'BLACK FRIDAY',
         titleAr: 'الجمعة السوداء',
         link: '/offers/black-friday',
@@ -381,7 +381,7 @@ async function main() {
         status: true,
       },
       {
-        imageUrl: '/banners/exclusive.jpg',
+        imageUrl: '/uploads/banners/exclusive.png',
         titleEn: 'EXCLUSIVE OFFERS',
         titleAr: 'عروض حصرية',
         link: '/offers/exclusive',

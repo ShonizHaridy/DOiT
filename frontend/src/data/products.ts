@@ -491,13 +491,16 @@ export const FILTER_OPTIONS = {
   ],
 }
 
+// Sort options matching backend SortBy enum
 export const SORT_OPTIONS = [
   { key: 'featured', label: 'Featured' },
   { key: 'best-selling', label: 'Best Selling' },
-  { key: 'a-z', label: 'Alphabetical A to Z' },
-  { key: 'z-a', label: 'Alphabetical Z to A' },
-  { key: 'price-low', label: 'Price: low to high' },
-  { key: 'price-high', label: 'Price: high to low' },
-  { key: 'date-old', label: 'Date: Old to New' },
-  { key: 'date-new', label: 'Date: New to Old' },
-]
+  { key: 'price-low', label: 'Price: Low to High' },
+  { key: 'price-high', label: 'Price: High to Low' },
+  { key: 'a-z', label: 'A-Z' },
+  { key: 'z-a', label: 'Z-A' },
+  { key: 'date-new', label: 'Newest First' },
+  { key: 'date-old', label: 'Oldest First' },
+] as const
+
+export type SortOption = typeof SORT_OPTIONS[number]['key']

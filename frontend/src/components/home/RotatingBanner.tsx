@@ -37,6 +37,8 @@ export default function RotatingBanner({ locale, banners }: RotatingBannerProps)
   ]
 
   useEffect(() => {
+
+    console.log("Hey we are here", banners)
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % BANNERS.length)
     }, 5000) // Change image every 5 seconds

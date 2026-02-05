@@ -134,5 +134,8 @@
     "originalPrice": "Original Price",
     "discount": "Discount",
     "quantity": "Quantity"
+  },
+  "wishlist": {
+    "title": "Wishlist"
   }
 }
