@@ -9,9 +9,11 @@ import { SearchNormal1, Heart, ShoppingCart, User, ArrowDown2, HamburgerMenu } f
 import { cn } from '@/lib/utils'
 import MobileMenu from './MobileMenu'
 import Logo from '../ui/Logo'
+import { Category } from '@/types/category'
 
 interface HeaderProps {
-  locale: string
+  locale: string,
+  categories: Category[]
 }
 
 // Data structure to match the design image
@@ -49,7 +51,7 @@ const navItems = [
   { key: 'sport', href: '/sport' },
 ]
 
-export default function Header({ locale }: HeaderProps) {
+export default function Header({ locale, categories }: HeaderProps) {
   const t = useTranslations('header')
   const router = useRouter()
   const pathname = usePathname()
