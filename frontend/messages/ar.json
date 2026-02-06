@@ -38,8 +38,16 @@
     }
   },
   "home": {
+    "featured": "مميز",
+    "products": "منتجات",
+    "selectYour": "اختر",
+    "style": "أسلوبك",
+    "now": "الآن",
+    "custom": "مخصص",
+    "made": "مصنوع",
     "hero": {
       "title": "العناصر الأساسية لـ",
+      "description": "أحدث مجموعة من معدات الرياضة المميزة.",
       "price": "990 جنيه",
       "addToCart": "أضف إلى السلة"
     },
@@ -61,7 +69,46 @@
       "images": "الصور",
       "selectFile": "اختر ملف",
       "maxSize": "الحد الأقصى للحجم 50 ميجابايت    الملفات المسموحة: jpg, png, xls",
-      "confirmOrder": "تأكيد الطلب"
+      "confirmOrder": "تأكيد الطلب",
+      "form": {
+        "productType": "نوع المنتج",
+        "productTypePlaceholder": "تي شيرت",
+        "productTypeOptions": {
+          "tshirt": "تي شيرت",
+          "jersey": "جيرسي",
+          "shoes": "أحذية",
+          "accessories": "إكسسوارات"
+        },
+        "gender": "الجنس",
+        "genderPlaceholder": "رجال",
+        "genderOptions": {
+          "men": "رجال",
+          "women": "نساء",
+          "kids": "أطفال"
+        },
+        "color": "اللون",
+        "colorPlaceholder": "اكتب اللون (مثال: أزرق ملكي)",
+        "size": "المقاس",
+        "sizePlaceholder": "كبير",
+        "sizeOptions": {
+          "s": "صغير",
+          "m": "متوسط",
+          "l": "كبير",
+          "xl": "كبير جدًا",
+          "xxl": "كبير جدًا جدًا"
+        },
+        "quantity": "الكمية",
+        "details": "التفاصيل",
+        "detailsPlaceholder": "اكتب تفاصيل التخصيص (مثل الاسم والرقم)",
+        "images": "الصور",
+        "dragImageHere": "اسحب الصورة هنا",
+        "or": "أو",
+        "selectFile": "اختر ملف",
+        "maxFileSize": "الحد الأقصى للحجم 50MB",
+        "allowedFiles": "الملفات المسموح بها: jpg, png, xls",
+        "selectOption": "اختر...",
+        "confirmOrder": "تأكيد الطلب"
+      }
     }
   },
   "shipping": {
@@ -125,5 +172,8 @@
     "originalPrice": "السعر الأصلي",
     "discount": "الخصم",
     "quantity": "الكمية"
+  },
+  "wishlist": {
+    "title": "المفضلة"
   }
 }

@@ -135,6 +135,17 @@ async function main() {
     },
   });
 
+  // Kids Category
+  const kidsCategory = await prisma.category.create({
+    data: {
+      nameEn: 'Kids',
+      nameAr: 'أطفال',
+      icon: '/uploads/icons/kids.svg',
+      status: true,
+      order: 3,
+    },
+  });
+
   // Accessories Category
   const accessoriesCategory = await prisma.category.create({
     data: {
@@ -142,7 +153,18 @@ async function main() {
       nameAr: 'إكسسوارات',
       icon: '/uploads/icons/accessories.svg',
       status: true,
-      order: 3,
+      order: 4,
+    },
+  });
+
+  // Sports Category
+  const sportsCategory = await prisma.category.create({
+    data: {
+      nameEn: 'Sports',
+      nameAr: 'رياضة',
+      icon: '/uploads/icons/sports.svg',
+      status: true,
+      order: 5,
     },
   });
 
@@ -424,9 +446,9 @@ async function main() {
 
   console.log('\n🎉 Database seeding completed successfully!');
   console.log('\n📊 Summary:');
-  console.log('- Categories: 3');
-  console.log('- SubCategories: ~4');
-  console.log('- Product Lists: ~7');
+  console.log('- Categories: 5');
+  console.log('- SubCategories: 3');
+  console.log('- Product Lists: 5');
   console.log('- Products: 5');
   console.log('- Product Variants: ~20');
   console.log('- Admin: 1');

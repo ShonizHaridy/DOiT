@@ -58,16 +58,40 @@
     "customMade": {
       "form": {
         "productType": "Product Type",
+        "productTypePlaceholder": "T shirt",
+        "productTypeOptions": {
+          "tshirt": "T shirt",
+          "jersey": "Jersey",
+          "shoes": "Shoes",
+          "accessories": "Accessories"
+        },
         "gender": "Gender",
+        "genderPlaceholder": "Men",
+        "genderOptions": {
+          "men": "Men",
+          "women": "Women",
+          "kids": "Kids"
+        },
         "color": "Color",
-        "colorPlaceholder": "Navy Blue",
+        "colorPlaceholder": "Type color (e.g., Royal Blue)",
         "size": "Size",
+        "sizePlaceholder": "Large",
+        "sizeOptions": {
+          "s": "Small",
+          "m": "Medium",
+          "l": "Large",
+          "xl": "X-Large",
+          "xxl": "XX-Large"
+        },
         "quantity": "Quantity",
         "details": "Details",
-        "detailsPlaceholder": "Manchester united logo with name 'Yousef' on the back",
+        "detailsPlaceholder": "Describe your customization (e.g., name and number on back)",
         "images": "Images",
+        "dragImageHere": "Drag the image here",
+        "or": "Or",
         "selectFile": "Select File",
-        "maxFileSize": "Maximum size: 5MB, .png, .jpg, etc.",
+        "maxFileSize": "Maximum size 50MB",
+        "allowedFiles": "Allowed files: jpg, png, xls",
         "selectOption": "Select...",
         "confirmOrder": "Confirm Order"
       }

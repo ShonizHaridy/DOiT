@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import AdminLayout from '@/components/admin/AdminLayout'
 import DataTable, { Column } from '@/components/admin/DataTable'
 import Pagination from '@/components/admin/Pagination'
 import SearchInput from '@/components/admin/SearchInput'
@@ -93,7 +92,6 @@ export default function CategoriesPage() {
   ]
 
   return (
-    <AdminLayout>
       <div className="p-6">
         {/* Content Card */}
         <div className="bg-white rounded-lg">
@@ -127,6 +125,5 @@ export default function CategoriesPage() {
           </div>
         </div>
       </div>
-    </AdminLayout>
   )
 }

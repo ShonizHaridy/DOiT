@@ -19,7 +19,8 @@ async function getCategories(): Promise<Category[]> {
       revalidate: 3600,
       tags: ['categories'],
     })
-  } catch {
+  } catch (e) {
+    console.log(e)
     return []
   }
 }
@@ -43,7 +44,7 @@ function parseFilters(filterString: string | undefined, category: Category) {
     sub.nameEn.toLowerCase() === parts[0]?.toLowerCase() ||
     sub.nameAr.toLowerCase() === parts[0]?.toLowerCase()
   )
-
+  console.log(category)
   if (!subCategory) {
     return { subCategoryId: undefined, productListId: undefined }
   }
@@ -116,6 +117,7 @@ function buildBreadcrumb(
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, category } = await params
   const categories = await getCategories()
+  console.log(categories)
   const categoryData = findCategoryBySlug(categories, category, locale)
 
   if (!categoryData) return { title: 'Not Found' }

@@ -12,7 +12,7 @@ export const getOffers = async (params?: {
   status?: boolean;
   type?: 'PERCENTAGE' | 'FIXED_AMOUNT';
 }): Promise<PaginatedOffers> => {
-  const { data } = await apiClient.get<PaginatedOffers>('/api/admin/offers', {
+  const { data } = await apiClient.get<PaginatedOffers>('/admin/offers', {
     params,
   });
   return data;
@@ -24,7 +24,7 @@ export const getOffer = async (id: string): Promise<Offer> => {
 };
 
 export const createOffer = async (data: CreateOfferRequest): Promise<Offer> => {
-  const response = await apiClient.post<Offer>('/api/admin/offers', data);
+  const response = await apiClient.post<Offer>('/admin/offers', data);
   return response.data;
 };
 

@@ -51,24 +51,24 @@ export default function CustomMadeForm({ locale }: CustomMadeFormProps) {
   }
 
   const productTypeOptions = [
-    { value: 't-shirt', label: 'T-Shirt' },
-    { value: 'jersey', label: 'Jersey' },
-    { value: 'shoes', label: 'Shoes' },
-    { value: 'accessories', label: 'Accessories' },
+    { value: 't-shirt', label: t('form.productTypeOptions.tshirt') },
+    { value: 'jersey', label: t('form.productTypeOptions.jersey') },
+    { value: 'shoes', label: t('form.productTypeOptions.shoes') },
+    { value: 'accessories', label: t('form.productTypeOptions.accessories') },
   ]
 
   const genderOptions = [
-    { value: 'men', label: 'Men' },
-    { value: 'women', label: 'Women' },
-    { value: 'kids', label: 'Kids' },
+    { value: 'men', label: t('form.genderOptions.men') },
+    { value: 'women', label: t('form.genderOptions.women') },
+    { value: 'kids', label: t('form.genderOptions.kids') },
   ]
 
   const sizeOptions = [
-    { value: 's', label: 'S' },
-    { value: 'm', label: 'M' },
-    { value: 'l', label: 'L' },
-    { value: 'xl', label: 'XL' },
-    { value: 'xxl', label: 'XXL' },
+    { value: 's', label: t('form.sizeOptions.s') },
+    { value: 'm', label: t('form.sizeOptions.m') },
+    { value: 'l', label: t('form.sizeOptions.l') },
+    { value: 'xl', label: t('form.sizeOptions.xl') },
+    { value: 'xxl', label: t('form.sizeOptions.xxl') },
   ]
 
   const maxImages = typeof window !== 'undefined' && window.innerWidth >= 1024 ? 3 : 2
@@ -82,7 +82,7 @@ export default function CustomMadeForm({ locale }: CustomMadeFormProps) {
       <div className="flex flex-col gap-4 lg:hidden">
         <Select
           label={t('form.productType')}
-          placeholder={t('form.selectOption')}
+          placeholder={t('form.productTypePlaceholder')}
           options={productTypeOptions}
           error={errors.productType?.message}
           {...register('productType', { required: true })}
@@ -97,7 +97,7 @@ export default function CustomMadeForm({ locale }: CustomMadeFormProps) {
 
         <Select
           label={t('form.gender')}
-          placeholder={t('form.selectOption')}
+          placeholder={t('form.genderPlaceholder')}
           options={genderOptions}
           error={errors.gender?.message}
           {...register('gender', { required: true })}
@@ -105,7 +105,7 @@ export default function CustomMadeForm({ locale }: CustomMadeFormProps) {
 
         <Select
           label={t('form.size')}
-          placeholder={t('form.selectOption')}
+          placeholder={t('form.sizePlaceholder')}
           options={sizeOptions}
           error={errors.size?.message}
           {...register('size')}
@@ -191,7 +191,7 @@ export default function CustomMadeForm({ locale }: CustomMadeFormProps) {
         <div className="flex flex-col gap-4">
           <Select
             label={t('form.productType')}
-            placeholder={t('form.selectOption')}
+            placeholder={t('form.productTypePlaceholder')}
             options={productTypeOptions}
             error={errors.productType?.message}
             {...register('productType', { required: true })}
@@ -217,7 +217,7 @@ export default function CustomMadeForm({ locale }: CustomMadeFormProps) {
         <div className="flex flex-col gap-4">
           <Select
             label={t('form.gender')}
-            placeholder={t('form.selectOption')}
+            placeholder={t('form.genderPlaceholder')}
             options={genderOptions}
             error={errors.gender?.message}
             {...register('gender', { required: true })}
@@ -225,7 +225,7 @@ export default function CustomMadeForm({ locale }: CustomMadeFormProps) {
 
           <Select
             label={t('form.size')}
-            placeholder={t('form.selectOption')}
+            placeholder={t('form.sizePlaceholder')}
             options={sizeOptions}
             error={errors.size?.message}
             {...register('size')}
@@ -301,7 +301,7 @@ export default function CustomMadeForm({ locale }: CustomMadeFormProps) {
       </div>
 
       {/* Submit Button */}
-      <div className="mt-6 flex justify-center bg-red-900">
+      <div className="mt-6 flex justify-center">
         <Button type="submit" size="lg">
           {t('form.confirmOrder')}
         </Button>

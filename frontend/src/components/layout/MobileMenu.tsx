@@ -9,22 +9,17 @@ import { cn } from '@/lib/utils'
 import Logo from '@/components/ui/Logo'
 import USFlagIcon from '@/components/ui/USFlagIcon'
 import SaudiFlagIcon from '@/components/ui/SaudiFlagIcon'
+import { getLocalized, type Locale } from '@/lib/i18n-utils'
+import type { Category } from '@/types/category'
 
 interface MobileMenuProps {
   isOpen: boolean
   onClose: () => void
   locale: string
+  categories: Category[]
 }
 
-const menuItems = [
-  { key: 'men', href: '/men' },
-  { key: 'women', href: '/women' },
-  { key: 'kids', href: '/kids' },
-  { key: 'accessories', href: '/accessories' },
-  { key: 'sport', href: '/sport' },
-]
-
-export default function MobileMenu({ isOpen, onClose, locale }: MobileMenuProps) {
+export default function MobileMenu({ isOpen, onClose, locale, categories }: MobileMenuProps) {
   const t = useTranslations('header')
   const menuRef = useRef<HTMLDivElement>(null)
   const isRTL = locale === 'ar'
@@ -131,31 +126,36 @@ export default function MobileMenu({ isOpen, onClose, locale }: MobileMenuProps)
 
         {/* Navigation Items */}
         <div className="flex flex-col gap-4 px-5 pb-6">
-          {menuItems.map((item) => (
-            <Link
-              key={item.key}
-              href={item.href}
-              className="flex items-center justify-between py-3 group"
-              onClick={onClose}
-            >
-              <span className="text-base font-medium text-primary uppercase tracking-wide">
-                {t(`nav.${item.key}`)}
-              </span>
-              <svg 
-                width="16" 
-                height="16" 
-                viewBox="0 0 16 16" 
-                fill="none" 
-                xmlns="http://www.w3.org/2000/svg"
-                className={cn(
-                  'transition-transform group-hover:translate-x-1',
-                  isRTL && 'rotate-180'
-                )}
+          {categories.map((category) => {
+            const categoryName = getLocalized(category, 'name', locale as Locale)
+            const categorySlug = categoryName.toLowerCase()
+
+            return (
+              <Link
+                key={category.id}
+                href={`/${categorySlug}`}
+                className="flex items-center justify-between py-3 group"
+                onClick={onClose}
               >
-                <path d="M10.1331 6.99328L8.81979 5.67995L6.67979 3.53995C6.22646 3.09328 5.45312 3.41328 5.45312 4.05328V8.20662V11.9466C5.45312 12.5866 6.22646 12.9066 6.67979 12.4533L10.1331 8.99995C10.6865 8.45328 10.6865 7.54662 10.1331 6.99328Z" fill="#1A1A1A"/>
-              </svg>
-            </Link>
-          ))}
+                <span className="text-base font-medium text-primary uppercase tracking-wide">
+                  {categoryName}
+                </span>
+                <svg 
+                  width="16" 
+                  height="16" 
+                  viewBox="0 0 16 16" 
+                  fill="none" 
+                  xmlns="http://www.w3.org/2000/svg"
+                  className={cn(
+                    'transition-transform group-hover:translate-x-1',
+                    isRTL && 'rotate-180'
+                  )}
+                >
+                  <path d="M10.1331 6.99328L8.81979 5.67995L6.67979 3.53995C6.22646 3.09328 5.45312 3.41328 5.45312 4.05328V8.20662V11.9466C5.45312 12.5866 6.22646 12.9066 6.67979 12.4533L10.1331 8.99995C10.6865 8.45328 10.6865 7.54662 10.1331 6.99328Z" fill="#1A1A1A"/>
+                </svg>
+              </Link>
+            )
+          })}
         </div>
 
         {/* Divider */}

@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import AdminLayout from '@/components/admin/AdminLayout'
 import { FormInput, FormPageHeader } from '@/components/admin/forms'
 import { categorySchema, CategoryFormData } from '@/lib/schemas/admin'
 import { Add, Category2 } from 'iconsax-reactjs'
@@ -172,7 +171,6 @@ export default function EditCategoryPage() {
   const handlePrevious = () => setCurrentLang('en')
 
   return (
-    <AdminLayout>
       <form onSubmit={handleSubmit(onSubmit)} className="p-6">
         <FormPageHeader
           title="Edit Category"
@@ -287,6 +285,5 @@ export default function EditCategoryPage() {
           </div>
         </div>
       </form>
-    </AdminLayout>
   )
 }

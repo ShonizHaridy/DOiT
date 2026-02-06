@@ -1,6 +1,4 @@
 import type { Metadata } from 'next'
-import { QueryProvider } from '@/providers/QueryProvider'
-import AdminLayout from '@/components/admin/AdminLayout'
 import '../globals.css'
 
 export const metadata: Metadata = {
@@ -17,17 +15,7 @@ export default function AdminRootLayout({
 }) {
   return (
     <html lang="en">
-      <body>
-        <QueryProvider>
-          <AdminLayout>{children}</AdminLayout>
-        </QueryProvider>
-      </body>
+      <body>{children}</body>
     </html>
   )
 }
-
-/* for ai
-"
-update it here, as this is the rootlayout for the pages of admin route and there is folders like login and dashboard and stuff, update it please to make it redirect and stuff
-"
-*/

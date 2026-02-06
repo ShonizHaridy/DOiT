@@ -15,7 +15,7 @@ import type {
 
 export const sendOtp = async (data: SendOtpRequest): Promise<MessageResponse> => {
   const response = await apiClient.post<MessageResponse>(
-    '/api/auth/customer/send-otp',
+    '/auth/customer/send-otp',
     data
   );
   return response.data;
@@ -23,7 +23,7 @@ export const sendOtp = async (data: SendOtpRequest): Promise<MessageResponse> =>
 
 export const verifyOtp = async (data: VerifyOtpRequest): Promise<AuthResponse> => {
   const response = await apiClient.post<AuthResponse>(
-    '/api/auth/customer/verify-otp',
+    '/auth/customer/verify-otp',
     data
   );
   return response.data;
@@ -35,7 +35,7 @@ export const verifyOtp = async (data: VerifyOtpRequest): Promise<AuthResponse> =
 
 export const adminLogin = async (data: AdminLoginRequest): Promise<AuthResponse> => {
   const response = await apiClient.post<AuthResponse>(
-    '/api/auth/admin/login',
+    '/auth/admin/login',
     data
   );
   return response.data;
@@ -45,7 +45,7 @@ export const adminResetRequest = async (
   data: AdminResetRequestRequest
 ): Promise<MessageResponse> => {
   const response = await apiClient.post<MessageResponse>(
-    '/api/auth/admin/reset-request',
+    '/auth/admin/reset-request',
     data
   );
   return response.data;
@@ -55,7 +55,7 @@ export const adminResetPassword = async (
   data: AdminResetPasswordRequest
 ): Promise<MessageResponse> => {
   const response = await apiClient.post<MessageResponse>(
-    '/api/auth/admin/reset-password',
+    '/auth/admin/reset-password',
     data
   );
   return response.data;

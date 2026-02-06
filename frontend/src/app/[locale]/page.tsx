@@ -26,12 +26,12 @@ export default async function HomePage({ params }: HomePageProps) {
   // This executes both requests in parallel
   const [homeContent, featuredProducts] = await Promise.all([
     // First Fetch
-    serverFetch<HomeContent>('/api/content/home', {
+    serverFetch<HomeContent>('/content/home', {
       revalidate: 60,
       tags: ['content', 'home'],
     }),
     // Second Fetch (Example)
-    serverFetch<Product[]>('/api/products/featured', {
+    serverFetch<Product[]>('/products/featured', {
       revalidate: 60,
       tags: ['products', 'featured'],
     })

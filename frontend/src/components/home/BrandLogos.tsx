@@ -16,38 +16,25 @@ const brands = [
 
 export default function BrandLogos() {
   return (
-    <div className="w-full bg-white overflow-hidden h-[58px] lg:h-[116px] py-1 lg:py-2">
-      <div className="flex items-center gap-8 lg:gap-12 animate-scroll">
-        {/* First set */}
-        {brands.map((brand, index) => (
-          <div
-            key={`${brand.name}-${index}`}
-            className="flex-shrink-0 flex items-center justify-center h-[50px] lg:h-[100px]"
-          >
-            <Image
-              src={brand.src}
-              alt={brand.name}
-              width={150}
-              height={100}
-              className="object-contain w-auto h-full"
-            />
-          </div>
-        ))}
-        {/* Duplicate for seamless loop */}
-        {brands.map((brand, index) => (
-          <div
-            key={`${brand.name}-duplicate-${index}`}
-            className="flex-shrink-0 flex items-center justify-center h-[50px] lg:h-[100px]"
-          >
-            <Image
-              src={brand.src}
-              alt={brand.name}
-              width={150}
-              height={100}
-              className="object-contain w-auto h-full"
-            />
-          </div>
-        ))}
+    <div className="w-full bg-white overflow-hidden py-1 lg:py-2">
+      <div className="flex items-center animate-scroll">
+        {/* Render 4 sets for seamless infinite scroll (handles wide screens) */}
+        {[...Array(4)].map((_, setIndex) =>
+          brands.map((brand, index) => (
+            <div
+              key={`${brand.name}-${setIndex}-${index}`}
+              className="flex-shrink-0 flex items-center justify-center h-[50px] lg:h-[100px] pr-8 lg:pr-12"
+            >
+              <Image
+                src={brand.src}
+                alt={brand.name}
+                width={150}
+                height={100}
+                className="object-contain w-auto h-full"
+              />
+            </div>
+          ))
+        )}
       </div>
     </div>
   )

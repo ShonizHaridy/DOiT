@@ -1,6 +1,5 @@
 'use client'
 
-import AdminLayout from '@/components/admin/AdminLayout'
 import { 
   User, 
   Edit2, 
@@ -28,7 +27,6 @@ const userProfile: UserProfile = {
 
 export default function ProfilePage() {
   return (
-    <AdminLayout>
       <div className="p-6">
         {/* Profile Card */}
         <div className="bg-white rounded-lg max-w-2xl">
@@ -99,6 +97,5 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
-    </AdminLayout>
   )
 }

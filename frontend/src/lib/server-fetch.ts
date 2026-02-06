@@ -1,7 +1,7 @@
 // lib/server-fetch.ts - SERVER ONLY
 import 'server-only';
 
-const API_BASE_URL = process.env.API_URL || 'http://localhost:4000';
+const API_BASE_URL = process.env.API_URL || 'http://localhost:4000/api';
 
 export async function serverFetch<T>(
   endpoint: string,

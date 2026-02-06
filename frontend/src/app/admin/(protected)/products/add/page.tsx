@@ -2,7 +2,6 @@
 
 import { useForm, useFieldArray, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import AdminLayout from '@/components/admin/AdminLayout'
 import { FormInput, FormTextarea, FormSelect, ImageUpload, FormPageHeader, UploadedImage } from '@/components/admin/forms'
 import { productSchema, ProductFormData } from '@/lib/schemas/admin'
 import { Add, Trash } from 'iconsax-reactjs'
@@ -114,7 +113,6 @@ export default function AddProductPage() {
   }
 
   return (
-    <AdminLayout>
       <form onSubmit={handleSubmit(onSubmit)} className="p-6">
         <FormPageHeader
           title="Add Product"
@@ -352,6 +350,5 @@ export default function AddProductPage() {
           </div>
         </div>
       </form>
-    </AdminLayout>
   )
 }

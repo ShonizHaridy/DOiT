@@ -11,14 +11,14 @@ import type {
 export const getProducts = async (
   filters?: ProductFilters
 ): Promise<PaginatedProducts> => {
-  const { data } = await apiClient.get<PaginatedProducts>('/api/products', {
+  const { data } = await apiClient.get<PaginatedProducts>('/products', {
     params: filters,
   });
   return data;
 };
 
 export const getFeaturedProducts = async (): Promise<Product[]> => {
-  const { data } = await apiClient.get<Product[]>('/api/products/featured');
+  const { data } = await apiClient.get<Product[]>('/products/featured');
   return data;
 };
 
@@ -34,7 +34,7 @@ export const getProduct = async (id: string): Promise<Product> => {
 // ============================================
 
 export const createProduct = async (data: CreateProductRequest): Promise<Product> => {
-  const response = await apiClient.post<Product>('/api/admin/products', data);
+  const response = await apiClient.post<Product>('/admin/products', data);
   return response.data;
 };
 

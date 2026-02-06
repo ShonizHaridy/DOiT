@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useTransition, useRef } from 'react'
-import type { ReactNode } from 'react'
 import { Link, useRouter, usePathname } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
 import Image from 'next/image'
@@ -9,47 +8,13 @@ import { SearchNormal1, Heart, ShoppingCart, User, ArrowDown2, HamburgerMenu } f
 import { cn } from '@/lib/utils'
 import MobileMenu from './MobileMenu'
 import Logo from '../ui/Logo'
-import { Category } from '@/types/category'
+import { getLocalized, type Locale } from '@/lib/i18n-utils'
+import type { Category } from '@/types/category'
 
 interface HeaderProps {
   locale: string,
   categories: Category[]
 }
-
-// Data structure to match the design image
-const megaMenuData = {
-  men: [
-    {
-      title: 'FOOTWEAR',
-      links: ['RUNNING', 'TRAINING', 'LIFESTYLE', 'SLIDES & FLIP FLOPS', 'FOOTBALL', 'BASKETBALL', 'INDOOR'],
-    },
-    {
-      title: 'ACCESSORIES',
-      links: ['BAGS', 'BOTTLES', 'SOCKS', 'HEAD WEAR'],
-    },
-    {
-      title: 'CLOTHING',
-      links: ['JACKETS', 'PANTS', 'SWIMWEAR', 'T.SHIRTS', 'TIGHTS', 'TRACKSUIT', 'TRACKTOP', 'SHORTS', 'HOODIE'],
-    },
-    {
-      title: 'BRANDS',
-      links: ['ADIDAS', 'NIKE', 'REEBOK', 'PUMA', 'BODY SCULPTURE', 'WILSON', 'JAN SPORT', 'LIVEUP', 'BABOLAT', 'TECHNOFIBRE', 'ASICS'],
-    },
-    {
-      title: 'SPORTS',
-      links: ['FOOTBALL', 'BASKETBALL', 'TENNIS', 'RUNNING', 'TRAINING', 'SQUASH', 'PADLE', 'SWIMMING', 'FITNESS', 'MOTOR SPORT'],
-    },
-  ],
-  // You can replicate this structure for women, kids, etc.
-}
-
-const navItems = [
-  { key: 'men', href: '/men' },
-  { key: 'women', href: '/women' },
-  { key: 'kids', href: '/kids' },
-  { key: 'accessories', href: '/accessories' },
-  { key: 'sport', href: '/sport' },
-]
 
 export default function Header({ locale, categories }: HeaderProps) {
   const t = useTranslations('header')
@@ -84,13 +49,17 @@ export default function Header({ locale, categories }: HeaderProps) {
     }
   }, [])
 
-  const handleMouseEnter = (key: string) => {
+  const handleMouseEnter = (category: Category) => {
     // Clear any pending close timeout
     if (closeTimeoutRef.current) {
       clearTimeout(closeTimeoutRef.current)
       closeTimeoutRef.current = null
     }
-    setOpenDropdown(key)
+    if (!category.subCategories || category.subCategories.length === 0) {
+      setOpenDropdown(null)
+      return
+    }
+    setOpenDropdown(category.id)
   }
 
   const handleMouseLeave = () => {
@@ -118,6 +87,12 @@ export default function Header({ locale, categories }: HeaderProps) {
       router.replace(pathname, { locale: newLocale })
     })
   }
+
+  // Get active category for mega menu
+  const activeCategory = categories.find(cat => cat.id === openDropdown)
+  const activeCategorySlug = activeCategory
+    ? getLocalized(activeCategory, 'name', locale as Locale).toLowerCase()
+    : ''
 
   return (
     <>
@@ -154,29 +129,42 @@ export default function Header({ locale, categories }: HeaderProps) {
             <div className="flex items-center gap-15 py-3">
               <Logo size="lg" href="/" />
               <nav className="flex items-center gap-6 lg:gap-6 py-3">
-                {navItems.map((item) => (
+                {categories.map((category) => {
+                  const categoryName = getLocalized(category, 'name', locale as Locale)
+                  const categorySlug = categoryName.toLowerCase()
+                  const hasSubCategories = (category.subCategories?.length ?? 0) > 0
+
+                  return (
                   <div 
-                    key={item.key}
-                    onMouseEnter={() => handleMouseEnter(item.key)}
+                    key={category.id}
+                    onMouseEnter={() => handleMouseEnter(category)}
                     onMouseLeave={handleMouseLeave}
                     className="h-full flex items-center"
                   >
-                    <button
+                    <Link
+                      href={`/${categorySlug}`}
                       className={cn(
                         "relative flex items-center gap-1 text-white font-outfit font-bold text-xl hover:text-secondary transition-colors py-2",
-                        openDropdown === item.key && "text-secondary"
+                        hasSubCategories && openDropdown === category.id && "text-secondary"
                       )}
                     >
-                      <span>{t(`nav.${item.key}`)}</span>
-                      <ArrowDown2 size={16} color="currentColor" className={cn("transition-transform", openDropdown === item.key && "rotate-180")} />
+                      <span>{categoryName}</span>
+                      {hasSubCategories && (
+                        <ArrowDown2
+                          size={16}
+                          color="currentColor"
+                          className={cn("transition-transform", openDropdown === category.id && "rotate-180")}
+                        />
+                      )}
                       
                       {/* Active underline indicator from design */}
-                      {openDropdown === item.key && (
+                      {hasSubCategories && openDropdown === category.id && (
                         <span className="absolute bottom-0 inset-x-0 h-0.5 bg-secondary" />
                       )}
-                    </button>
+                    </Link>
                   </div>
-                ))}
+                  )
+                })}
               </nav>
             </div>
 
@@ -239,25 +227,40 @@ export default function Header({ locale, categories }: HeaderProps) {
         >
           <div className="max-w-[1440px] mx-auto px-10 py-12">
             <div className="grid grid-cols-5 gap-8">
-              {openDropdown && megaMenuData[openDropdown as keyof typeof megaMenuData]?.map((section) => (
-                <div key={section.title} className="flex flex-col gap-6">
-                  <h3 className="font-outfit font-bold text-lg text-black tracking-tight">
-                    {section.title}
-                  </h3>
-                  <ul className="flex flex-col gap-4">
-                    {section.links.map((link) => (
-                      <li key={link}>
-                        <Link 
-                          href="#" 
-                          className="font-outfit text-sm text-[#424242] hover:text-secondary transition-colors block"
-                        >
-                          {link}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
+              {activeCategory?.subCategories?.map((subCategory) => {
+                const subCategoryName = getLocalized(subCategory, 'name', locale as Locale)
+                const subCategorySlug = subCategoryName.toLowerCase()
+
+                return (
+                  <div key={subCategory.id} className="flex flex-col gap-6">
+                    <h3 className="font-outfit font-bold text-lg text-black tracking-tight">
+                      <Link
+                        href={`/${activeCategorySlug}?filters=${subCategorySlug}`}
+                        className="hover:text-secondary transition-colors"
+                      >
+                        {subCategoryName.toUpperCase()}
+                      </Link>
+                    </h3>
+                    <ul className="flex flex-col gap-4">
+                      {subCategory.productLists?.map((productList) => {
+                        const productListName = getLocalized(productList, 'name', locale as Locale)
+                        const productListSlug = productListName.toLowerCase()
+
+                        return (
+                          <li key={productList.id}>
+                            <Link 
+                              href={`/${activeCategorySlug}?filters=${subCategorySlug}.${productListSlug}`}
+                              className="font-outfit text-sm text-[#424242] hover:text-secondary transition-colors block"
+                            >
+                              {productListName.toUpperCase()}
+                            </Link>
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  </div>
+                )
+              })}
             </div>
           </div>
         </div>
@@ -269,6 +272,7 @@ export default function Header({ locale, categories }: HeaderProps) {
         isOpen={isMobileMenuOpen}
         onClose={() => setIsMobileMenuOpen(false)}
         locale={locale}
+        categories={categories}
       />
     </>
   )

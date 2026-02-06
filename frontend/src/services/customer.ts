@@ -14,7 +14,7 @@ import type {
 // ============================================
 
 export const getCustomerProfile = async (): Promise<CustomerProfile> => {
-  const { data } = await apiClient.get<CustomerProfile>('/api/customer/profile');
+  const { data } = await apiClient.get<CustomerProfile>('/customer/profile');
   return data;
 };
 
@@ -22,7 +22,7 @@ export const updateProfile = async (
   data: UpdateProfileRequest
 ): Promise<CustomerProfile> => {
   const response = await apiClient.put<CustomerProfile>(
-    '/api/customer/profile',
+    '/customer/profile',
     data
   );
   return response.data;
@@ -33,14 +33,14 @@ export const updateProfile = async (
 // ============================================
 
 export const getAddresses = async (): Promise<Address[]> => {
-  const { data } = await apiClient.get<Address[]>('/api/customer/addresses');
+  const { data } = await apiClient.get<Address[]>('/customer/addresses');
   return data;
 };
 
 export const createAddress = async (
   data: CreateAddressRequest
 ): Promise<Address> => {
-  const response = await apiClient.post<Address>('/api/customer/addresses', data);
+  const response = await apiClient.post<Address>('/customer/addresses', data);
   return response.data;
 };
 
@@ -71,7 +71,7 @@ export const getAllCustomers = async (params?: {
   search?: string;
   status?: 'ACTIVE' | 'INACTIVE' | 'BLOCKED';
 }): Promise<PaginatedCustomers> => {
-  const { data } = await apiClient.get<PaginatedCustomers>('/api/admin/customers', {
+  const { data } = await apiClient.get<PaginatedCustomers>('/admin/customers', {
     params,
   });
   return data;
@@ -95,7 +95,7 @@ export const updateCustomerStatus = async (
 
 export const getCustomerStatistics = async (): Promise<CustomerStatistics> => {
   const { data } = await apiClient.get<CustomerStatistics>(
-    '/api/admin/customers/statistics'
+    '/admin/customers/statistics'
   );
   return data;
 };

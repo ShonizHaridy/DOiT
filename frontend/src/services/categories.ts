@@ -5,7 +5,7 @@ import type { Category, CreateCategoryRequest, CreateProductListRequest, CreateS
 export const getCategories = async (
   includeChildren: boolean = false
 ): Promise<Category[]> => {
-  const { data } = await apiClient.get<Category[]>('/api/categories', {
+  const { data } = await apiClient.get<Category[]>('/categories', {
     params: { includeChildren: includeChildren.toString() },
   });
   return data;
@@ -23,7 +23,7 @@ export const getFilterOptions = async (): Promise<{
   colors: string[];
   sizes: string[];
 }> => {
-  const { data } = await apiClient.get('/api/categories/filters');
+  const { data } = await apiClient.get('/categories/filters');
   return data;
 };
 
@@ -34,7 +34,7 @@ export const getFilterOptions = async (): Promise<{
 // ============================================
 
 export const createCategory = async (data: CreateCategoryRequest): Promise<Category> => {
-  const response = await apiClient.post<Category>('/api/admin/categories', data);
+  const response = await apiClient.post<Category>('/admin/categories', data);
   return response.data;
 };
 
@@ -53,7 +53,7 @@ export const deleteCategory = async (id: string): Promise<void> => {
 export const reorderCategories = async (
   orders: { id: string; order: number }[]
 ): Promise<void> => {
-  await apiClient.patch('/api/admin/categories/reorder', { orders });
+  await apiClient.patch('/admin/categories/reorder', { orders });
 };
 
 export const createSubCategory = async (

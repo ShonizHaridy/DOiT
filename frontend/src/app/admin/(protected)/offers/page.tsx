@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import AdminLayout from '@/components/admin/AdminLayout'
 import DataTable, { Column } from '@/components/admin/DataTable'
 import Pagination from '@/components/admin/Pagination'
 import SearchInput from '@/components/admin/SearchInput'
@@ -186,7 +185,6 @@ export default function OffersPage() {
   ]
 
   return (
-    <AdminLayout>
       <div className="p-6">
         {/* Header */}
         <div className="flex items-center justify-end mb-6">
@@ -229,6 +227,5 @@ export default function OffersPage() {
           </div>
         </div>
       </div>
-    </AdminLayout>
   )
 }

@@ -1,6 +1,5 @@
 'use client'
 
-import AdminLayout from '@/components/admin/AdminLayout'
 import DataTable, { Column } from '@/components/admin/DataTable'
 
 interface ContentSection {
@@ -51,7 +50,6 @@ export default function ContentPage() {
   ]
 
   return (
-    <AdminLayout>
       <div className="p-6">
         {/* Content Card */}
         <div className="bg-white rounded-lg">
@@ -68,6 +66,5 @@ export default function ContentPage() {
           />
         </div>
       </div>
-    </AdminLayout>
   )
 }

@@ -9,7 +9,7 @@ import type {
 
 // Guest order creation (no auth required)
 export const createGuestOrder = async (data: CreateOrderRequest): Promise<Order> => {
-  const response = await apiClient.post<Order>('/api/orders/guest', data);
+  const response = await apiClient.post<Order>('/orders/guest', data);
   return response.data;
 };
 
@@ -28,7 +28,7 @@ export const getOrders = async (params?: {
   limit?: number;
   status?: string;
 }): Promise<PaginatedOrders> => {
-  const { data } = await apiClient.get<PaginatedOrders>('/api/orders', {
+  const { data } = await apiClient.get<PaginatedOrders>('/orders', {
     params,
   });
   return data;
@@ -40,7 +40,7 @@ export const getOrder = async (id: string): Promise<Order> => {
 };
 
 export const createOrder = async (data: CreateOrderRequest): Promise<Order> => {
-  const response = await apiClient.post<Order>('/api/orders', data);
+  const response = await apiClient.post<Order>('/orders', data);
   return response.data;
 };
 
@@ -58,7 +58,7 @@ export const getAllOrders = async (params?: {
   dateFrom?: string;
   dateTo?: string;
 }): Promise<PaginatedOrders> => {
-  const { data } = await apiClient.get<PaginatedOrders>('/api/admin/orders', {
+  const { data } = await apiClient.get<PaginatedOrders>('/admin/orders', {
     params,
   });
   return data;
@@ -92,7 +92,7 @@ export const getOrderStatistics = async (params?: {
   dateTo?: string;
 }): Promise<OrderStatistics> => {
   const { data } = await apiClient.get<OrderStatistics>(
-    '/api/admin/orders/statistics',
+    '/admin/orders/statistics',
     { params }
   );
   return data;

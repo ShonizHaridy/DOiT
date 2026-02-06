@@ -11,7 +11,7 @@ export const getDashboardStats = async (params?: {
   dateTo?: string;
 }): Promise<DashboardStats> => {
   const { data } = await apiClient.get<DashboardStats>(
-    '/api/admin/analytics/dashboard',
+    '/admin/analytics/dashboard',
     { params }
   );
   return data;
@@ -21,7 +21,7 @@ export const getSalesChart = async (params: {
   period: 'week' | 'month' | 'year';
 }): Promise<SalesChart> => {
   const { data } = await apiClient.get<SalesChart>(
-    '/api/admin/analytics/sales',
+    '/admin/analytics/sales',
     { params }
   );
   return data;
@@ -33,7 +33,7 @@ export const getTopProducts = async (params?: {
   dateTo?: string;
 }): Promise<TopProducts> => {
   const { data } = await apiClient.get<TopProducts>(
-    '/api/admin/analytics/top-products',
+    '/admin/analytics/top-products',
     { params }
   );
   return data;
@@ -41,7 +41,7 @@ export const getTopProducts = async (params?: {
 
 export const getRecentOrders = async (limit: number = 10): Promise<RecentOrders> => {
   const { data } = await apiClient.get<RecentOrders>(
-    '/api/admin/analytics/recent-orders',
+    '/admin/analytics/recent-orders',
     { params: { limit } }
   );
   return data;
