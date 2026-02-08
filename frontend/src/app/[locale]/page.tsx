@@ -22,6 +22,7 @@ interface HomePageProps {
 export default async function HomePage({ params }: HomePageProps) {
   const { locale } = await params
   const t = await getTranslations('home')
+  const tProduct = await getTranslations('product')
 
   // This executes both requests in parallel
   const [homeContent, featuredProducts] = await Promise.all([
@@ -37,10 +38,38 @@ export default async function HomePage({ params }: HomePageProps) {
     })
   ])
 
+  const joinTitle = (...parts: string[]) => parts.filter(Boolean).join(' ')
+  const getHighlightRange = (text: string, highlight: string) => {
+    const start = text.indexOf(highlight)
+    if (start === -1) {
+      return { start: 0, end: Math.max(0, text.length - 1) }
+    }
+    return { start, end: start + highlight.length - 1 }
+  }
+
+  const featuredTitle = joinTitle(t('featured'), t('products'))
+  const featuredRange = getHighlightRange(featuredTitle, t('featured'))
+  const selectTitle = joinTitle(t('selectYour'), t('style'), t('now'))
+  const selectRange = getHighlightRange(selectTitle, t('style'))
+  const customTitle = joinTitle(t('custom'), t('made'))
+  const customRange = getHighlightRange(customTitle, t('custom'))
+  const productCardLabels = {
+    colors: tProduct('colors'),
+    sizes: tProduct('sizes'),
+    gender: tProduct('gender'),
+    price: tProduct('price'),
+    genderValues: {
+      MEN: tProduct('genderValues.men'),
+      WOMEN: tProduct('genderValues.women'),
+      KIDS: tProduct('genderValues.kids'),
+      UNISEX: tProduct('genderValues.unisex'),
+    },
+  }
+
   return (
     <div className="w-full bg-white">
       {/* Hero Section */}
-      <HeroSection locale={locale} heroSectionProducts={homeContent.heroSectionProducts} />
+      <HeroSection locale={locale} heroSection={homeContent.heroSection} />
 
       {/* Brand Logos */}
       <BrandLogos />
@@ -66,16 +95,16 @@ export default async function HomePage({ params }: HomePageProps) {
             {' '}{t('products')} */}
             <RedBlockText
               blocks={[{
-                startChar: 0,
+                startChar: featuredRange.start,
                 top: "40%",
-                endChar: 7,
+                endChar: featuredRange.end,
                 paddingStart: 10,
                 height: "85%",
               }]}
               lgBlocks={[{
-                startChar: 0,
+                startChar: featuredRange.start,
                 top: "40%",
-                endChar: 4,
+                endChar: featuredRange.end,
                 paddingStart: 20,
                 paddingEnd: -2,
                 height: "80%",
@@ -83,7 +112,7 @@ export default async function HomePage({ params }: HomePageProps) {
               ]}
               className="text-2xl font-bold"
             >
-              FEATURED PRODUCTS
+              {featuredTitle}
             </RedBlockText>
           </h2>
         </div>
@@ -102,6 +131,7 @@ export default async function HomePage({ params }: HomePageProps) {
               colors={product.colors}
               sizes={product.sizes}
               gender={product.gender}
+              labels={productCardLabels}
             />
           ))}
         </div>
@@ -115,9 +145,9 @@ export default async function HomePage({ params }: HomePageProps) {
           <h2 className="font-roboto-condensed font-bold text-2xl md:text-[40px] uppercase text-primary">
             <RedBlockText
               blocks={[{
-                startChar: 16,
+                startChar: selectRange.start,
                 top: "-30%",
-                endChar: 20,
+                endChar: selectRange.end,
                 paddingStart: 10,
                 height: "115%",
               }]}
@@ -130,7 +160,7 @@ export default async function HomePage({ params }: HomePageProps) {
               // }]}
               className="text-2xl font-bold"
             >
-              SELECT YOUR STYLE NOW
+              {selectTitle}
             </RedBlockText>
           </h2>
         </div>
@@ -140,7 +170,8 @@ export default async function HomePage({ params }: HomePageProps) {
           {STYLE_CATEGORIES.map((category) => (
             <Link
               key={category.key}
-              href={`/${locale}${category.href}`}
+              // href={`/${locale}${category.href}`}
+              href='#'
               className="relative group overflow-hidden rounded-lg md:shrink-0 md:w-[641px]"
             >
               <div className="relative h-80 md:h-[400px] w-full overflow-hidden">
@@ -195,23 +226,23 @@ export default async function HomePage({ params }: HomePageProps) {
             <h2 className="font-roboto-condensed font-bold text-2xl md:text-[40px] uppercase text-primary">
               <RedBlockText
                 blocks={[{
-                  startChar: 0,
+                  startChar: customRange.start,
                   top: "40%",
-                  endChar: 3,
+                  endChar: customRange.end,
                   paddingStart: 4,
                   paddingEnd: 9,
                   height: "80%",
                 }]}
                 lgBlocks={[{
-                  startChar: 0,
+                  startChar: customRange.start,
                   top: "40%",
-                  endChar: 1,
+                  endChar: customRange.end,
                   paddingStart: 24,
                   paddingEnd: 2,
                   height: "80%",
                 }]}
               >
-                Custom Made
+                {customTitle}
               </RedBlockText>
             </h2>
           </div>

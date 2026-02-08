@@ -12,7 +12,7 @@ export const getCategories = async (
 };
 
 export const getCategory = async (id: string): Promise<Category> => {
-  const { data } = await apiClient.get<Category>(`/api/categories/${id}`);
+  const { data } = await apiClient.get<Category>(`/categories/${id}`);
   return data;
 };
 
@@ -42,12 +42,12 @@ export const updateCategory = async (
   id: string,
   data: UpdateCategoryRequest
 ): Promise<Category> => {
-  const response = await apiClient.put<Category>(`/api/admin/categories/${id}`, data);
+  const response = await apiClient.put<Category>(`/admin/categories/${id}`, data);
   return response.data;
 };
 
 export const deleteCategory = async (id: string): Promise<void> => {
-  await apiClient.delete(`/api/admin/categories/${id}`);
+  await apiClient.delete(`/admin/categories/${id}`);
 };
 
 export const reorderCategories = async (
@@ -61,7 +61,7 @@ export const createSubCategory = async (
   data: CreateSubCategoryRequest
 ): Promise<SubCategory> => {
   const response = await apiClient.post<SubCategory>(
-    `/api/admin/categories/${categoryId}/sub-categories`,
+    `/admin/categories/${categoryId}/sub-categories`,
     data
   );
   return response.data;
@@ -72,14 +72,14 @@ export const updateSubCategory = async (
   data: UpdateSubCategoryRequest
 ): Promise<SubCategory> => {
   const response = await apiClient.put<SubCategory>(
-    `/api/admin/sub-categories/${id}`,
+    `/admin/sub-categories/${id}`,
     data
   );
   return response.data;
 };
 
 export const deleteSubCategory = async (id: string): Promise<void> => {
-  await apiClient.delete(`/api/admin/sub-categories/${id}`);
+  await apiClient.delete(`/admin/sub-categories/${id}`);
 };
 
 export const createProductList = async (
@@ -87,7 +87,7 @@ export const createProductList = async (
   data: CreateProductListRequest
 ): Promise<ProductList> => {
   const response = await apiClient.post<ProductList>(
-    `/api/admin/sub-categories/${subCategoryId}/product-lists`,
+    `/admin/sub-categories/${subCategoryId}/product-lists`,
     data
   );
   return response.data;
@@ -98,12 +98,12 @@ export const updateProductList = async (
   data: UpdateProductListRequest
 ): Promise<ProductList> => {
   const response = await apiClient.put<ProductList>(
-    `/api/admin/product-lists/${id}`,
+    `/admin/product-lists/${id}`,
     data
   );
   return response.data;
 };
 
 export const deleteProductList = async (id: string): Promise<void> => {
-  await apiClient.delete(`/api/admin/product-lists/${id}`);
+  await apiClient.delete(`/admin/product-lists/${id}`);
 };

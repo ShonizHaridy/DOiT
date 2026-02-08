@@ -3,19 +3,20 @@ import type {
   Order,
   PaginatedOrders,
   CreateOrderRequest,
+  CreateGuestOrderRequest,
   OrderStatistics,
   OrderStatus,
 } from '@/types/order';
 
 // Guest order creation (no auth required)
-export const createGuestOrder = async (data: CreateOrderRequest): Promise<Order> => {
+export const createGuestOrder = async (data: CreateGuestOrderRequest): Promise<Order> => {
   const response = await apiClient.post<Order>('/orders/guest', data);
   return response.data;
 };
 
 // Track guest order by ID
 export const getGuestOrder = async (orderId: string, email: string): Promise<Order> => {
-  const { data } = await apiClient.post<Order>(`/api/orders/guest/${orderId}/track`, {
+  const { data } = await apiClient.post<Order>(`/orders/guest/${orderId}/track`, {
     email,
   });
   return data;
@@ -35,7 +36,7 @@ export const getOrders = async (params?: {
 };
 
 export const getOrder = async (id: string): Promise<Order> => {
-  const { data } = await apiClient.get<Order>(`/api/orders/${id}`);
+  const { data } = await apiClient.get<Order>(`/orders/${id}`);
   return data;
 };
 
@@ -70,7 +71,7 @@ export const updateOrderStatus = async (
   notes?: string
 ): Promise<Order> => {
   const response = await apiClient.patch<Order>(
-    `/api/admin/orders/${orderId}/status`,
+    `/admin/orders/${orderId}/status`,
     { status, notes }
   );
   return response.data;
@@ -81,7 +82,7 @@ export const updateTrackingNumber = async (
   trackingNumber: string
 ): Promise<Order> => {
   const response = await apiClient.patch<Order>(
-    `/api/admin/orders/${orderId}/tracking`,
+    `/admin/orders/${orderId}/tracking`,
     { trackingNumber }
   );
   return response.data;

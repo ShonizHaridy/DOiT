@@ -3,10 +3,12 @@ import {
   UnauthorizedException,
   BadRequestException,
   NotFoundException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
+import { EmailService } from './email.service';
 import {
   SendOtpDto,
   VerifyOtpDto,
@@ -22,6 +24,7 @@ export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
+    private emailService: EmailService,
   ) {}
 
   // ============================================
@@ -48,8 +51,9 @@ export class AuthService {
 
     // Generate 6-digit OTP
     const code = this.generateOtpCode();
+    const otpExpiryMinutes = Number(process.env.OTP_EXPIRY_MINUTES || 10);
     const expiresAt = new Date(
-      Date.now() + Number(process.env.OTP_EXPIRY_MINUTES || 10) * 60 * 1000,
+      Date.now() + otpExpiryMinutes * 60 * 1000,
     );
 
     // Delete any existing unverified OTPs for this customer
@@ -69,14 +73,19 @@ export class AuthService {
       },
     });
 
-    // TODO: Send OTP via email
     // For now, we'll return it in development mode
     if (process.env.NODE_ENV === 'development') {
       console.log(`OTP for ${email}: ${code}`);
     }
 
-    // In production, you would send email here:
-    // await this.emailService.sendOtp(email, code);
+    try {
+      await this.emailService.sendOtp(email, code, otpExpiryMinutes);
+    } catch (error) {
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Failed to send OTP email', error);
+      }
+      throw new InternalServerErrorException('Failed to send OTP email');
+    }
 
     return {
       message: 'OTP code sent successfully to your email',
@@ -203,9 +212,17 @@ export class AuthService {
       data: { resetCode },
     });
 
-    // TODO: Send reset code via email
     if (process.env.NODE_ENV === 'development') {
       console.log(`Reset code for ${email}: ${resetCode}`);
+    }
+
+    try {
+      await this.emailService.sendAdminResetCode(email, resetCode);
+    } catch (error) {
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Failed to send reset code email', error);
+      }
+      throw new InternalServerErrorException('Failed to send reset code email');
     }
 
     return {

@@ -14,6 +14,14 @@ export interface CreateOrderRequest {
   couponCode?: string;
 }
 
+export interface CreateGuestOrderRequest extends CreateOrderRequest {
+  email: string;
+  fullName: string;
+  phoneNumber: string;
+  addressLabel: string;
+  fullAddress: string;
+}
+
 // Response types
 export interface OrderItem {
   id: string;

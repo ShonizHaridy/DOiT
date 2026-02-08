@@ -33,14 +33,14 @@ export const updateHeroSection = async (
   data: UpdateHeroSectionRequest
 ): Promise<HeroSection> => {
   const response = await apiClient.put<HeroSection>(
-    `/api/admin/content/hero-sections/${id}`,
+    `/admin/content/hero-sections/${id}`,
     data
   );
   return response.data;
 };
 
 export const deleteHeroSection = async (id: string): Promise<void> => {
-  await apiClient.delete(`/api/admin/content/hero-sections/${id}`);
+  await apiClient.delete(`/admin/content/hero-sections/${id}`);
 };
 
 export const reorderHeroSections = async (
@@ -60,14 +60,14 @@ export const updateVendor = async (
   data: UpdateVendorRequest
 ): Promise<Vendor> => {
   const response = await apiClient.put<Vendor>(
-    `/api/admin/content/vendors/${id}`,
+    `/admin/content/vendors/${id}`,
     data
   );
   return response.data;
 };
 
 export const deleteVendor = async (id: string): Promise<void> => {
-  await apiClient.delete(`/api/admin/content/vendors/${id}`);
+  await apiClient.delete(`/admin/content/vendors/${id}`);
 };
 
 // Banner Ads
@@ -84,14 +84,14 @@ export const updateBannerAd = async (
   data: UpdateBannerAdRequest
 ): Promise<Banner> => {
   const response = await apiClient.put<Banner>(
-    `/api/admin/content/banners/${id}`,
+    `/admin/content/banners/${id}`,
     data
   );
   return response.data;
 };
 
 export const deleteBannerAd = async (id: string): Promise<void> => {
-  await apiClient.delete(`/api/admin/content/banners/${id}`);
+  await apiClient.delete(`/admin/content/banners/${id}`);
 };
 
 // Popup Offers
@@ -110,12 +110,12 @@ export const updatePopupOffer = async (
   data: UpdatePopupOfferRequest
 ): Promise<PopupOffer> => {
   const response = await apiClient.put<PopupOffer>(
-    `/api/admin/content/popup-offers/${id}`,
+    `/admin/content/popup-offers/${id}`,
     data
   );
   return response.data;
 };
 
 export const deletePopupOffer = async (id: string): Promise<void> => {
-  await apiClient.delete(`/api/admin/content/popup-offers/${id}`);
+  await apiClient.delete(`/admin/content/popup-offers/${id}`);
 };

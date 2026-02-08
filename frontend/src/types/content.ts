@@ -36,7 +36,7 @@ export interface Banner {
 }
 
 export interface HomeContent {
-  heroSectionProducts: HeroSectionProduct[]
+  heroSection: HeroSectionProduct
   vendors: Vendor[]
   banners: Banner[]
 }

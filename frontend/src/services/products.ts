@@ -23,7 +23,7 @@ export const getFeaturedProducts = async (): Promise<Product[]> => {
 };
 
 export const getProduct = async (id: string): Promise<Product> => {
-  const { data } = await apiClient.get<Product>(`/api/products/${id}`);
+  const { data } = await apiClient.get<Product>(`/products/${id}`);
   return data;
 };
 
@@ -42,12 +42,12 @@ export const updateProduct = async (
   id: string,
   data: UpdateProductRequest
 ): Promise<Product> => {
-  const response = await apiClient.put<Product>(`/api/admin/products/${id}`, data);
+  const response = await apiClient.put<Product>(`/admin/products/${id}`, data);
   return response.data;
 };
 
 export const deleteProduct = async (id: string): Promise<void> => {
-  await apiClient.delete(`/api/admin/products/${id}`);
+  await apiClient.delete(`/admin/products/${id}`);
 };
 
 export const toggleProductStatus = async (
@@ -55,7 +55,7 @@ export const toggleProductStatus = async (
   status: 'PUBLISHED' | 'DRAFT' | 'ARCHIVED'
 ): Promise<Product> => {
   const response = await apiClient.patch<Product>(
-    `/api/admin/products/${id}/status`,
+    `/admin/products/${id}/status`,
     { status }
   );
   return response.data;
@@ -66,7 +66,7 @@ export const uploadProductImage = async (
   formData: FormData
 ): Promise<{ url: string }> => {
   const response = await apiClient.post<{ url: string }>(
-    `/api/admin/products/${productId}/images`,
+    `/admin/products/${productId}/images`,
     formData,
     {
       headers: { 'Content-Type': 'multipart/form-data' },
@@ -79,7 +79,7 @@ export const deleteProductImage = async (
   productId: string,
   imageId: string
 ): Promise<void> => {
-  await apiClient.delete(`/api/admin/products/${productId}/images/${imageId}`);
+  await apiClient.delete(`/admin/products/${productId}/images/${imageId}`);
 };
 
 export const updateProductVariants = async (
@@ -87,7 +87,7 @@ export const updateProductVariants = async (
   variants: ProductVariant[]
 ): Promise<Product> => {
   const response = await apiClient.put<Product>(
-    `/api/admin/products/${productId}/variants`,
+    `/admin/products/${productId}/variants`,
     { variants }
   );
   return response.data;

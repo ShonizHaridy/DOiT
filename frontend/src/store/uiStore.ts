@@ -11,6 +11,10 @@ interface SizeChartState {
   productId: string | null
 }
 
+interface SignInState {
+  isOpen: boolean
+}
+
 interface UIState {
   // Quick Add Modal
   quickAdd: QuickAddState
@@ -21,6 +25,11 @@ interface UIState {
   sizeChart: SizeChartState
   openSizeChart: (productId: string) => void
   closeSizeChart: () => void
+
+  // Sign In Modal
+  signIn: SignInState
+  openSignIn: () => void
+  closeSignIn: () => void
 
   // Filter Drawer (Mobile)
   isFilterDrawerOpen: boolean
@@ -43,6 +52,11 @@ export const useUIStore = create<UIState>((set) => ({
   sizeChart: { isOpen: false, productId: null },
   openSizeChart: (productId) => set({ sizeChart: { isOpen: true, productId } }),
   closeSizeChart: () => set({ sizeChart: { isOpen: false, productId: null } }),
+
+  // Sign In Modal
+  signIn: { isOpen: false },
+  openSignIn: () => set({ signIn: { isOpen: true } }),
+  closeSignIn: () => set({ signIn: { isOpen: false } }),
 
   // Filter Drawer
   isFilterDrawerOpen: false,

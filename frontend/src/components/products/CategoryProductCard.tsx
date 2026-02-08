@@ -4,7 +4,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Heart, ShoppingCart } from 'iconsax-reactjs'
 import { cn } from '@/lib/utils'
-import { useWishlistStore, useUIStore } from '@/store'
+import { useAddToWishlist, useRemoveFromWishlist } from '@/hooks/useWishlist'
+import { useAuthStore, useUIStore, useWishlistStore } from '@/store'
 import { getLocalized, type Locale } from '@/lib/i18n-utils'
 import type { Product } from '@/types/product'
 
@@ -15,10 +16,14 @@ interface CategoryProductCardProps {
 }
 
 export default function CategoryProductCard({ product, locale, className }: CategoryProductCardProps) {
-  const { toggleItem, isInWishlist } = useWishlistStore()
-  const { openQuickAdd } = useUIStore()
+  const { isInWishlist } = useWishlistStore()
+  const { openQuickAdd, openSignIn } = useUIStore()
+  const accessToken = useAuthStore((state) => state.accessToken)
+  const addToWishlist = useAddToWishlist()
+  const removeFromWishlist = useRemoveFromWishlist()
 
   const isFavorite = isInWishlist(product.id)
+  const isPending = addToWishlist.isPending || removeFromWishlist.isPending
 
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.preventDefault()
@@ -29,7 +34,15 @@ export default function CategoryProductCard({ product, locale, className }: Cate
   const handleWishlist = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    toggleItem(product.id)
+    if (!accessToken) {
+      openSignIn()
+      return
+    }
+    if (isFavorite) {
+      removeFromWishlist.mutate(product.id)
+      return
+    }
+    addToWishlist.mutate(product.id)
   }
 
   // Get localized product name
@@ -44,7 +57,7 @@ export default function CategoryProductCard({ product, locale, className }: Cate
   return (
     <article className={cn('flex flex-col bg-white rounded-lg overflow-hidden border border-gray-100', className)}>
       {/* Image */}
-      <Link href={`/product/${product.id}`} className="relative aspect-square bg-white overflow-hidden group">
+      <Link href={`/${locale}/products/${product.id}`} className="relative aspect-square bg-white overflow-hidden group">
         <Image
           src={imageUrl}
           alt={productName}
@@ -72,7 +85,7 @@ export default function CategoryProductCard({ product, locale, className }: Cate
       <div className="flex flex-col p-3 lg:p-4 gap-1">
         {/* Title Row with Actions */}
         <div className="flex items-start justify-between gap-2">
-          <Link href={`/product/${product.id}`} className="flex-1">
+          <Link href={`/${locale}/products/${product.id}`} className="flex-1">
             <h3 className="font-roboto font-medium text-sm lg:text-base text-primary line-clamp-2 hover:text-secondary transition-colors">
               {productName}
             </h3>
@@ -95,9 +108,11 @@ export default function CategoryProductCard({ product, locale, className }: Cate
             </button>
             <button
               onClick={handleWishlist}
+              disabled={isPending}
               className={cn(
                 'w-8 h-8 lg:w-9 lg:h-9 flex items-center justify-center rounded transition-colors',
-                isFavorite ? 'bg-secondary text-white' : 'bg-transparent text-text-body hover:text-secondary'
+                isFavorite ? 'bg-secondary text-white' : 'bg-transparent text-text-body hover:text-secondary',
+                isPending && 'opacity-60 cursor-not-allowed'
               )}
               aria-label={isFavorite ? 'Remove from wishlist' : 'Add to wishlist'}
             >

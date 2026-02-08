@@ -49,14 +49,14 @@ export const updateAddress = async (
   data: UpdateAddressRequest
 ): Promise<Address> => {
   const response = await apiClient.put<Address>(
-    `/api/customer/addresses/${id}`,
+    `/customer/addresses/${id}`,
     data
   );
   return response.data;
 };
 
 export const deleteAddress = async (id: string): Promise<void> => {
-  await apiClient.delete(`/api/customer/addresses/${id}`);
+  await apiClient.delete(`/customer/addresses/${id}`);
 };
 
 // ... existing customer profile/address operations
@@ -78,7 +78,7 @@ export const getAllCustomers = async (params?: {
 };
 
 export const getCustomerById = async (id: string): Promise<CustomerProfile> => {
-  const { data } = await apiClient.get<CustomerProfile>(`/api/admin/customers/${id}`);
+  const { data } = await apiClient.get<CustomerProfile>(`/admin/customers/${id}`);
   return data;
 };
 
@@ -87,7 +87,7 @@ export const updateCustomerStatus = async (
   status: 'ACTIVE' | 'INACTIVE' | 'BLOCKED'
 ): Promise<CustomerProfile> => {
   const response = await apiClient.patch<CustomerProfile>(
-    `/api/admin/customers/${id}/status`,
+    `/admin/customers/${id}/status`,
     { status }
   );
   return response.data;

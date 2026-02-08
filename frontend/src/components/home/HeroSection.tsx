@@ -11,23 +11,28 @@ import { cn } from '@/lib/utils'
 
 interface HeroSectionProps {
   locale: 'en' | 'ar',
-  heroSectionProducts: HeroSectionProduct[]
+  heroSection: HeroSectionProduct
 }
 
-export default function HeroSection({ locale, heroSectionProducts }: HeroSectionProps) {
+export default function HeroSection({ locale, heroSection }: HeroSectionProps) {
   const t = useTranslations('home.hero')
 
-  const shoeVariants = [
+  const shoeVariants = [ // Was for dev test
     { id: 'red', src: '/red.png', alt: 'Red Shoe' },
     { id: 'purple', src: '/purple.png', alt: 'Purple Shoe' },
     { id: 'green', src: '/green.png', alt: 'Green Shoe' },
   ]
+
+  const allVariants = [
+    heroSection.mainImageUrl,
+    ...heroSection.variantImages
+  ]
+  // const allVariants = shoeVariants.map(shoeVariant => shoeVariant.src)
   
-
-  const [selectedShoe, setSelectedShoe] = useState(heroSectionProducts[0])
-
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0)
+  
   return (
-    <section className="relative w-full min-h-[550px] lg:min-h-[650px] pt-8 lg:pt-33 bg-graphite overflow-hidden">
+    <section className="relative w-full min-h-[550px] lg:min-h-[650px] pt-8 lg:pt-33 px-16 bg-graphite overflow-hidden">
       <GrowingDotsBackground 
         topPosition="-top-[100px] lg:-top-[200px] -start-[50px]" 
         bottomPosition="-bottom-[100px] lg:-bottom-[200px] -end-[50px]" 
@@ -39,7 +44,7 @@ export default function HeroSection({ locale, heroSectionProducts }: HeroSection
         {/* Text Content */}
         <div className="flex flex-col items-start ps-8">
           <h1 className="font-roboto-condensed font-bold text-4xl leading-tight text-white uppercase">
-            ESSENTIAL ITEMS<br />FOR
+            {getLocalized(heroSection, 'headline', locale)}
           </h1>
         </div>
 
@@ -47,7 +52,7 @@ export default function HeroSection({ locale, heroSectionProducts }: HeroSection
         <div className="ps-[35px] mt-3">
           <div className="inline-flex items-end bg-secondary px-4 py-1">
             <span className="font-roboto-condensed font-bold text-3xl leading-none text-primary">
-              990
+              {heroSection.price}
             </span>
             <span className="font-roboto-condensed font-bold text-xl leading-none text-primary ms-1">
               EGP
@@ -61,7 +66,7 @@ export default function HeroSection({ locale, heroSectionProducts }: HeroSection
             href={`/${locale}/cart`}
             className="inline-block px-6 py-2 border border-secondary rounded-sm text-white font-roboto-condensed font-bold text-[7.5px] uppercase tracking-wide hover:bg-secondary hover:text-primary transition-colors"
           >
-            ADD TO CART
+            {t('addToCart')}
           </Link>
         </div>
 
@@ -74,8 +79,8 @@ export default function HeroSection({ locale, heroSectionProducts }: HeroSection
             
             {/* Main Shoe - ROTATED */}
             <Image
-              src={selectedShoe.mainImageUrl}
-              alt={getLocalized(selectedShoe, 'ctaText', locale)}
+              src={allVariants[selectedImageIndex]}
+              alt={getLocalized(heroSection, 'ctaText', locale)}
               fill
               className="object-contain drop-shadow-2xl relative transition-opacity duration-300"
               style={{ transform: 'rotate(-18.62deg)' }}
@@ -85,18 +90,19 @@ export default function HeroSection({ locale, heroSectionProducts }: HeroSection
 
           {/* Shoe Variants - NOT ROTATED, SMALL SIZE */}
           <div className="absolute bottom-4 inset-x-0 flex justify-center gap-3 px-[55px]">
-            {heroSectionProducts[0].variantImages
-            .map((variant) => (
+            {allVariants.map((variant, index) => (
               <button 
-                key={variant}
-                // onClick={() => setSelectedShoe(variant)}
-                className={cn('relative w-[70px] h-[45px] hover:scale-105 transition-transform',
-                  // selectedShoe.id === variant.id ? 'ring-2 ring-secondary ring-offset-2 ring-offset-graphite' : ''
+                key={index}
+                onClick={() => setSelectedImageIndex(index)}
+                onMouseEnter={() => setSelectedImageIndex(index)}
+                className={cn(
+                  'relative w-[70px] h-[45px] hover:scale-105 transition-transform',
+                  selectedImageIndex === index ? 'ring-2 ring-secondary ring-offset-2 ring-offset-graphite' : ''
                 )}
               >
                 <Image
                   src={variant}
-                  alt={variant}
+                  alt={`Variant ${index + 1}`}
                   fill
                   className="object-contain"
                 />
@@ -107,7 +113,7 @@ export default function HeroSection({ locale, heroSectionProducts }: HeroSection
       </div>
 
       {/* ========== DESKTOP LAYOUT ========== */}
-      <div className="hidden lg:flex lg:items-center lg:justify-center lg:gap-5 relative z-(--z-content) h-full py-12">
+      <div className="hidden lg:flex lg:justify-around lg:gap-5 relative z-(--z-content) h-full py-12">
         {/* Left Side - Shoe Images */}
         <div className="flex flex-col w-[545px]">
           {/* Main Shoe Container */}
@@ -117,28 +123,30 @@ export default function HeroSection({ locale, heroSectionProducts }: HeroSection
             
             {/* Main Shoe - ROTATED, BIG */}
             <Image
-              src={selectedShoe.mainImageUrl}
-              alt={getLocalized(selectedShoe, 'ctaText', locale)}
+              src={allVariants[selectedImageIndex]}
+              alt={getLocalized(heroSection, 'ctaText', locale)}
               fill
               className="object-contain drop-shadow-2xl relative transition-opacity duration-300"
-              style={{ transform: 'rotate(-18.62deg)' }}
+              style={{ transform: 'rotate(18.62deg)' }}
               priority
             />
           </div>
 
           {/* Shoe Variants - NOT ROTATED, SMALL SIZE */}
           <div className="flex gap-5 justify-center">
-            {shoeVariants.map((variant) => (
+            {allVariants.map((variant, index) => (
               <button 
-                key={variant.id}
-                // onClick={() => setSelectedShoe(variant)}
-                className={`relative w-[132px] h-[96px] hover:scale-110 transition-transform cursor-pointer ${
-                  selectedShoe.id === variant.id ? 'ring-2 ring-secondary ring-offset-2 ring-offset-graphite' : ''
-                }`}
+                key={index}
+                onClick={() => setSelectedImageIndex(index)}
+                onMouseEnter={() => setSelectedImageIndex(index)}
+                className={cn(
+                  'relative w-[132px] h-[96px] hover:scale-110 transition-transform cursor-pointer',
+                  selectedImageIndex === index ? 'ring-2 ring-secondary ring-offset-2 ring-offset-graphite' : ''
+                )}
               >
                 <Image
-                  src={variant.src}
-                  alt={variant.alt}
+                  src={variant}
+                  alt={`Variant ${index + 1}`}
                   fill
                   className="object-contain"
                 />
@@ -148,16 +156,16 @@ export default function HeroSection({ locale, heroSectionProducts }: HeroSection
         </div>
 
         {/* Right Side - Content */}
-        <div className="flex flex-col items-start gap-6">
+        <div className="flex flex-col items-start gap-6 lg:gap-8">
           {/* Title */}
-          <h1 className="font-roboto-condensed font-bold text-[52px] xl:text-[60px] leading-[1.05] text-white uppercase">
-            ESSENTIAL ITEMS<br />FOR
-          </h1>
+<h1 className="font-roboto-condensed font-bold text-[52px] xl:text-[70px] leading-[1.05] text-white uppercase lg:max-w-[593px]">
+  {getLocalized(heroSection, 'headline', locale)}
+</h1>
 
           {/* Price Tag */}
           <div className="inline-flex items-end bg-secondary px-5 py-2">
             <span className="font-roboto-condensed font-bold text-[60px] xl:text-[72px] leading-none text-primary">
-              990
+              {heroSection.price}
             </span>
             <span className="font-roboto-condensed font-bold text-[32px] xl:text-[40px] text-primary ms-2">
               EGP
@@ -165,8 +173,8 @@ export default function HeroSection({ locale, heroSectionProducts }: HeroSection
           </div>
 
           {/* Description */}
-          <p className="font-roboto text-sm text-white/60 max-w-[320px] leading-relaxed">
-            {t('description')}
+          <p className="font-roboto text-lg text-white max-w-[320px] leading-relaxed">
+            {getLocalized(heroSection, 'description', locale)}
           </p>
 
           {/* Add to Cart Button */}
@@ -174,7 +182,7 @@ export default function HeroSection({ locale, heroSectionProducts }: HeroSection
             href={`/${locale}/cart`}
             className="px-10 py-3 border border-secondary rounded-lg text-white font-roboto-condensed font-bold text-sm uppercase tracking-wide hover:bg-secondary hover:text-primary transition-colors"
           >
-            ADD TO CART
+            {t('addToCart')}
           </Link>
         </div>
       </div>

@@ -5,11 +5,16 @@ import { Link, useRouter, usePathname } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 import { SearchNormal1, Heart, ShoppingCart, User, ArrowDown2, HamburgerMenu } from 'iconsax-reactjs'
+import { useQuery } from '@tanstack/react-query'
 import { cn } from '@/lib/utils'
 import MobileMenu from './MobileMenu'
 import Logo from '../ui/Logo'
 import { getLocalized, type Locale } from '@/lib/i18n-utils'
+import ProductCardSimple from '@/components/products/ProductCardSimple'
+import { getProducts } from '@/services/products'
 import type { Category } from '@/types/category'
+import { useAuthStore, useCartStore, useUIStore, useWishlistStore } from '@/store'
+import { useLogout } from '@/hooks/useAuth'
 
 interface HeaderProps {
   locale: string,
@@ -18,12 +23,29 @@ interface HeaderProps {
 
 export default function Header({ locale, categories }: HeaderProps) {
   const t = useTranslations('header')
+  const tSearch = useTranslations('search')
   const router = useRouter()
   const pathname = usePathname()
   const [isPending, startTransition] = useTransition()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [debouncedQuery, setDebouncedQuery] = useState('')
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const openSignIn = useUIStore((state) => state.openSignIn)
+  const accessToken = useAuthStore((state) => state.accessToken)
+  const user = useAuthStore((state) => state.user)
+  const cartCount = useCartStore((state) => state.getItemCount())
+  const wishlistCount = useWishlistStore((state) => state.getCount())
+  const logout = useLogout()
+  const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false)
+  const accountMenuRef = useRef<HTMLDivElement | null>(null)
+  const searchInputRef = useRef<HTMLDivElement | null>(null)
+  const searchPanelRef = useRef<HTMLDivElement | null>(null)
+  const isSignedIn = Boolean(accessToken)
+
+  const formatCount = (count: number) => (count > 99 ? '99+' : `${count}`)
+  const trimmedQuery = searchQuery.trim()
   
   // Track which dropdown is open
   const [openDropdown, setOpenDropdown] = useState<string | null>(null)
@@ -49,7 +71,73 @@ export default function Header({ locale, categories }: HeaderProps) {
     }
   }, [])
 
+  useEffect(() => {
+    if (!isAccountMenuOpen) return
+    const handleClickOutside = (event: MouseEvent) => {
+      if (accountMenuRef.current && !accountMenuRef.current.contains(event.target as Node)) {
+        setIsAccountMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [isAccountMenuOpen])
+
+  useEffect(() => {
+    if (!isSignedIn && isAccountMenuOpen) {
+      setIsAccountMenuOpen(false)
+    }
+  }, [isSignedIn, isAccountMenuOpen])
+
+  useEffect(() => {
+    setIsSearchOpen(false)
+  }, [pathname])
+
+  useEffect(() => {
+    if (!trimmedQuery) {
+      setDebouncedQuery('')
+      return
+    }
+    const timeout = setTimeout(() => setDebouncedQuery(trimmedQuery), 250)
+    return () => clearTimeout(timeout)
+  }, [trimmedQuery])
+
+  useEffect(() => {
+    if (!trimmedQuery) {
+      setIsSearchOpen(false)
+    }
+  }, [trimmedQuery])
+
+  useEffect(() => {
+    if (!isSearchOpen) return
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node
+      if (searchInputRef.current?.contains(target)) return
+      if (searchPanelRef.current?.contains(target)) return
+      setIsSearchOpen(false)
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [isSearchOpen])
+
+  useEffect(() => {
+    if (isSearchOpen) {
+      setOpenDropdown(null)
+    }
+  }, [isSearchOpen])
+
+  const { data: searchResults, isFetching: isSearching } = useQuery({
+    queryKey: ['products', 'search', debouncedQuery],
+    queryFn: () => getProducts({ search: debouncedQuery, limit: 6, page: 1 }),
+    enabled: debouncedQuery.length > 0,
+    staleTime: 1000 * 30,
+  })
+
+  const searchProducts = searchResults?.products ?? []
+  const searchTotal = searchResults?.pagination?.total ?? searchProducts.length
+  const showSearchPanel = isSearchOpen && debouncedQuery.length > 0
+
   const handleMouseEnter = (category: Category) => {
+    if (isSearchOpen) return
     // Clear any pending close timeout
     if (closeTimeoutRef.current) {
       clearTimeout(closeTimeoutRef.current)
@@ -88,6 +176,33 @@ export default function Header({ locale, categories }: HeaderProps) {
     })
   }
 
+  const handleAccountClick = (event: React.MouseEvent) => {
+    event.preventDefault()
+    if (!isSignedIn) {
+      openSignIn()
+      return
+    }
+    setIsAccountMenuOpen((prev) => !prev)
+  }
+
+  const handleLogout = () => {
+    setIsAccountMenuOpen(false)
+    logout()
+  }
+
+  const handleSearchFocus = () => {
+    setIsSearchOpen(true)
+    setOpenDropdown(null)
+  }
+
+  const handleSearchSubmit = (event?: React.FormEvent) => {
+    event?.preventDefault()
+    const query = searchQuery.trim()
+    if (!query) return
+    setIsSearchOpen(false)
+    router.push(`/search?q=${encodeURIComponent(query)}`)
+  }
+
   // Get active category for mega menu
   const activeCategory = categories.find(cat => cat.id === openDropdown)
   const activeCategorySlug = activeCategory
@@ -98,7 +213,7 @@ export default function Header({ locale, categories }: HeaderProps) {
     <>
       <header
         className={cn(
-          'sticky top-0 inset-x-0 z-[1000] bg-graphite transition-shadow duration-200',
+          'sticky top-0 inset-x-0 z-(--z-sticky) bg-graphite transition-shadow duration-200 relative',
           isScrolled && 'shadow-lg'
         )}
       >
@@ -116,7 +231,7 @@ export default function Header({ locale, categories }: HeaderProps) {
             <Link href="/cart" className="relative flex items-center justify-center w-10 h-10">
               <ShoppingCart size={24} color="#FFFFFF" variant="Outline" />
               <span className="absolute -top-0.5 -end-0.5 min-w-[18px] h-[18px] px-1 bg-secondary border-2 border-primary text-white text-[8px] font-normal rounded-full flex items-center justify-center">
-                2
+                {formatCount(cartCount)}
               </span>
             </Link>
           </div>
@@ -169,31 +284,91 @@ export default function Header({ locale, categories }: HeaderProps) {
             </div>
 
             <div className="flex items-center gap-6 px-6 py-5">
-              <div className="flex items-center px-3 py-2 bg-transparent border border-neutral-600 rounded-md">
-                <input
-                  type="search"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder={t('searchPlaceholder')}
-                  className="flex-1 bg-transparent text-sm text-white font-outfit placeholder:text-white/30 outline-none"
-                />
-                <SearchNormal1 size={20} color="#FFFFFF" />
+              <div ref={searchInputRef} className="relative">
+                <form
+                  onSubmit={handleSearchSubmit}
+                  className="flex items-center px-3 py-2 bg-transparent border border-neutral-600 rounded-md"
+                >
+                  <input
+                    type="search"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onFocus={handleSearchFocus}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Escape') setIsSearchOpen(false)
+                    }}
+                    placeholder={t('searchPlaceholder')}
+                    className="flex-1 bg-transparent text-sm text-white font-outfit placeholder:text-white/30 outline-none"
+                  />
+                  <button
+                    type="submit"
+                    className="flex items-center justify-center"
+                    aria-label={t('search')}
+                  >
+                    <SearchNormal1 size={20} color="#FFFFFF" />
+                  </button>
+                </form>
               </div>
 
               <div className="flex items-center gap-4">
-                <Link href="/account" className="flex items-center justify-center">
-                  <User size={24} color="#FFFFFF" />
-                </Link>
+                <div ref={accountMenuRef} className="relative">
+                  <button
+                    onClick={handleAccountClick}
+                    className="flex items-center justify-center"
+                    aria-label={isSignedIn ? 'Account menu' : 'Sign in'}
+                  >
+                    <User size={24} color="#FFFFFF" />
+                  </button>
+                  {isSignedIn && (
+                    <div
+                      className={cn(
+                        'absolute end-0 top-full mt-3 w-56 rounded-lg border border-neutral-200 bg-white shadow-lg overflow-hidden transition-all duration-150',
+                        isAccountMenuOpen
+                          ? 'opacity-100 translate-y-0'
+                          : 'opacity-0 -translate-y-1 pointer-events-none'
+                      )}
+                    >
+                      <div className="px-4 py-3 border-b border-neutral-100">
+                        <p className="text-[10px] uppercase tracking-wide text-neutral-400">Signed in</p>
+                        <p className="text-sm text-primary truncate">
+                          {user?.fullName ?? user?.email ?? 'Account'}
+                        </p>
+                      </div>
+                      <div className="py-2">
+                        <Link
+                          href="/profile"
+                          className="block px-4 py-2 text-sm text-primary hover:bg-neutral-50"
+                          onClick={() => setIsAccountMenuOpen(false)}
+                        >
+                          {t('myAccount')}
+                        </Link>
+                        <Link
+                          href="/orders"
+                          className="block px-4 py-2 text-sm text-primary hover:bg-neutral-50"
+                          onClick={() => setIsAccountMenuOpen(false)}
+                        >
+                          Orders
+                        </Link>
+                        <button
+                          onClick={handleLogout}
+                          className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                        >
+                          Sign out
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
                 <Link href="/wishlist" className="relative flex items-center justify-center">
                   <Heart size={24} color="#fff" variant="Outline" />
                   <span className="absolute -top-1 -end-1 min-w-[16px] h-[16px] px-0.5 bg-[#00A3FF] text-white text-[8px] font-normal rounded-full flex items-center justify-center">
-                    0
+                    {formatCount(wishlistCount)}
                   </span>
                 </Link>
                 <Link href="/cart" className="relative flex items-center justify-center">
                   <ShoppingCart size={24} color="#FFFFFF" variant="Outline" />
                   <span className="absolute -top-1 -end-1 min-w-[16px] h-[16px] px-0.5 bg-secondary text-white text-[8px] font-normal rounded-full flex items-center justify-center">
-                    0
+                    {formatCount(cartCount)}
                   </span>
                 </Link>
                 <button
@@ -215,6 +390,48 @@ export default function Header({ locale, categories }: HeaderProps) {
             </div>
           </div>
         </div>
+
+        {showSearchPanel && (
+          <div
+            ref={searchPanelRef}
+            className="absolute top-full inset-x-0 bg-white shadow-2xl border-t border-neutral-100 z-(--z-dropdown)"
+          >
+            <div className="max-w-[1440px] mx-auto px-6 py-6">
+              {isSearching ? (
+                <p className="text-sm text-neutral-500">{tSearch('loading')}</p>
+              ) : searchProducts.length > 0 ? (
+                <>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                    {searchProducts.map((product) => (
+                      <ProductCardSimple
+                        key={product.id}
+                        id={product.id}
+                        title={getLocalized(product, 'name', locale as Locale)}
+                        image={product.images[0]?.url ?? '/products/red.png'}
+                        price={`${product.finalPrice || product.basePrice} EGP`}
+                        href={`/${locale}/products/${product.id}`}
+                      />
+                    ))}
+                  </div>
+                  <div className="flex items-center justify-between border-t border-neutral-200 pt-4 mt-4 text-sm text-neutral-500">
+                    <span>
+                      {searchTotal} {tSearch('results')}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleSearchSubmit()}
+                      className="text-primary font-medium underline hover:no-underline"
+                    >
+                      {tSearch('showMore')}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <p className="text-sm text-neutral-500">{tSearch('noResults')}</p>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Mega Menu Dropdown */}
         <div 

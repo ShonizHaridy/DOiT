@@ -32,7 +32,7 @@ export default function SignInModal({ isOpen, onClose, onSuccess }: SignInModalP
   return (
     <div
       className={cn(
-        'fixed inset-0 z-[100] flex items-center justify-center p-4',
+        'fixed inset-0 z-(--z-modal) flex items-center justify-center p-4',
         'bg-black/50 backdrop-blur-sm transition-opacity duration-300'
       )}
       onClick={onClose}

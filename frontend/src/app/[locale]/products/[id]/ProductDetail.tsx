@@ -3,9 +3,12 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import { Heart, Add, Minus, TruckFast, SearchZoomIn1 } from 'iconsax-reactjs'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
-import { useCartStore, useWishlistStore, useUIStore } from '@/store'
-import type { Product } from '@/data/products'
+import { getLocalized, getLocalizedArray, type Locale } from '@/lib/i18n-utils'
+import { useAddToWishlist, useRemoveFromWishlist } from '@/hooks/useWishlist'
+import { useAuthStore, useCartStore, useUIStore, useWishlistStore } from '@/store'
+import type { Product } from '@/types/product'
 
 interface ProductDetailProps {
   product: Product
@@ -13,25 +16,48 @@ interface ProductDetailProps {
 }
 
 export default function ProductDetail({ product, locale }: ProductDetailProps) {
+  const t = useTranslations('product')
   const { addItem, openCart } = useCartStore()
-  const { toggleItem, isInWishlist } = useWishlistStore()
-  const { openSizeChart } = useUIStore()
+  const { isInWishlist } = useWishlistStore()
+  const { openSizeChart, openSignIn } = useUIStore()
+  const accessToken = useAuthStore((state) => state.accessToken)
+  const addToWishlist = useAddToWishlist()
+  const removeFromWishlist = useRemoveFromWishlist()
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [selectedSize, setSelectedSize] = useState(product.sizes[0] || '')
-  const [selectedColor, setSelectedColor] = useState(product.colors[0]?.name || '')
+  const [selectedColor, setSelectedColor] = useState(product.colors[0] || '')
   const [quantity, setQuantity] = useState(1)
 
   const isFavorite = isInWishlist(product.id)
+  const isPending = addToWishlist.isPending || removeFromWishlist.isPending
+  const productName = getLocalized(product, 'name', locale as Locale)
+  const description = getLocalized(product, 'description', locale as Locale)
+  const details = getLocalizedArray(product, 'details', locale as Locale)
+  const imageUrls = product.images.map((image) => image.url)
+  const inStock = product.availability !== 'out-of-stock'
+  const hasDiscount = product.discountPercentage > 0 && product.finalPrice < product.basePrice
+  const genderLabelMap: Record<string, string> = {
+    MEN: t('genderValues.men'),
+    WOMEN: t('genderValues.women'),
+    KIDS: t('genderValues.kids'),
+    UNISEX: t('genderValues.unisex'),
+  }
+  const genderLabel = genderLabelMap[product.gender] ?? product.gender
+  const availabilityLabel = product.availability === 'in-stock'
+    ? t('inStock')
+    : product.availability === 'low-stock'
+      ? t('lowStock')
+      : t('outOfStock')
 
   const handleAddToCart = () => {
     addItem({
       productId: product.id,
-      title: product.title,
-      image: product.images[0],
-      price: product.price,
-      originalPrice: product.originalPrice,
-      currency: product.currency,
+      title: productName,
+      image: imageUrls[0] || '/placeholder-product.png',
+      price: product.finalPrice,
+      originalPrice: hasDiscount ? product.basePrice : undefined,
+      currency: 'EGP',
       quantity,
       size: selectedSize,
       color: selectedColor,
@@ -39,9 +65,21 @@ export default function ProductDetail({ product, locale }: ProductDetailProps) {
       type: product.type,
       gender: product.gender,
       sku: product.sku,
-      discount: product.discount,
+      discount: hasDiscount ? t('discountOff', { value: product.discountPercentage }) : undefined,
     })
     openCart()
+  }
+
+  const handleWishlist = () => {
+    if (!accessToken) {
+      openSignIn()
+      return
+    }
+    if (isFavorite) {
+      removeFromWishlist.mutate(product.id)
+      return
+    }
+    addToWishlist.mutate(product.id)
   }
 
   return (
@@ -52,8 +90,8 @@ export default function ProductDetail({ product, locale }: ProductDetailProps) {
           {/* Main Image */}
           <div className="relative aspect-square bg-bg-card rounded-lg overflow-hidden mb-3 group">
             <Image
-              src={product.images[currentImageIndex]}
-              alt={product.title}
+              src={imageUrls[currentImageIndex] || '/placeholder-product.png'}
+              alt={productName}
               fill
               className="object-contain p-6"
               priority
@@ -61,10 +99,12 @@ export default function ProductDetail({ product, locale }: ProductDetailProps) {
             {/* Mobile: Heart & Zoom buttons */}
             <div className="absolute top-3 end-3 flex flex-col gap-2 lg:hidden">
               <button
-                onClick={() => toggleItem(product.id)}
+                onClick={handleWishlist}
+                disabled={isPending}
                 className={cn(
                   'w-10 h-10 flex items-center justify-center rounded-full transition-colors',
-                  isFavorite ? 'bg-secondary text-white' : 'bg-white text-text-body shadow'
+                  isFavorite ? 'bg-secondary text-white' : 'bg-white text-text-body shadow',
+                  isPending && 'opacity-60 cursor-not-allowed'
                 )}
               >
                 <Heart size={20} variant={isFavorite ? 'Bold' : 'Outline'} />
@@ -77,7 +117,7 @@ export default function ProductDetail({ product, locale }: ProductDetailProps) {
 
           {/* Thumbnails */}
           <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-            {product.images.map((img, idx) => (
+            {imageUrls.map((img, idx) => (
               <button
                 key={idx}
                 onClick={() => setCurrentImageIndex(idx)}
@@ -95,68 +135,68 @@ export default function ProductDetail({ product, locale }: ProductDetailProps) {
         {/* Product Info */}
         <div className="lg:w-1/2">
           <h1 className="font-roboto font-bold text-xl lg:text-2xl text-primary uppercase mb-4">
-            {product.title}
+            {productName}
           </h1>
 
           {/* Price */}
           <div className="flex items-center gap-2 mb-4">
-            <span className="text-sm text-text-body">Price:</span>
+            <span className="text-sm text-text-body">{t('price')}:</span>
             <span className="font-roboto-condensed font-bold text-3xl lg:text-4xl text-secondary">
-              {product.price.toLocaleString()}
+              {product.finalPrice.toLocaleString()}
             </span>
-            <span className="text-lg text-text-body">{product.currency}</span>
-            {product.originalPrice && (
+            <span className="text-lg text-text-body">EGP</span>
+            {hasDiscount && (
               <span className="text-lg text-text-placeholder line-through">
-                {product.originalPrice.toLocaleString()} {product.currency}
+                {product.basePrice.toLocaleString()} EGP
               </span>
             )}
           </div>
 
           {/* Discount Badge */}
-          {product.discount && (
+          {hasDiscount && (
             <div className="flex items-center gap-1 text-sm text-green-600 mb-4">
-              <span className="text-secondary">⊛</span>
-              <span>{product.discount}</span>
+              <span className="text-secondary">&bull;</span>
+              <span>{t('discountOff', { value: product.discountPercentage })}</span>
             </div>
           )}
 
           {/* Product Meta */}
           <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-sm mb-4">
             <div className="flex gap-2">
-              <span className="text-text-body">Vendor</span>
+              <span className="text-text-body">{t('vendor')}</span>
               <span className="font-medium text-primary">{product.vendor}</span>
             </div>
             <div className="flex gap-2">
-              <span className="text-text-body">Type</span>
+              <span className="text-text-body">{t('type')}</span>
               <span className="font-medium text-primary">{product.type}</span>
             </div>
             <div className="flex gap-2">
-              <span className="text-text-body">Availability</span>
-              <span className={cn('font-medium', product.inStock ? 'text-green-600' : 'text-red-500')}>
-                {product.inStock ? 'In Stock' : 'Out of Stock'}
+              <span className="text-text-body">{t('availability')}</span>
+              <span className={cn('font-medium', inStock ? 'text-green-600' : 'text-red-500')}>
+                {availabilityLabel}
               </span>
             </div>
             <div className="flex gap-2">
-              <span className="text-text-body">Gender</span>
-              <span className="font-medium text-primary">{product.gender}</span>
+              <span className="text-text-body">{t('gender')}</span>
+              <span className="font-medium text-primary">{genderLabel}</span>
             </div>
             <div className="flex gap-2">
-              <span className="text-text-body">SKU</span>
+              <span className="text-text-body">{t('sku')}</span>
               <span className="font-medium text-primary">{product.sku}</span>
             </div>
           </div>
 
           {/* Description */}
-          {product.description && (
+          {description && (
             <p className="text-sm text-text-body mb-6 leading-relaxed">
-              {product.description}
+              {description}
             </p>
           )}
 
           {/* Sizes */}
           <div className="mb-4">
             <div className="flex items-center flex-wrap gap-3 mb-2">
-              <span className="text-sm text-text-body">Sizes:</span>
+              <span className="text-sm text-text-body">{t('sizes')}:</span>
               <div className="flex flex-wrap gap-2">
                 {product.sizes.map((size) => (
                   <button
@@ -177,7 +217,7 @@ export default function ProductDetail({ product, locale }: ProductDetailProps) {
                 onClick={() => openSizeChart(product.id)}
                 className="px-3 py-1.5 text-sm border border-primary text-primary rounded hover:bg-primary hover:text-white transition-colors"
               >
-                Size Chart
+                {t('sizeChart')}
               </button>
             </div>
           </div>
@@ -186,18 +226,18 @@ export default function ProductDetail({ product, locale }: ProductDetailProps) {
           <div className="hidden lg:flex items-center gap-8 mb-6">
             {/* Colors */}
             <div className="flex items-center gap-3">
-              <span className="text-sm text-text-body">Colors:</span>
+              <span className="text-sm text-text-body">{t('colors')}:</span>
               <div className="flex gap-2">
                 {product.colors.map((color) => (
                   <button
-                    key={color.name}
-                    onClick={() => setSelectedColor(color.name)}
+                    key={color}
+                    onClick={() => setSelectedColor(color)}
                     className={cn(
                       'w-8 h-8 rounded border-2 transition-all',
-                      selectedColor === color.name ? 'border-primary scale-110' : 'border-gray-300'
+                      selectedColor === color ? 'border-primary scale-110' : 'border-gray-300'
                     )}
-                    style={{ backgroundColor: color.hex }}
-                    title={color.name}
+                    style={{ backgroundColor: color }}
+                    title={color}
                   />
                 ))}
               </div>
@@ -205,7 +245,7 @@ export default function ProductDetail({ product, locale }: ProductDetailProps) {
 
             {/* Quantity */}
             <div className="flex items-center gap-3">
-              <span className="text-sm text-text-body">Quantity:</span>
+              <span className="text-sm text-text-body">{t('quantity')}:</span>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -231,10 +271,10 @@ export default function ProductDetail({ product, locale }: ProductDetailProps) {
                 onClick={() => openSizeChart(product.id)}
                 className="px-4 py-2 text-sm border border-primary text-primary rounded hover:bg-primary hover:text-white transition-colors"
               >
-                Size Chart
+                {t('sizeChart')}
               </button>
               <div className="flex items-center gap-3">
-                <span className="text-sm text-text-body">Quantity:</span>
+                <span className="text-sm text-text-body">{t('quantity')}:</span>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -253,18 +293,18 @@ export default function ProductDetail({ product, locale }: ProductDetailProps) {
               </div>
             </div>
             <div className="flex items-center gap-3 mb-4">
-              <span className="text-sm text-text-body">Colors:</span>
+              <span className="text-sm text-text-body">{t('colors')}:</span>
               <div className="flex gap-2">
                 {product.colors.map((color) => (
                   <button
-                    key={color.name}
-                    onClick={() => setSelectedColor(color.name)}
+                    key={color}
+                    onClick={() => setSelectedColor(color)}
                     className={cn(
                       'w-8 h-8 rounded border-2 transition-all',
-                      selectedColor === color.name ? 'border-primary scale-110' : 'border-gray-300'
+                      selectedColor === color ? 'border-primary scale-110' : 'border-gray-300'
                     )}
-                    style={{ backgroundColor: color.hex }}
-                    title={color.name}
+                    style={{ backgroundColor: color }}
+                    title={color}
                   />
                 ))}
               </div>
@@ -274,7 +314,7 @@ export default function ProductDetail({ product, locale }: ProductDetailProps) {
           {/* Mobile: Add to Cart Button (Full Width) */}
           <button
             onClick={handleAddToCart}
-            disabled={!product.inStock}
+            disabled={!inStock}
             className="lg:hidden w-full flex items-center justify-center gap-2 py-3 bg-primary text-white rounded font-rubik font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors mb-6"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -282,24 +322,26 @@ export default function ProductDetail({ product, locale }: ProductDetailProps) {
               <line x1="3" y1="6" x2="21" y2="6"/>
               <path d="M16 10a4 4 0 01-8 0"/>
             </svg>
-            <span>ADD TO CART</span>
+            <span>{t('addToCart')}</span>
           </button>
 
           {/* Desktop: Action Buttons */}
           <div className="hidden lg:flex gap-4 mb-6">
             <button
-              onClick={() => toggleItem(product.id)}
+              onClick={handleWishlist}
+              disabled={isPending}
               className={cn(
                 'flex-1 flex items-center justify-center gap-2 py-3 border border-primary rounded-lg font-rubik font-medium transition-colors',
-                isFavorite ? 'bg-primary text-white' : 'text-primary hover:bg-gray-50'
+                isFavorite ? 'bg-primary text-white' : 'text-primary hover:bg-gray-50',
+                isPending && 'opacity-60 cursor-not-allowed'
               )}
             >
               <Heart size={20} variant={isFavorite ? 'Bold' : 'Outline'} />
-              <span>Add to wishlist</span>
+              <span>{t('addToWishlist')}</span>
             </button>
             <button
               onClick={handleAddToCart}
-              disabled={!product.inStock}
+              disabled={!inStock}
               className="flex-1 flex items-center justify-center gap-2 py-3 bg-primary text-white rounded-lg font-rubik font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -307,16 +349,16 @@ export default function ProductDetail({ product, locale }: ProductDetailProps) {
                 <line x1="3" y1="6" x2="21" y2="6"/>
                 <path d="M16 10a4 4 0 01-8 0"/>
               </svg>
-              <span>Add to Cart</span>
+              <span>{t('addToCart')}</span>
             </button>
           </div>
 
           {/* Details */}
-          {product.details && (
+          {details.length > 0 && (
             <div className="mb-6">
-              <h3 className="font-roboto font-bold text-base mb-3">DETAILS:</h3>
+              <h3 className="font-roboto font-bold text-base mb-3">{t('detailsTitle')}:</h3>
               <ul className="list-disc list-inside text-sm text-text-body space-y-1">
-                {product.details.map((detail, idx) => (
+                {details.map((detail, idx) => (
                   <li key={idx}>{detail}</li>
                 ))}
               </ul>
@@ -326,14 +368,14 @@ export default function ProductDetail({ product, locale }: ProductDetailProps) {
           {/* Free Delivery Notice */}
           <div className="flex items-center gap-2 text-sm text-green-600 mb-4">
             <TruckFast size={18} />
-            <span>Free Delivery over 999 EGP</span>
+            <span>{t('freeDelivery', { amount: '999' })}</span>
           </div>
 
           {/* Return Policy */}
           <div className="text-sm">
-            <p className="font-bold text-primary mb-1">NOT THE RIGHT SIZE OR COLOR?</p>
+            <p className="font-bold text-primary mb-1">{t('returnTitle')}</p>
             <p className="text-text-body">
-              No problem, we offer free size exchanges for 60 days and we have free return service.
+              {t('returnBody')}
             </p>
           </div>
         </div>

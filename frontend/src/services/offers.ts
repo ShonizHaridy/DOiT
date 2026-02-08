@@ -19,7 +19,7 @@ export const getOffers = async (params?: {
 };
 
 export const getOffer = async (id: string): Promise<Offer> => {
-  const { data } = await apiClient.get<Offer>(`/api/admin/offers/${id}`);
+  const { data } = await apiClient.get<Offer>(`/admin/offers/${id}`);
   return data;
 };
 
@@ -32,16 +32,16 @@ export const updateOffer = async (
   id: string,
   data: UpdateOfferRequest
 ): Promise<Offer> => {
-  const response = await apiClient.put<Offer>(`/api/admin/offers/${id}`, data);
+  const response = await apiClient.put<Offer>(`/admin/offers/${id}`, data);
   return response.data;
 };
 
 export const deleteOffer = async (id: string): Promise<void> => {
-  await apiClient.delete(`/api/admin/offers/${id}`);
+  await apiClient.delete(`/admin/offers/${id}`);
 };
 
 export const toggleOfferStatus = async (id: string, status: boolean): Promise<Offer> => {
-  const response = await apiClient.patch<Offer>(`/api/admin/offers/${id}/status`, {
+  const response = await apiClient.patch<Offer>(`/admin/offers/${id}/status`, {
     status,
   });
   return response.data;

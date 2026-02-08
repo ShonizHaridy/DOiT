@@ -51,7 +51,7 @@ export class BannerAdDto {
 }
 
 export class HomeContentDto {
-  heroSectionProducts: HeroSectionDto[];
+  heroSection: HeroSectionDto;
   vendors: VendorDto[];
   banners: BannerAdDto[];
 }

@@ -60,6 +60,8 @@ async function bootstrap() {
       return callback(new Error(`CORS blocked: ${origin}`), false);
     },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   });
 
   // ========================================

@@ -1,6 +1,10 @@
 import axios from 'axios';
+import { useAuthStore } from '@/store';
 
-const API_BASE_URL = process.env.API_URL || 'http://localhost:4000';
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  process.env.API_URL ||
+  'http://localhost:4000/api';
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -13,7 +17,10 @@ export const apiClient = axios.create({
 apiClient.interceptors.request.use(
   (config) => {
     // Get token from localStorage or your auth store
-    const token = localStorage.getItem('access_token');
+    const storeToken = useAuthStore.getState().accessToken;
+    const token =
+      storeToken ??
+      (typeof window !== 'undefined' ? localStorage.getItem('access_token') : null);
     
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -33,7 +40,8 @@ apiClient.interceptors.response.use(
     // Handle 401 Unauthorized (token expired)
     if (error.response?.status === 401) {
       localStorage.removeItem('access_token');
-      window.location.href = '/login';
+      useAuthStore.getState().clearAuth();
+      window.location.href = '/sign-in';
     }
     
     return Promise.reject(error);

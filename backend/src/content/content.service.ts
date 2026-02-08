@@ -1,8 +1,5 @@
-// ============================================
-// Service
-// ============================================
-
-import { Injectable } from '@nestjs/common';
+// src/content/content.service.ts
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { BannerAdDto, HeroSectionDto, HomeContentDto, VendorDto } from './dto/content.dto';
 import { plainToInstance } from 'class-transformer';
@@ -11,41 +8,46 @@ import { plainToInstance } from 'class-transformer';
 export class ContentService {
   constructor(private prisma: PrismaService) {}
 
-async getHomeContent(): Promise<HomeContentDto> {
-  const [heroSectionsRaw, vendorsRaw, bannersRaw] = await Promise.all([
-    this.prisma.heroSection.findMany({
-      where: { status: true },
-      orderBy: { order: 'asc' },
-    }),
-    this.prisma.vendor.findMany({
-      where: { status: true },
-      orderBy: { order: 'asc' },
-    }),
-    this.prisma.bannerAd.findMany({
-      where: { status: true },
-      orderBy: { order: 'asc' },
-    }),
-  ]);
+  async getHomeContent(): Promise<HomeContentDto> {
+    // ✅ CHANGED: Use findFirst to get single active hero section
+    const [heroSectionRaw, vendorsRaw, bannersRaw] = await Promise.all([
+      this.prisma.heroSection.findFirst({
+        where: { status: true },
+        orderBy: { order: 'asc' },
+      }),
+      this.prisma.vendor.findMany({
+        where: { status: true },
+        orderBy: { order: 'asc' },
+      }),
+      this.prisma.bannerAd.findMany({
+        where: { status: true },
+        orderBy: { order: 'asc' },
+      }),
+    ]);
 
-  // 1. Manually map the raw data to handle the Decimal string conversion
-  // This removes any ambiguity before class-transformer starts its work.
-  const mappedHeroSections = heroSectionsRaw.map(hero => ({
-    ...hero,
-    // Convert Prisma Decimal object/string to a plain JS number
-    price: hero.price ? Number(hero.price) : undefined,
-  }));
+    // ✅ Handle case where no hero section exists
+    if (!heroSectionRaw) {
+      throw new NotFoundException('No active hero section found');
+    }
 
-  // 2. Now transform the cleaned data
-  const heroSectionProducts = plainToInstance(HeroSectionDto, mappedHeroSections);
-  const banners = plainToInstance(BannerAdDto, bannersRaw);
-  const vendors = plainToInstance(VendorDto, vendorsRaw);
+    // ✅ Map single object, not array
+    const mappedHeroSection = {
+      ...heroSectionRaw,
+      price: heroSectionRaw.price ? Number(heroSectionRaw.price) : undefined,
+    };
 
-  return {
-    heroSectionProducts,
-    vendors,
-    banners,
-  };
-}
+    // ✅ Transform single object
+    const heroSection = plainToInstance(HeroSectionDto, mappedHeroSection);
+    const banners = plainToInstance(BannerAdDto, bannersRaw);
+    const vendors = plainToInstance(VendorDto, vendorsRaw);
+
+    // ✅ CHANGED: Return single object, not array
+    return {
+      heroSection, // Singular
+      vendors,
+      banners,
+    };
+  }
 
   async getActivePopupOffer() {
     const now = new Date();
@@ -74,4 +76,3 @@ async getHomeContent(): Promise<HomeContentDto> {
     };
   }
 }
-

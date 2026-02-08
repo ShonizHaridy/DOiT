@@ -1,21 +1,64 @@
-import { getTranslations } from 'next-intl/server'
-import WishlistContent from './WishlistContent'
-import type { Metadata } from 'next'
+'use client'
 
-export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations('wishlist')
-  return {
-    title: t('title'),
-    description: t('description'),
-  }
+import { useTranslations } from 'next-intl'
+import WishlistProductCard from '@/components/products/WishlistProductCard'
+import { useWishlist } from '@/hooks/useWishlist'
+import { useAuthStore, useUIStore } from '@/store'
+import PageTitleBanner from '@/components/layout/PageTitleBanner'
+// import RedBlockText from '@/components/layout/RedBlockText'
+
+interface WishlistPageProps {
+  params: { locale: string }
 }
 
-export default async function WishlistPage({
-  params,
-}: {
-  params: Promise<{ locale: string }>
-}) {
-  const { locale } = await params
+export default function WishlistPage({ params }: WishlistPageProps) {
+  const { locale } = params
+  const t = useTranslations('wishlist')
+  const tAuth = useTranslations('auth')
+  const accessToken = useAuthStore((state) => state.accessToken)
+  const openSignIn = useUIStore((state) => state.openSignIn)
+  const isSignedIn = Boolean(accessToken)
+  const { data: wishlistItems = [], isLoading } = useWishlist({ enabled: isSignedIn })
 
-  return <WishlistContent locale={locale} />
+  return (
+    <div className="min-h-screen bg-white">
+      {/* Page Title */}
+      <PageTitleBanner title={t('title')} />
+
+      {/* Products Grid */}
+      <div className="container-doit py-6 lg:py-12">
+        {!isSignedIn ? (
+          <div className="flex flex-col items-center justify-center py-16 lg:py-24 gap-4">
+            <p className="font-rubik text-lg lg:text-xl text-text-body text-center">
+              {t('signInPrompt')}
+            </p>
+            <button
+              onClick={openSignIn}
+              className="px-6 py-2.5 bg-primary text-white font-rubik font-medium rounded hover:bg-primary/90 transition-colors"
+            >
+              {tAuth('signIn')}
+            </button>
+          </div>
+        ) : isLoading ? (
+          <div className="flex flex-col items-center justify-center py-16 lg:py-24">
+            <p className="font-rubik text-lg lg:text-xl text-text-body text-center">
+              Loading...
+            </p>
+          </div>
+        ) : wishlistItems.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 lg:py-24">
+            <p className="font-rubik text-lg lg:text-xl text-text-body text-center">
+              {t('empty')}
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+            {wishlistItems.map((item) => (
+              <WishlistProductCard key={item.id} item={item} locale={locale} />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
 }

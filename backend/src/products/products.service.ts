@@ -51,11 +51,22 @@ export class ProductsService {
     if (gender) where.gender = gender as any;
     if (type) where.type = type;
 
-    if (search) {
+    const searchTerm = search?.trim();
+    if (searchTerm) {
       where.OR = [
-        { nameEn: { contains: search, mode: 'insensitive' } },
-        { nameAr: { contains: search, mode: 'insensitive' } },
-        { sku: { contains: search, mode: 'insensitive' } },
+        { nameEn: { contains: searchTerm, mode: 'insensitive' } },
+        { nameAr: { contains: searchTerm, mode: 'insensitive' } },
+        { sku: { contains: searchTerm, mode: 'insensitive' } },
+        { vendor: { contains: searchTerm, mode: 'insensitive' } },
+        { type: { contains: searchTerm, mode: 'insensitive' } },
+        { descriptionEn: { contains: searchTerm, mode: 'insensitive' } },
+        { descriptionAr: { contains: searchTerm, mode: 'insensitive' } },
+        { productList: { nameEn: { contains: searchTerm, mode: 'insensitive' } } },
+        { productList: { nameAr: { contains: searchTerm, mode: 'insensitive' } } },
+        { productList: { subCategory: { nameEn: { contains: searchTerm, mode: 'insensitive' } } } },
+        { productList: { subCategory: { nameAr: { contains: searchTerm, mode: 'insensitive' } } } },
+        { productList: { subCategory: { category: { nameEn: { contains: searchTerm, mode: 'insensitive' } } } } },
+        { productList: { subCategory: { category: { nameAr: { contains: searchTerm, mode: 'insensitive' } } } } },
       ];
     }
 

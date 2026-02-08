@@ -1,6 +1,6 @@
 import { Module, OnModuleInit } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
-import { ConfigModule } from '@nestjs/config'; // 1. Import this
+import { ConfigModule } from '@nestjs/config'; 
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { ProductsModule } from './products/products.module';
@@ -12,15 +12,16 @@ import { ContentModule } from './content/content.module';
 import { JwtAuthGuard } from './auth/guards';
 import { AuthService } from './auth/auth.service';
 import { UploadModule } from './upload/upload.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
-    // 2. Add this FIRST. isGlobal: true makes the .env available everywhere.
     ConfigModule.forRoot({
       isGlobal: true,
     }),
     PrismaModule,
     AuthModule,
+    AdminModule,
     ProductsModule,
     CategoriesModule,
     CustomerModule,
@@ -40,7 +41,7 @@ export class AppModule implements OnModuleInit {
   constructor(private authService: AuthService) {}
 
   async onModuleInit() {
-    // Create default admin on first run
+    // Creating default admin on first run
     await this.authService.createDefaultAdmin();
   }
 }

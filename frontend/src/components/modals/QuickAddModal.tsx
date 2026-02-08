@@ -3,15 +3,24 @@
 import { useState, useEffect, useCallback } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useLocale, useTranslations } from 'next-intl'
 import { CloseCircle, Add, Minus, Heart } from 'iconsax-reactjs'
 import { cn } from '@/lib/utils'
-import { useUIStore, useCartStore, useWishlistStore } from '@/store'
-import type { Product } from '@/data/products'
+import { getLocalized, type Locale } from '@/lib/i18n-utils'
+import { useAddToWishlist, useRemoveFromWishlist } from '@/hooks/useWishlist'
+import { useAuthStore, useUIStore, useCartStore, useWishlistStore } from '@/store'
+import type { Product } from '@/types/product'
 
 export default function QuickAddModal() {
   const { quickAdd, closeQuickAdd } = useUIStore()
   const { addItem } = useCartStore()
-  const { toggleItem, isInWishlist } = useWishlistStore()
+  const { isInWishlist } = useWishlistStore()
+  const accessToken = useAuthStore((state) => state.accessToken)
+  const openSignIn = useUIStore((state) => state.openSignIn)
+  const addToWishlist = useAddToWishlist()
+  const removeFromWishlist = useRemoveFromWishlist()
+  const locale = useLocale()
+  const t = useTranslations('product')
 
   const { isOpen, product } = quickAdd
 
@@ -24,7 +33,7 @@ export default function QuickAddModal() {
   useEffect(() => {
     if (product) {
       setSelectedSize(product.sizes[0] || '')
-      setSelectedColor(product.colors[0]?.name || '')
+      setSelectedColor(product.colors[0] || '')
       setQuantity(1)
       setCurrentImageIndex(0)
     }
@@ -47,13 +56,14 @@ export default function QuickAddModal() {
 
   const handleAddToCart = useCallback(() => {
     if (!product || !selectedSize || !selectedColor) return
+    const hasDiscount = product.discountPercentage > 0 && product.finalPrice < product.basePrice
     addItem({
       productId: product.id,
-      title: product.title,
-      image: product.images[0],
-      price: product.price,
-      originalPrice: product.originalPrice,
-      currency: product.currency,
+      title: getLocalized(product, 'name', locale as Locale),
+      image: product.images[0]?.url || '/placeholder-product.png',
+      price: product.finalPrice,
+      originalPrice: hasDiscount ? product.basePrice : undefined,
+      currency: 'EGP',
       quantity,
       size: selectedSize,
       color: selectedColor,
@@ -61,14 +71,18 @@ export default function QuickAddModal() {
       type: product.type,
       gender: product.gender,
       sku: product.sku,
-      discount: product.discount,
+      discount: hasDiscount ? t('discountOff', { value: product.discountPercentage }) : undefined,
     })
     closeQuickAdd()
-  }, [product, selectedSize, selectedColor, quantity, addItem, closeQuickAdd])
+  }, [product, selectedSize, selectedColor, quantity, addItem, closeQuickAdd, locale, t])
 
   if (!isOpen || !product) return null
 
   const isFavorite = isInWishlist(product.id)
+  const isPending = addToWishlist.isPending || removeFromWishlist.isPending
+  const productName = getLocalized(product, 'name', locale as Locale)
+  const imageUrls = product.images.map((image) => image.url)
+  const hasDiscount = product.discountPercentage > 0 && product.finalPrice < product.basePrice
 
   return (
     <>
@@ -86,7 +100,7 @@ export default function QuickAddModal() {
           <button
             onClick={closeQuickAdd}
             className="absolute top-3 end-3 z-10 text-text-body hover:text-primary transition-colors"
-            aria-label="Close"
+            aria-label={t('close')}
           >
             <CloseCircle size={28} variant="Bold" />
           </button>
@@ -97,17 +111,17 @@ export default function QuickAddModal() {
               {/* Main Image */}
               <div className="relative aspect-square bg-bg-card rounded-lg overflow-hidden mb-3">
                 <Image
-                  src={product.images[currentImageIndex]}
-                  alt={product.title}
+                  src={imageUrls[currentImageIndex] || '/placeholder-product.png'}
+                  alt={productName}
                   fill
                   className="object-contain p-4"
                 />
               </div>
 
               {/* Thumbnails */}
-              {product.images.length > 1 && (
+              {imageUrls.length > 1 && (
                 <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-                  {product.images.map((img, idx) => (
+                  {imageUrls.map((img, idx) => (
                     <button
                       key={idx}
                       onClick={() => setCurrentImageIndex(idx)}
@@ -126,36 +140,36 @@ export default function QuickAddModal() {
             {/* Info Section */}
             <div className="lg:w-1/2 p-4 lg:p-6 lg:ps-0">
               <h2 className="font-roboto font-bold text-lg lg:text-xl text-primary uppercase mb-3">
-                {product.title}
+                {productName}
               </h2>
 
               {/* Price */}
               <div className="flex items-center gap-3 mb-4">
-                <span className="text-sm text-text-body">Price:</span>
+                <span className="text-sm text-text-body">{t('price')}:</span>
                 <span className="font-roboto-condensed font-bold text-2xl lg:text-3xl text-secondary">
-                  {product.price.toLocaleString()}
+                  {product.finalPrice.toLocaleString()}
                 </span>
-                <span className="text-lg text-text-body">{product.currency}</span>
-                {product.originalPrice && (
+                <span className="text-lg text-text-body">EGP</span>
+                {hasDiscount && (
                   <span className="text-lg text-text-placeholder line-through">
-                    {product.originalPrice.toLocaleString()} {product.currency}
+                    {product.basePrice.toLocaleString()} EGP
                   </span>
                 )}
               </div>
 
               {/* View Details Link */}
               <Link
-                href={`/products/${product.id}`}
+                href={`/${locale}/products/${product.id}`}
                 onClick={closeQuickAdd}
                 className="text-sm text-primary underline hover:text-secondary transition-colors mb-5 inline-block"
               >
-                View Details
+                {t('viewDetails')}
               </Link>
 
               {/* Sizes */}
               <div className="mb-4">
                 <div className="flex items-center gap-3 mb-2">
-                  <span className="text-sm text-text-body">Sizes:</span>
+                  <span className="text-sm text-text-body">{t('sizes')}:</span>
                   <div className="flex flex-wrap gap-2">
                     {product.sizes.map((size) => (
                       <button
@@ -179,18 +193,18 @@ export default function QuickAddModal() {
               <div className="flex items-center gap-6 mb-6">
                 {/* Colors */}
                 <div className="flex items-center gap-3">
-                  <span className="text-sm text-text-body">Colors:</span>
+                  <span className="text-sm text-text-body">{t('colors')}:</span>
                   <div className="flex gap-2">
                     {product.colors.map((color) => (
                       <button
-                        key={color.name}
-                        onClick={() => setSelectedColor(color.name)}
+                        key={color}
+                        onClick={() => setSelectedColor(color)}
                         className={cn(
                           'w-7 h-7 rounded border-2 transition-all',
-                          selectedColor === color.name ? 'border-primary scale-110' : 'border-transparent'
+                          selectedColor === color ? 'border-primary scale-110' : 'border-transparent'
                         )}
-                        style={{ backgroundColor: color.hex }}
-                        title={color.name}
+                        style={{ backgroundColor: color }}
+                        title={color}
                       />
                     ))}
                   </div>
@@ -198,7 +212,7 @@ export default function QuickAddModal() {
 
                 {/* Quantity */}
                 <div className="flex items-center gap-3">
-                  <span className="text-sm text-text-body">Quantity:</span>
+                  <span className="text-sm text-text-body">{t('quantity')}:</span>
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -220,14 +234,26 @@ export default function QuickAddModal() {
               {/* Action Buttons */}
               <div className="flex gap-3">
                 <button
-                  onClick={() => toggleItem(product.id)}
+                  onClick={() => {
+                    if (!accessToken) {
+                      openSignIn()
+                      return
+                    }
+                    if (isFavorite) {
+                      removeFromWishlist.mutate(product.id)
+                      return
+                    }
+                    addToWishlist.mutate(product.id)
+                  }}
+                  disabled={isPending}
                   className={cn(
                     'flex-1 flex items-center justify-center gap-2 py-3 border border-primary rounded-lg font-rubik font-medium transition-colors',
-                    isFavorite ? 'bg-primary text-white' : 'bg-white text-primary hover:bg-gray-50'
+                    isFavorite ? 'bg-primary text-white' : 'bg-white text-primary hover:bg-gray-50',
+                    isPending && 'opacity-60 cursor-not-allowed'
                   )}
                 >
                   <Heart size={20} variant={isFavorite ? 'Bold' : 'Outline'} />
-                  <span>Add to wishlist</span>
+                  <span>{t('addToWishlist')}</span>
                 </button>
 
                 <button
@@ -240,7 +266,7 @@ export default function QuickAddModal() {
                     <line x1="3" y1="6" x2="21" y2="6"/>
                     <path d="M16 10a4 4 0 01-8 0"/>
                   </svg>
-                  <span>Add to Cart</span>
+                  <span>{t('addToCart')}</span>
                 </button>
               </div>
             </div>

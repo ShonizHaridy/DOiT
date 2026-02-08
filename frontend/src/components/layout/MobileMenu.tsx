@@ -11,6 +11,8 @@ import USFlagIcon from '@/components/ui/USFlagIcon'
 import SaudiFlagIcon from '@/components/ui/SaudiFlagIcon'
 import { getLocalized, type Locale } from '@/lib/i18n-utils'
 import type { Category } from '@/types/category'
+import { useAuthStore, useUIStore, useWishlistStore } from '@/store'
+import { useLogout } from '@/hooks/useAuth'
 
 interface MobileMenuProps {
   isOpen: boolean
@@ -28,6 +30,15 @@ export default function MobileMenu({ isOpen, onClose, locale, categories }: Mobi
   const pathname = usePathname()
   const [isPending, startTransition] = useTransition()
   const [accountOpen, setAccountOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const openSignIn = useUIStore((state) => state.openSignIn)
+  const accessToken = useAuthStore((state) => state.accessToken)
+  const user = useAuthStore((state) => state.user)
+  const wishlistCount = useWishlistStore((state) => state.getCount())
+  const logout = useLogout()
+  const isSignedIn = Boolean(accessToken)
+
+  const formatCount = (count: number) => (count > 99 ? '99+' : `${count}`)
 
   const handleLanguageSwitch = () => {
     const newLocale = locale === 'en' ? 'ar' : 'en'
@@ -53,6 +64,35 @@ export default function MobileMenu({ isOpen, onClose, locale, categories }: Mobi
       firstFocusable?.focus()
     }
   }, [isOpen])
+
+  useEffect(() => {
+    if (!isOpen && accountOpen) {
+      setAccountOpen(false)
+    }
+  }, [isOpen, accountOpen])
+
+  const handleAccountToggle = () => {
+    if (!isSignedIn) {
+      openSignIn()
+      onClose()
+      return
+    }
+    setAccountOpen(!accountOpen)
+  }
+
+  const handleLogout = () => {
+    setAccountOpen(false)
+    onClose()
+    logout()
+  }
+
+  const handleSearchSubmit = (event?: React.FormEvent) => {
+    event?.preventDefault()
+    const query = searchQuery.trim()
+    if (!query) return
+    onClose()
+    router.push(`/search?q=${encodeURIComponent(query)}`)
+  }
 
   return (
     <>
@@ -105,14 +145,19 @@ export default function MobileMenu({ isOpen, onClose, locale, categories }: Mobi
 
         {/* Search Bar */}
         <div className="px-5 pb-6">
-          <div className="flex items-center justify-between h-[45px] px-4 border border-neutral-100 rounded-lg bg-white">
+          <form
+            onSubmit={handleSearchSubmit}
+            className="flex items-center justify-between h-[45px] px-4 border border-neutral-100 rounded-lg bg-white"
+          >
             <input
               type="search"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
               placeholder={t('searchPlaceholder')}
               className="flex-1 bg-transparent text-base text-neutral-500 placeholder:text-neutral-400 outline-none"
             />
             <button
-              type="button"
+              type="submit"
               className="flex items-center justify-center text-neutral-500 hover:text-primary transition-colors"
               aria-label={t('search')}
             >
@@ -121,7 +166,7 @@ export default function MobileMenu({ isOpen, onClose, locale, categories }: Mobi
                 <path d="M22 22L20 20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </button>
-          </div>
+          </form>
         </div>
 
         {/* Navigation Items */}
@@ -165,7 +210,7 @@ export default function MobileMenu({ isOpen, onClose, locale, categories }: Mobi
         <div className="flex flex-col gap-6 px-5 py-6">
           {/* My Account */}
           <button
-            onClick={() => setAccountOpen(!accountOpen)}
+            onClick={handleAccountToggle}
             className="flex items-center justify-between py-3 hover:opacity-80 transition-opacity"
           >
             <div className="flex items-center gap-1">
@@ -181,6 +226,33 @@ export default function MobileMenu({ isOpen, onClose, locale, categories }: Mobi
               <path d="M11.9465 5.45337H7.79316H4.05317C3.41317 5.45337 3.09317 6.2267 3.5465 6.68004L6.99983 10.1334C7.55317 10.6867 8.45317 10.6867 9.0065 10.1334L10.3198 8.82004L12.4598 6.68004C12.9065 6.2267 12.5865 5.45337 11.9465 5.45337Z" fill="#1A1A1A"/>
             </svg>
           </button>
+          {isSignedIn && accountOpen && (
+            <div className="ms-7 flex flex-col gap-2 pb-2">
+              <div className="text-xs text-neutral-500">
+                {user?.fullName ?? user?.email ?? 'Account'}
+              </div>
+              <Link
+                href="/profile"
+                className="text-sm text-primary hover:text-secondary transition-colors"
+                onClick={onClose}
+              >
+                {t('myAccount')}
+              </Link>
+              <Link
+                href="/orders"
+                className="text-sm text-primary hover:text-secondary transition-colors"
+                onClick={onClose}
+              >
+                Orders
+              </Link>
+              <button
+                onClick={handleLogout}
+                className="text-sm text-red-600 text-left hover:text-red-700"
+              >
+                Sign out
+              </button>
+            </div>
+          )}
 
           {/* Wishlist */}
           <Link
@@ -193,7 +265,7 @@ export default function MobileMenu({ isOpen, onClose, locale, categories }: Mobi
                 <path d="M7 3C4.239 3 2 5.216 2 7.95C2 10.157 2.875 15.395 11.488 20.69C11.6423 20.7839 11.8194 20.8335 12 20.8335C12.1806 20.8335 12.3577 20.7839 12.512 20.69C21.125 15.395 22 10.157 22 7.95C22 5.216 19.761 3 17 3C14.239 3 12 6 12 6C12 6 9.761 3 7 3Z" stroke="#888787" strokeWidth="1.66667" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
               <span className="absolute -top-1 -right-1 min-w-[11px] h-[11px] px-1 bg-[#00A3FF] border border-neutral-100 text-white text-[8px] font-normal rounded-full flex items-center justify-center">
-                5
+                {formatCount(wishlistCount)}
               </span>
             </div>
             <span className="text-base font-medium text-primary">

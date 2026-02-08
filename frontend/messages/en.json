@@ -19,6 +19,17 @@
       "sport": "Sport"
     }
   },
+  "auth": {
+    "signIn": "Sign In",
+    "email": "Email",
+    "emailPlaceholder": "Enter your email",
+    "continue": "Continue",
+    "enterCode": "Enter Verification Code",
+    "codeSubtitle": "We sent a 6-digit code to your email.",
+    "codePlaceholder": "------",
+    "submit": "Submit",
+    "backToEmail": "Back to email"
+  },
   "footer": {
     "categories": "Categories",
     "services": "Services",
@@ -121,6 +132,8 @@
     "placeholder": "Search products...",
     "results": "results found",
     "noResults": "No products found",
+    "loading": "Searching...",
+    "showMore": "Show me more results",
     "pagination": {
       "next": "Next",
       "previous": "Previous"
@@ -148,7 +161,25 @@
     "sku": "SKU",
     "availability": "Availability",
     "inStock": "In Stock",
+    "lowStock": "Low Stock",
     "outOfStock": "Out of Stock",
+    "colors": "Colors",
+    "sizes": "Sizes",
+    "gender": "Gender",
+    "type": "Type",
+    "sizeChart": "Size Chart",
+    "detailsTitle": "Details",
+    "freeDelivery": "Free Delivery over {amount} EGP",
+    "returnTitle": "NOT THE RIGHT SIZE OR COLOR?",
+    "returnBody": "No problem, we offer free size exchanges for 60 days and we have free return service.",
+    "discountOff": "{value}% OFF",
+    "viewDetails": "View Details",
+    "genderValues": {
+      "men": "Men",
+      "women": "Women",
+      "kids": "Kids",
+      "unisex": "Unisex"
+    },
     "selectSize": "Select Size",
     "selectColor": "Select Color",
     "addToCart": "Add to Cart",
@@ -157,9 +188,121 @@
     "price": "Price",
     "originalPrice": "Original Price",
     "discount": "Discount",
-    "quantity": "Quantity"
+    "quantity": "Quantity",
+    "close": "Close",
+    "oneSize": "One Size",
+    "defaultColor": "Default",
+    "sizeChartTips": {
+      "title": "How to Measure",
+      "chest": {
+        "label": "Chest",
+        "text": "Measure around the fullest part of your chest"
+      },
+      "waist": {
+        "label": "Waist",
+        "text": "Measure around your natural waistline"
+      },
+      "hips": {
+        "label": "Hips",
+        "text": "Measure around the fullest part of your hips"
+      },
+      "footLength": {
+        "label": "Foot Length",
+        "text": "Stand on paper, mark toe and heel, measure distance"
+      }
+    }
+  },
+  "checkout": {
+    "orderSummary": "Order summary",
+    "subtotal": "Subtotal",
+    "shipping": "Shipping",
+    "total": "Total",
+    "items": "{count, plural, one {# Item} other {# Items}}",
+    "free": "FREE",
+    "email": "Email",
+    "signIn": "Sign in",
+    "enterEmail": "enter email",
+    "delivery": "Delivery",
+    "countryRegion": "Country/Region",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "address": "Address",
+    "apartment": "Apartment, suite, etc. (optional)",
+    "city": "City",
+    "governorate": "Governorate",
+    "postalCode": "Postal Code",
+    "phone": "Phone",
+    "saveInfo": "Save this information for next time",
+    "shippingStandard": "Standard",
+    "payment": "Payment",
+    "paymentCod": "Cash on delivery",
+    "billingAddress": "Billing Address",
+    "billingSame": "Same as shipping address",
+    "billingDifferent": "Use different billing address",
+    "processing": "Processing...",
+    "confirmOrder": "Confirm Order",
+    "cartEmpty": "Your cart is empty.",
+    "submitError": "Unable to place order. Please try again.",
+    "orderSuccessTitle": "Order placed successfully.",
+    "orderNumber": "Order number: {number}",
+    "viewOrders": "View orders",
+    "guestOrderNote": "We saved this order number on this device. Keep it to track your order.",
+    "countries": {
+      "egypt": "Egypt",
+      "saudiArabia": "Saudi Arabia",
+      "uae": "UAE"
+    },
+    "governorates": {
+      "cairo": "Cairo",
+      "giza": "Giza",
+      "alexandria": "Alexandria"
+    },
+    "errors": {
+      "emailRequired": "Email is required",
+      "emailInvalid": "Invalid email address",
+      "firstNameRequired": "First name is required",
+      "lastNameRequired": "Last name is required",
+      "addressRequired": "Address is required",
+      "cityRequired": "City is required",
+      "governorateRequired": "Governorate is required",
+      "phoneRequired": "Phone number is required",
+      "phoneInvalid": "Valid phone number required",
+      "countryRequired": "Country is required"
+    }
   },
   "wishlist": {
-    "title": "Wishlist"
+    "title": "Wishlist",
+    "empty": "Your wishlist is empty",
+    "signInPrompt": "Sign in to view your wishlist"
+  },
+  "profile": {
+    "title": "My Profile",
+    "name": "Name",
+    "edit": "Edit",
+    "email": "Email",
+    "addresses": "Addresses",
+    "add": "Add",
+    "emptyAddresses": "No saved addresses yet",
+    "signInPrompt": "Sign in to view your profile",
+    "editProfile": "Edit Profile",
+    "back": "Back",
+    "firstNamePlaceholder": "First Name",
+    "lastNamePlaceholder": "Last Name",
+    "emailHelper": "Email cannot be changed",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving...",
+    "nameRequired": "Name is required",
+    "saveError": "Unable to update profile",
+    "addAddress": "Add Address",
+    "addressNamePlaceholder": "Address name",
+    "countryPlaceholder": "Country/Region",
+    "addressPlaceholder": "Address",
+    "apartmentPlaceholder": "Apartment, suite, etc. (optional)",
+    "cityPlaceholder": "City",
+    "governoratePlaceholder": "Governorate",
+    "postalCodePlaceholder": "Postal Code",
+    "phonePlaceholder": "Phone",
+    "saveAsDefault": "Save as default"
   }
 }

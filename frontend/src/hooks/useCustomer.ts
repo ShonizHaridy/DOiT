@@ -1,19 +1,22 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, type UseQueryOptions } from '@tanstack/react-query';
 import * as customerService from '@/services/customer';
 import type {
   UpdateProfileRequest,
   CreateAddressRequest,
   UpdateAddressRequest,
+  CustomerProfile,
+  Address,
 } from '@/types/customer';
 
 // ============================================
 // PROFILE
 // ============================================
 
-export const useCustomerProfile = () => {
+export const useCustomerProfile = (options?: UseQueryOptions<CustomerProfile>) => {
   return useQuery({
     queryKey: ['customer', 'profile'],
     queryFn: () => customerService.getCustomerProfile(),
+    ...options,
   });
 };
 
@@ -33,10 +36,11 @@ export const useUpdateProfile = () => {
 // ADDRESSES
 // ============================================
 
-export const useAddresses = () => {
+export const useAddresses = (options?: UseQueryOptions<Address[]>) => {
   return useQuery({
     queryKey: ['customer', 'addresses'],
     queryFn: () => customerService.getAddresses(),
+    ...options,
   });
 };
 

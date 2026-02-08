@@ -14,7 +14,22 @@ export const addToWishlist = async (productId: string): Promise<WishlistItem> =>
 };
 
 export const removeFromWishlist = async (productId: string): Promise<void> => {
-  await apiClient.delete(`/api/wishlist/${productId}`);
+  if (process.env.NODE_ENV !== 'production') {
+    // eslint-disable-next-line no-console
+    console.log('Wishlist remove request', {
+      productId,
+      baseURL: apiClient.defaults.baseURL,
+    });
+  }
+  const response = await apiClient.delete(`/wishlist/${productId}`);
+  if (process.env.NODE_ENV !== 'production') {
+    // eslint-disable-next-line no-console
+    console.log('Wishlist remove response', {
+      productId,
+      status: response.status,
+      statusText: response.statusText,
+    });
+  }
 };
 
 export const clearWishlist = async (): Promise<void> => {

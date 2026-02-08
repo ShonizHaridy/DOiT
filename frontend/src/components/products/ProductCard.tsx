@@ -1,5 +1,4 @@
-// 'use client'
-
+ 
 // import { useState } from 'react'
 // import Image from 'next/image'
 // import Link from 'next/link'
@@ -131,9 +130,14 @@ import Link from 'next/link'
 import FavoriteButton from '@/components/products/FavoriteButton'
 import AddToCartButton from '@/components/products/AddToCartButton'
 import { cn } from '@/lib/utils'
-import { Heart } from 'iconsax-reactjs'
 
-
+export interface ProductCardLabels {
+  colors: string
+  sizes: string
+  gender: string
+  price: string
+  genderValues?: Record<string, string>
+}
 
 export interface ProductCardProps {
   id: string
@@ -145,6 +149,7 @@ export interface ProductCardProps {
   colors?: string[]
   sizes?: string[]
   gender?: string
+  labels?: ProductCardLabels
   className?: string
 }
 
@@ -158,17 +163,29 @@ export default function ProductCard({
   colors = [],
   sizes = [],
   gender,
+  labels,
   className,
 }: ProductCardProps) {
+  const labelText: ProductCardLabels = {
+    colors: labels?.colors ?? 'Colors',
+    sizes: labels?.sizes ?? 'Sizes',
+    gender: labels?.gender ?? 'Gender',
+    price: labels?.price ?? 'Price',
+    genderValues: labels?.genderValues,
+  }
+  const genderLabel = gender
+    ? labelText.genderValues?.[gender] ?? gender
+    : ''
+
   return (
     <article
       className={cn(
-        'flex flex-col bg-bg-card rounded-lg overflow-hidden shadow-card z-(--z-content)',
+        'flex flex-col bg-bg-search rounded-lg overflow-hidden shadow-card-40 z-(--z-content)',
         className
       )}
     >
       {/* Image with Heart Icon */}
-      <Link href={href} className="relative aspect-square bg-bg-card overflow-hidden group">
+      <Link href={href} className="relative aspect-video bg-bg-search overflow-hidden group">
         <Image
           src={image}
           alt={title}
@@ -184,7 +201,7 @@ export default function ProductCard({
       </Link>
 
       {/* Content */}
-      <div className="flex flex-col gap-1.5 p-3 bg-white">
+      <div className="flex flex-col gap-1.5 p-3 bg-bg-search">
         {/* Title Row with Add to Cart */}
         <div className="flex items-start justify-between gap-2">
           <Link href={href} className="flex-1">
@@ -195,7 +212,16 @@ export default function ProductCard({
 
           {/* Add to Cart Button */}
           <div className="flex items-center gap-2 shrink-0">
-            <AddToCartButton productId={id} />
+            <AddToCartButton
+              productId={id}
+              title={title}
+              image={image}
+              price={price}
+              currency={currency}
+              sizes={sizes}
+              colors={colors}
+              gender={gender}
+            />
             <div className="hidden lg:block">
               <FavoriteButton productId={id} />
             </div>
@@ -207,7 +233,7 @@ export default function ProductCard({
           {/* Colors */}
           {colors.length > 0 && (
             <div className="flex items-center gap-2">
-              <span className="font-rubik font-normal text-text-body">Colors:</span>
+              <span className="font-rubik font-normal text-text-body">{labelText.colors}:</span>
               <div className="flex gap-1">
                 {colors.slice(0, 4).map((color, index) => (
                   <div
@@ -225,7 +251,7 @@ export default function ProductCard({
           {/* Sizes */}
           {sizes.length > 0 && (
             <div className="flex items-center gap-2">
-              <span className="font-rubik font-normal text-text-body">Sizes:</span>
+              <span className="font-rubik font-normal text-text-body">{labelText.sizes}:</span>
               <span className="font-rubik font-normal text-text-body">
                 {sizes.join('/ ')}
               </span>
@@ -233,16 +259,16 @@ export default function ProductCard({
           )}
 
           {/* Gender */}
-          {gender && (
+          {genderLabel && (
             <div className="flex items-center gap-2">
-              <span className="font-rubik font-normal text-text-body">Gender:</span>
-              <span className="font-rubik font-normal text-text-body">{gender}</span>
+              <span className="font-rubik font-normal text-text-body">{labelText.gender}:</span>
+              <span className="font-rubik font-normal text-text-body">{genderLabel}</span>
             </div>
           )}
 
           {/* Price */}
           <div className="flex items-center gap-2">
-            <span className="font-rubik font-normal text-text-body">Price:</span>
+            <span className="font-rubik font-normal text-text-body">{labelText.price}:</span>
             <span className="font-rubik font-semibold text-secondary">
               {price.toLocaleString()} {currency}
             </span>

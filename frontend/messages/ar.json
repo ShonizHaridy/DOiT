@@ -19,6 +19,17 @@
       "sport": "رياضة"
     }
   },
+  "auth": {
+    "signIn": "تسجيل الدخول",
+    "email": "البريد الإلكتروني",
+    "emailPlaceholder": "أدخل بريدك الإلكتروني",
+    "continue": "متابعة",
+    "enterCode": "أدخل رمز التحقق",
+    "codeSubtitle": "أرسلنا رمزًا من 6 أرقام إلى بريدك الإلكتروني.",
+    "codePlaceholder": "رمز التحقق",
+    "submit": "إرسال",
+    "backToEmail": "العودة إلى البريد الإلكتروني"
+  },
   "footer": {
     "categories": "الفئات",
     "services": "الخدمات",
@@ -135,6 +146,8 @@
     "placeholder": "ابحث عن المنتجات...",
     "results": "نتائج وجدت",
     "noResults": "لم يتم العثور على منتجات",
+    "loading": "جاري البحث...",
+    "showMore": "اعرض المزيد من النتائج",
     "pagination": {
       "next": "التالي",
       "previous": "السابق"
@@ -162,7 +175,25 @@
     "sku": "رمز المخزون",
     "availability": "التوفر",
     "inStock": "متوفر",
+    "lowStock": "مخزون منخفض",
     "outOfStock": "غير متوفر",
+    "colors": "الألوان",
+    "sizes": "المقاسات",
+    "gender": "الجنس",
+    "type": "النوع",
+    "sizeChart": "جدول المقاسات",
+    "detailsTitle": "التفاصيل",
+    "freeDelivery": "توصيل مجاني للطلبات فوق {amount} جنيه",
+    "returnTitle": "المقاس أو اللون غير مناسب؟",
+    "returnBody": "لا مشكلة، نوفر تبديل مجاني للمقاس لمدة 60 يومًا ولدينا خدمة إرجاع مجانية.",
+    "discountOff": "{value}% خصم",
+    "viewDetails": "عرض التفاصيل",
+    "genderValues": {
+      "men": "رجال",
+      "women": "نساء",
+      "kids": "أطفال",
+      "unisex": "للجنسين"
+    },
     "selectSize": "اختر الحجم",
     "selectColor": "اختر اللون",
     "addToCart": "أضف إلى السلة",
@@ -171,9 +202,121 @@
     "price": "السعر",
     "originalPrice": "السعر الأصلي",
     "discount": "الخصم",
-    "quantity": "الكمية"
+    "quantity": "الكمية",
+    "close": "إغلاق",
+    "oneSize": "مقاس واحد",
+    "defaultColor": "افتراضي",
+    "sizeChartTips": {
+      "title": "كيفية القياس",
+      "chest": {
+        "label": "الصدر",
+        "text": "قم بالقياس حول أوسع جزء من صدرك"
+      },
+      "waist": {
+        "label": "الخصر",
+        "text": "قم بالقياس حول خط خصرك الطبيعي"
+      },
+      "hips": {
+        "label": "الورك",
+        "text": "قم بالقياس حول أوسع جزء من الورك"
+      },
+      "footLength": {
+        "label": "طول القدم",
+        "text": "قف على ورقة، حدّد مقدمة وخلف القدم، ثم قِس المسافة"
+      }
+    }
+  },
+  "checkout": {
+    "orderSummary": "ملخص الطلب",
+    "subtotal": "المجموع الفرعي",
+    "shipping": "الشحن",
+    "total": "الإجمالي",
+    "items": "{count} عنصر",
+    "free": "مجاني",
+    "email": "البريد الإلكتروني",
+    "signIn": "تسجيل الدخول",
+    "enterEmail": "أدخل البريد الإلكتروني",
+    "delivery": "التوصيل",
+    "countryRegion": "الدولة/المنطقة",
+    "firstName": "الاسم الأول",
+    "lastName": "اسم العائلة",
+    "address": "العنوان",
+    "apartment": "شقة، جناح، إلخ (اختياري)",
+    "city": "المدينة",
+    "governorate": "المحافظة",
+    "postalCode": "الرمز البريدي",
+    "phone": "الهاتف",
+    "saveInfo": "احفظ هذه المعلومات للمرات القادمة",
+    "shippingStandard": "عادي",
+    "payment": "الدفع",
+    "paymentCod": "الدفع عند الاستلام",
+    "billingAddress": "عنوان الفاتورة",
+    "billingSame": "نفس عنوان الشحن",
+    "billingDifferent": "استخدم عنوان فاتورة مختلف",
+    "processing": "جارٍ المعالجة...",
+    "confirmOrder": "تأكيد الطلب",
+    "cartEmpty": "سلة التسوق فارغة.",
+    "submitError": "تعذر تنفيذ الطلب. يرجى المحاولة مرة أخرى.",
+    "orderSuccessTitle": "تم تقديم الطلب بنجاح.",
+    "orderNumber": "رقم الطلب: {number}",
+    "viewOrders": "عرض الطلبات",
+    "guestOrderNote": "حفظنا رقم الطلب على هذا الجهاز لتتمكن من تتبع الطلب.",
+    "countries": {
+      "egypt": "مصر",
+      "saudiArabia": "السعودية",
+      "uae": "الإمارات"
+    },
+    "governorates": {
+      "cairo": "القاهرة",
+      "giza": "الجيزة",
+      "alexandria": "الإسكندرية"
+    },
+    "errors": {
+      "emailRequired": "البريد الإلكتروني مطلوب",
+      "emailInvalid": "البريد الإلكتروني غير صالح",
+      "firstNameRequired": "الاسم الأول مطلوب",
+      "lastNameRequired": "اسم العائلة مطلوب",
+      "addressRequired": "العنوان مطلوب",
+      "cityRequired": "المدينة مطلوبة",
+      "governorateRequired": "المحافظة مطلوبة",
+      "phoneRequired": "رقم الهاتف مطلوب",
+      "phoneInvalid": "يرجى إدخال رقم هاتف صحيح",
+      "countryRequired": "الدولة مطلوبة"
+    }
   },
   "wishlist": {
-    "title": "المفضلة"
+    "title": "المفضلة",
+    "empty": "قائمة المفضلة فارغة",
+    "signInPrompt": "سجل الدخول لعرض المفضلة"
+  },
+  "profile": {
+    "title": "الملف الشخصي",
+    "name": "الاسم",
+    "edit": "تعديل",
+    "email": "البريد الإلكتروني",
+    "addresses": "العناوين",
+    "add": "إضافة",
+    "emptyAddresses": "لا توجد عناوين محفوظة",
+    "signInPrompt": "سجل الدخول لعرض ملفك الشخصي",
+    "editProfile": "تعديل الملف الشخصي",
+    "back": "عودة",
+    "firstNamePlaceholder": "الاسم الأول",
+    "lastNamePlaceholder": "اسم العائلة",
+    "emailHelper": "لا يمكن تغيير البريد الإلكتروني",
+    "cancel": "إلغاء",
+    "save": "حفظ",
+    "saving": "جارٍ الحفظ...",
+    "nameRequired": "الاسم مطلوب",
+    "saveError": "تعذر تحديث الملف الشخصي",
+    "addAddress": "إضافة عنوان",
+    "addressNamePlaceholder": "اسم العنوان",
+    "countryPlaceholder": "البلد/المنطقة",
+    "addressPlaceholder": "العنوان",
+    "apartmentPlaceholder": "شقة، جناح، إلخ (اختياري)",
+    "cityPlaceholder": "المدينة",
+    "governoratePlaceholder": "المحافظة",
+    "postalCodePlaceholder": "الرمز البريدي",
+    "phonePlaceholder": "الهاتف",
+    "saveAsDefault": "حفظ كافتراضي"
   }
 }

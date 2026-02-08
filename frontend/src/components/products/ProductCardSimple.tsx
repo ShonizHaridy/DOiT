@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
+import { useAddToWishlist, useRemoveFromWishlist } from '@/hooks/useWishlist'
+import { useAuthStore, useUIStore, useWishlistStore } from '@/store'
 
 interface ProductCardSimpleProps {
   id: string
@@ -22,7 +23,13 @@ export default function ProductCardSimple({
   href,
   className,
 }: ProductCardSimpleProps) {
-  const [isFavorite, setIsFavorite] = useState(false)
+  const { isInWishlist } = useWishlistStore()
+  const accessToken = useAuthStore((state) => state.accessToken)
+  const openSignIn = useUIStore((state) => state.openSignIn)
+  const addToWishlist = useAddToWishlist()
+  const removeFromWishlist = useRemoveFromWishlist()
+  const isFavorite = isInWishlist(id)
+  const isPending = addToWishlist.isPending || removeFromWishlist.isPending
 
   return (
     <div
@@ -61,10 +68,19 @@ export default function ProductCardSimple({
           <button
             onClick={(e) => {
               e.preventDefault()
-              setIsFavorite(!isFavorite)
+              if (!accessToken) {
+                openSignIn()
+                return
+              }
+              if (isFavorite) {
+                removeFromWishlist.mutate(id)
+                return
+              }
+              addToWishlist.mutate(id)
             }}
+            disabled={isPending}
             className="w-6 h-6 flex items-center justify-center transition-colors"
-            aria-label="Add to wishlist"
+            aria-label={isFavorite ? 'Remove from wishlist' : 'Add to wishlist'}
           >
             <svg
               width="16"

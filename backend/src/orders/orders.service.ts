@@ -10,7 +10,6 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateOrderDto, CreateGuestOrderDto, OrderDto, PaginatedOrdersDto } from './dto/orders.dto';
-import { plainToInstance } from 'class-transformer';
 
 // Type for order item data to ensure type safety
 interface OrderItemData {
@@ -33,6 +32,20 @@ interface OrderItemData {
 @Injectable()
 export class OrdersService {
   constructor(private prisma: PrismaService) {}
+
+  // ============================================
+  // HELPERS
+  // ============================================
+  private toNumber(value: any): number | undefined {
+    if (value === null || value === undefined || value === '') {
+      return undefined;
+    }
+    if (typeof value === 'object' && typeof value.toNumber === 'function') {
+      return value.toNumber();
+    }
+    const result = Number(value);
+    return Number.isNaN(result) ? undefined : result;
+  }
 
   // ============================================
   // GUEST CHECKOUT
@@ -300,13 +313,8 @@ export class OrdersService {
       this.prisma.order.count({ where }),
     ]);
 
-    const transformedOrders = plainToInstance(
-      OrderDto,
-      orders.map((order) => this.prepareOrderData(order)),
-    );
-
     return {
-      orders: transformedOrders,
+      orders: orders.map((order) => this.prepareOrderData(order)),
       pagination: {
         page,
         limit,
@@ -325,7 +333,7 @@ export class OrdersService {
     if (!order) throw new NotFoundException('Order not found');
     if (order.customerId !== customerId) throw new ForbiddenException('Unauthorized');
 
-    return plainToInstance(OrderDto, this.prepareOrderData(order));
+    return this.prepareOrderData(order);
   }
 
   // ============================================
@@ -339,21 +347,34 @@ export class OrdersService {
 
     if (!order) throw new NotFoundException('Order not found');
 
-    return plainToInstance(OrderDto, this.prepareOrderData(order));
+    return this.prepareOrderData(order);
   }
 
   // ============================================
   // HELPER METHODS
   // ============================================
-  private prepareOrderData(order: any) {
+  private prepareOrderData(order: any): OrderDto {
     const { customerId, ...baseOrder } = order;
 
     return {
       ...baseOrder,
+      subtotal: this.toNumber(baseOrder.subtotal) ?? 0,
+      discount: this.toNumber(baseOrder.discount) ?? 0,
+      shipping: this.toNumber(baseOrder.shipping) ?? 0,
+      total: this.toNumber(baseOrder.total) ?? 0,
+      paymentMethod: baseOrder.paymentMethod ?? undefined,
+      deliveryDate: baseOrder.deliveryDate ?? undefined,
+      trackingNumber: baseOrder.trackingNumber ?? undefined,
+      notes: baseOrder.notes ?? undefined,
       address: order.address
         ? { label: order.address.label, fullAddress: order.address.fullAddress }
         : undefined,
-      items: order.items,
+      items: (order.items ?? []).map((item: any) => ({
+        ...item,
+        price: this.toNumber(item.price) ?? 0,
+        originalPrice: this.toNumber(item.originalPrice),
+        discount: item.discount ?? undefined,
+      })),
     };
   }
 }
