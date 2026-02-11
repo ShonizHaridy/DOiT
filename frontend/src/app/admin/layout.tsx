@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import '../globals.css'
 import { QueryProvider } from '@/providers/QueryProvider'
+import AdminGuard from '@/components/admin/AdminGuard'
 
 export const metadata: Metadata = {
   title: {
@@ -17,7 +18,9 @@ export default function AdminRootLayout({
   return (
     <html lang="en">
       <body>
-        <QueryProvider>{children}</QueryProvider>
+        <QueryProvider>
+          <AdminGuard>{children}</AdminGuard>
+        </QueryProvider>
       </body>
     </html>
   )
