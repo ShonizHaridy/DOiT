@@ -1,6 +1,15 @@
 import { apiClient } from '@/lib/axios-client';
-import { ProductList } from '@/lib/schemas/admin';
-import type { Category, CreateCategoryRequest, CreateProductListRequest, CreateSubCategoryRequest, SubCategory, UpdateCategoryRequest, UpdateProductListRequest, UpdateSubCategoryRequest } from '@/types/category';
+import type {
+  Category,
+  CreateCategoryRequest,
+  CreateProductListRequest,
+  CreateSubCategoryRequest,
+  SubCategory,
+  UpdateCategoryRequest,
+  UpdateProductListRequest,
+  UpdateSubCategoryRequest,
+  ProductListItem,
+} from '@/types/category';
 
 export const getCategories = async (
   includeChildren: boolean = false
@@ -32,6 +41,16 @@ export const getFilterOptions = async (): Promise<{
 // ============================================
 // ADMIN OPERATIONS
 // ============================================
+
+export const getAdminCategories = async (): Promise<Category[]> => {
+  const { data } = await apiClient.get<Category[]>('/admin/categories');
+  return data;
+};
+
+export const getAdminCategory = async (id: string): Promise<Category> => {
+  const { data } = await apiClient.get<Category>(`/admin/categories/${id}`);
+  return data;
+};
 
 export const createCategory = async (data: CreateCategoryRequest): Promise<Category> => {
   const response = await apiClient.post<Category>('/admin/categories', data);
@@ -85,8 +104,8 @@ export const deleteSubCategory = async (id: string): Promise<void> => {
 export const createProductList = async (
   subCategoryId: string,
   data: CreateProductListRequest
-): Promise<ProductList> => {
-  const response = await apiClient.post<ProductList>(
+): Promise<ProductListItem> => {
+  const response = await apiClient.post<ProductListItem>(
     `/admin/sub-categories/${subCategoryId}/product-lists`,
     data
   );
@@ -96,8 +115,8 @@ export const createProductList = async (
 export const updateProductList = async (
   id: string,
   data: UpdateProductListRequest
-): Promise<ProductList> => {
-  const response = await apiClient.put<ProductList>(
+): Promise<ProductListItem> => {
+  const response = await apiClient.put<ProductListItem>(
     `/admin/product-lists/${id}`,
     data
   );

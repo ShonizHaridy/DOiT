@@ -1,108 +1,30 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { FormInput, FormPageHeader } from '@/components/admin/forms'
+import { useParams } from 'next/navigation'
+import { FormPageHeader } from '@/components/admin/forms'
 import { categorySchema, CategoryFormData } from '@/lib/schemas/admin'
 import { Add, Category2 } from 'iconsax-reactjs'
+import {
+  useAdminCategory,
+  useUpdateCategory,
+  useCreateSubCategory,
+  useUpdateSubCategory,
+  useCreateProductList,
+  useUpdateProductList,
+} from '@/hooks/useCategories'
 
-// Sample pre-filled data
-const sampleCategoryData: CategoryFormData = {
-  nameEn: 'Men',
-  nameAr: 'رجالي',
-  subCategories: [
-    {
-      id: '1',
-      nameEn: 'footwear',
-      nameAr: 'أحذية',
-      productLists: [
-        { id: '1-1', valueEn: 'Running', valueAr: 'الجري' },
-        { id: '1-2', valueEn: 'Training', valueAr: 'التمرين' },
-        { id: '1-3', valueEn: 'Lifestyle', valueAr: 'اناقة' },
-        { id: '1-4', valueEn: 'Slides & Flip flops', valueAr: 'شباشب بحر' },
-        { id: '1-5', valueEn: 'football', valueAr: 'كرة قدم' },
-        { id: '1-6', valueEn: 'basketball', valueAr: 'كرة سلة' },
-        { id: '1-7', valueEn: 'indoor', valueAr: 'داخلي' },
-      ]
-    },
-    {
-      id: '2',
-      nameEn: 'accessories',
-      nameAr: 'اكسسوارات',
-      productLists: [
-        { id: '2-1', valueEn: 'bags', valueAr: 'حقائب' },
-        { id: '2-2', valueEn: 'bottles', valueAr: 'زجاجات' },
-        { id: '2-3', valueEn: 'socks', valueAr: 'جوارب' },
-        { id: '2-4', valueEn: 'head wear', valueAr: 'قبعات' },
-      ]
-    },
-    {
-      id: '3',
-      nameEn: 'clothing',
-      nameAr: 'ملابس',
-      productLists: [
-        { id: '3-1', valueEn: 'jackets', valueAr: 'جاكيتات' },
-        { id: '3-2', valueEn: 'pants', valueAr: 'بنطلونات' },
-        { id: '3-3', valueEn: 'swimwear', valueAr: 'ملابس سباحة' },
-        { id: '3-4', valueEn: 't.shirts', valueAr: 'تيشيرتات' },
-        { id: '3-5', valueEn: 'hoodie', valueAr: 'هودي' },
-        { id: '3-6', valueEn: 'tights', valueAr: 'تايتس' },
-        { id: '3-7', valueEn: 'tracksuit', valueAr: 'بدلة رياضية' },
-        { id: '3-8', valueEn: 'tracktop', valueAr: 'جاكيت رياضي' },
-        { id: '3-9', valueEn: 'shorts', valueAr: 'شورتات' },
-      ]
-    },
-    {
-      id: '4',
-      nameEn: 'brands',
-      nameAr: 'علامة تجارية',
-      productLists: [
-        { id: '4-1', valueEn: 'adidas', valueAr: 'اديداس' },
-        { id: '4-2', valueEn: 'nike', valueAr: 'نايك' },
-        { id: '4-3', valueEn: 'Reebok', valueAr: 'ريبوك' },
-        { id: '4-4', valueEn: 'puma', valueAr: 'بوما' },
-        { id: '4-5', valueEn: 'body sculpture', valueAr: 'بودي سكلبتر' },
-        { id: '4-6', valueEn: 'Wilson', valueAr: 'ويلسون' },
-        { id: '4-7', valueEn: 'jan sport', valueAr: 'جان سبورت' },
-        { id: '4-8', valueEn: 'liveup', valueAr: 'لايف اب' },
-        { id: '4-9', valueEn: 'babolat', valueAr: 'بابولات' },
-        { id: '4-10', valueEn: 'technofibre', valueAr: 'تكنوفايبر' },
-        { id: '4-11', valueEn: 'asics', valueAr: 'اسيكس' },
-      ]
-    },
-    {
-      id: '5',
-      nameEn: 'sports',
-      nameAr: 'رياضة',
-      productLists: [
-        { id: '5-1', valueEn: 'football', valueAr: 'كرة قدم' },
-        { id: '5-2', valueEn: 'basketball', valueAr: 'كرة سلة' },
-        { id: '5-3', valueEn: 'tennis', valueAr: 'تنس' },
-        { id: '5-4', valueEn: 'running', valueAr: 'جري' },
-        { id: '5-5', valueEn: 'training', valueAr: 'تدريب' },
-        { id: '5-6', valueEn: 'squash', valueAr: 'اسكواش' },
-        { id: '5-7', valueEn: 'padle', valueAr: 'بادل' },
-        { id: '5-8', valueEn: 'swimming', valueAr: 'سباحة' },
-        { id: '5-9', valueEn: 'fitness', valueAr: 'فيتنس' },
-        { id: '5-10', valueEn: 'motor sport', valueAr: 'رياضة السيارات' },
-      ]
-    },
-  ]
-}
-
-// Nested ProductLists component
-function ProductListsFields({ 
-  subCategoryIndex, 
-  control, 
-  register, 
-  errors,
-  isEnglish 
-}: { 
+function ProductListsFields({
+  subCategoryIndex,
+  control,
+  register,
+  isEnglish
+}: {
   subCategoryIndex: number
   control: any
   register: any
-  errors: any
   isEnglish: boolean
 }) {
   const { fields, append } = useFieldArray({
@@ -111,50 +33,62 @@ function ProductListsFields({
   })
 
   return (
-    <>
-      <div className="grid grid-cols-4 gap-4">
-        {fields.map((field, index) => (
-          <div key={field.id}>
-            <label className={`block text-xs font-medium text-neutral-500 mb-1 ${!isEnglish ? 'text-right' : ''}`}>
-              {isEnglish ? `Product list ${index + 1}` : `قائمة منتجات ${index + 1}`}
-            </label>
-            <input
-              type="text"
-              dir={isEnglish ? 'ltr' : 'rtl'}
-              className={`w-full h-9 px-3 rounded-lg border border-neutral-200 bg-white text-sm text-neutral-900 focus:outline-none focus:ring-2 focus:ring-neutral-200 ${!isEnglish ? 'text-right' : ''}`}
-              {...register(`subCategories.${subCategoryIndex}.productLists.${index}.${isEnglish ? 'valueEn' : 'valueAr'}`)}
-            />
-          </div>
-        ))}
-
-        {/* Add Product List Button */}
-        <div className="flex items-end">
-          <button
-            type="button"
-            onClick={() => append({ id: `${Date.now()}`, valueEn: '', valueAr: '' })}
-            className="w-full h-9 flex items-center justify-center gap-1.5 border-2 border-dashed border-neutral-200 rounded-lg text-sm text-neutral-500 hover:border-neutral-300 hover:text-neutral-600 transition-colors"
-          >
-            <Add size={16} />
-            {isEnglish ? 'Add' : 'إضافة'}
-          </button>
+    <div className="grid grid-cols-4 gap-4">
+      {fields.map((field, index) => (
+        <div key={field.id}>
+          <label className={`block text-xs font-medium text-neutral-500 mb-1 ${!isEnglish ? 'text-right' : ''}`}>
+            {isEnglish ? `Product list ${index + 1}` : `Product list ${index + 1}`}
+          </label>
+          <input
+            type="text"
+            dir={isEnglish ? 'ltr' : 'rtl'}
+            className={`w-full h-9 px-3 rounded-lg border border-neutral-200 bg-white text-sm text-neutral-900 focus:outline-none focus:ring-2 focus:ring-neutral-200 ${!isEnglish ? 'text-right' : ''}`}
+            {...register(`subCategories.${subCategoryIndex}.productLists.${index}.${isEnglish ? 'valueEn' : 'valueAr'}`)}
+          />
         </div>
+      ))}
+
+      <div className="flex items-end">
+        <button
+          type="button"
+          onClick={() => append({ id: `temp-${Date.now()}`, valueEn: '', valueAr: '' })}
+          className="w-full h-9 flex items-center justify-center gap-1.5 border-2 border-dashed border-neutral-200 rounded-lg text-sm text-neutral-500 hover:border-neutral-300 hover:text-neutral-600 transition-colors"
+        >
+          <Add size={16} />
+          {isEnglish ? 'Add' : 'Add'}
+        </button>
       </div>
-    </>
+    </div>
   )
 }
 
 export default function EditCategoryPage() {
+  const params = useParams()
+  const categoryId = params?.id as string
   const [currentLang, setCurrentLang] = useState<'en' | 'ar'>('en')
   const isEnglish = currentLang === 'en'
+  const [saving, setSaving] = useState(false)
+
+  const { data: category, isLoading } = useAdminCategory(categoryId)
+  const { mutateAsync: updateCategory } = useUpdateCategory()
+  const { mutateAsync: createSubCategory } = useCreateSubCategory()
+  const { mutateAsync: updateSubCategory } = useUpdateSubCategory()
+  const { mutateAsync: createProductList } = useCreateProductList()
+  const { mutateAsync: updateProductList } = useUpdateProductList()
 
   const {
     register,
     control,
     handleSubmit,
-    formState: { errors, isSubmitting }
+    reset,
+    formState: { errors }
   } = useForm<CategoryFormData>({
     resolver: zodResolver(categorySchema),
-    defaultValues: sampleCategoryData
+    defaultValues: {
+      nameEn: '',
+      nameAr: '',
+      subCategories: [],
+    }
   })
 
   const { fields: subCategoryFields, append: appendSubCategory } = useFieldArray({
@@ -162,9 +96,81 @@ export default function EditCategoryPage() {
     name: 'subCategories'
   })
 
+  useEffect(() => {
+    if (!category) return
+    reset({
+      nameEn: category.nameEn,
+      nameAr: category.nameAr,
+      subCategories: (category.subCategories ?? []).map((sub) => ({
+        id: sub.id,
+        nameEn: sub.nameEn,
+        nameAr: sub.nameAr,
+        productLists: (sub.productLists ?? []).map((list) => ({
+          id: list.id,
+          valueEn: list.nameEn,
+          valueAr: list.nameAr,
+        })),
+      })),
+    })
+  }, [category, reset])
+
   const onSubmit = async (data: CategoryFormData) => {
-    console.log('Saving category:', data)
-    // API call here
+    if (!category) return
+    setSaving(true)
+
+    await updateCategory({ id: category.id, data: { nameEn: data.nameEn, nameAr: data.nameAr } })
+
+    const existingSubIds = new Set((category.subCategories ?? []).map((sub) => sub.id))
+    const existingProductListIds = new Set(
+      (category.subCategories ?? [])
+        .flatMap((sub) => sub.productLists ?? [])
+        .map((list) => list.id)
+    )
+
+    for (const subCategory of data.subCategories) {
+      const isNewSub = !existingSubIds.has(subCategory.id) || subCategory.id.startsWith('temp-')
+      let subCategoryId = subCategory.id
+
+      if (isNewSub) {
+        const created = await createSubCategory({
+          categoryId: category.id,
+          data: { nameEn: subCategory.nameEn, nameAr: subCategory.nameAr }
+        })
+        subCategoryId = created.id
+      } else {
+        await updateSubCategory({
+          id: subCategoryId,
+          data: { nameEn: subCategory.nameEn, nameAr: subCategory.nameAr }
+        })
+      }
+
+      for (const productList of subCategory.productLists) {
+        const isNewList = !existingProductListIds.has(productList.id) || productList.id.startsWith('temp-')
+        if (isNewList) {
+          await createProductList({
+            subCategoryId: subCategoryId,
+            data: { nameEn: productList.valueEn, nameAr: productList.valueAr }
+          })
+        } else {
+          await updateProductList({
+            id: productList.id,
+            data: { nameEn: productList.valueEn, nameAr: productList.valueAr }
+          })
+        }
+      }
+    }
+
+    setSaving(false)
+  }
+
+  if (isLoading || !category) {
+    return (
+      <div className="p-6">
+        <div className="bg-white rounded-lg p-6 text-sm text-neutral-500">
+          Loading category...
+        </div>
+      </div>
+    )
   }
 
   const handleNext = () => setCurrentLang('ar')
@@ -175,29 +181,27 @@ export default function EditCategoryPage() {
         <FormPageHeader
           title="Edit Category"
           backHref="/admin/categories"
-          isSubmitting={isSubmitting}
+          isSubmitting={saving}
         />
 
         <div className="bg-white rounded-lg p-6">
-          {/* Language Indicator */}
           <div className={`flex items-center gap-2 text-sm text-neutral-600 mb-6 ${!isEnglish ? 'justify-end' : ''}`}>
             {isEnglish ? (
               <>
-                <span className="text-base">🇺🇸</span>
+                <span className="text-base">EN</span>
                 <span>English</span>
               </>
             ) : (
               <>
-                <span>عربي</span>
-                <span className="text-base">🇪🇬</span>
+                <span>AR</span>
+                <span className="text-base">Arabic</span>
               </>
             )}
           </div>
 
-          {/* Category Name */}
           <div className="mb-6">
             <label className={`block text-sm font-medium text-neutral-900 mb-1.5 ${!isEnglish ? 'text-right' : ''}`}>
-              {isEnglish ? 'Name' : 'اسم الفئة'}
+              {isEnglish ? 'Name' : 'Name'}
             </label>
             <div className="relative">
               <Category2 size={18} className={`absolute ${isEnglish ? 'left-3' : 'right-3'} top-1/2 -translate-y-1/2 text-neutral-400`} />
@@ -215,16 +219,13 @@ export default function EditCategoryPage() {
             )}
           </div>
 
-          {/* Sub Categories */}
           <div className="space-y-6">
             {subCategoryFields.map((subCat, subIndex) => (
               <div key={subCat.id} className="border border-neutral-200 rounded-lg p-4">
-                {/* Sub Category Header */}
                 <h3 className={`text-sm font-semibold text-primary mb-3 ${!isEnglish ? 'text-right' : ''}`}>
-                  {isEnglish ? `sub category ${subIndex + 1}` : `الفئة الفرعية ${subIndex + 1}`}
+                  {isEnglish ? `Sub category ${subIndex + 1}` : `Sub category ${subIndex + 1}`}
                 </h3>
 
-                {/* Sub Category Name */}
                 <div className="relative mb-4">
                   <Category2 size={18} className={`absolute ${isEnglish ? 'left-3' : 'right-3'} top-1/2 -translate-y-1/2 text-neutral-400`} />
                   <input
@@ -235,28 +236,24 @@ export default function EditCategoryPage() {
                   />
                 </div>
 
-                {/* Product Lists Grid */}
                 <ProductListsFields
                   subCategoryIndex={subIndex}
                   control={control}
                   register={register}
-                  errors={errors}
                   isEnglish={isEnglish}
                 />
               </div>
             ))}
           </div>
 
-          {/* Bottom Actions */}
           <div className="flex items-center justify-between mt-6 pt-6 border-t border-neutral-100">
-            {/* Add Subcategory */}
             <button
               type="button"
               onClick={() => appendSubCategory({
-                id: Date.now().toString(),
+                id: `temp-${Date.now()}`,
                 nameEn: '',
                 nameAr: '',
-                productLists: [{ id: `${Date.now()}-1`, valueEn: '', valueAr: '' }]
+                productLists: [{ id: `temp-${Date.now()}-1`, valueEn: '', valueAr: '' }]
               })}
               className="inline-flex items-center gap-2 px-4 h-10 border border-neutral-200 rounded-lg text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors"
             >
@@ -264,7 +261,6 @@ export default function EditCategoryPage() {
               Add Subcategory
             </button>
 
-            {/* Navigation */}
             {isEnglish ? (
               <button
                 type="button"

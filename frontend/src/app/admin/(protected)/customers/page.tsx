@@ -1,95 +1,27 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import DataTable, { Column } from '@/components/admin/DataTable'
 import Pagination from '@/components/admin/Pagination'
 import SearchInput from '@/components/admin/SearchInput'
 import FilterButton from '@/components/admin/FilterButton'
 import StatusBadge, { getStatusVariant } from '@/components/admin/StatusBadge'
+import { useAllCustomers, useUpdateCustomerStatus } from '@/hooks/useCustomer'
+import type { CustomerListItem } from '@/types/customer'
 
-interface Customer {
-  id: string
-  name: string
-  detail: string
-  avatar: string
-  lastLogin: string
-  status: string
-  createdDate: string
-  orders: number
-  spending: string
+const statusLabel = (status: string) => {
+  if (status === 'ACTIVE') return 'Active'
+  if (status === 'BLOCKED') return 'Blocked'
+  return status
 }
 
-// Sample data
-const sampleCustomers: Customer[] = [
-  {
-    id: '1',
-    name: 'User Name',
-    detail: 'User details',
-    avatar: '/avatars/user1.jpg',
-    lastLogin: '13:45 Nov 10,2025',
-    status: 'Active',
-    createdDate: '22/11/2024',
-    orders: 2,
-    spending: '2500 EGP'
-  },
-  {
-    id: '2',
-    name: 'User Name',
-    detail: 'User details',
-    avatar: '/avatars/user2.jpg',
-    lastLogin: '13:45 Nov 10,2025',
-    status: 'Active',
-    createdDate: '22/11/2024',
-    orders: 11,
-    spending: '2500 EGP'
-  },
-  {
-    id: '3',
-    name: 'User Name',
-    detail: 'User details',
-    avatar: '/avatars/user3.jpg',
-    lastLogin: '13:45 Nov 10,2025',
-    status: 'Blocked',
-    createdDate: '22/11/2024',
-    orders: 4,
-    spending: '2500 EGP'
-  },
-  {
-    id: '4',
-    name: 'User Name',
-    detail: 'User details',
-    avatar: '/avatars/user4.jpg',
-    lastLogin: '13:45 Nov 10,2025',
-    status: 'Active',
-    createdDate: '22/11/2024',
-    orders: 1,
-    spending: '2500 EGP'
-  },
-  {
-    id: '5',
-    name: 'User Name',
-    detail: 'User details',
-    avatar: '/avatars/user5.jpg',
-    lastLogin: '13:45 Nov 10,2025',
-    status: 'Active',
-    createdDate: '22/11/2024',
-    orders: 2,
-    spending: '2500 EGP'
-  },
-  {
-    id: '6',
-    name: 'User Name',
-    detail: 'User details',
-    avatar: '/avatars/user6.jpg',
-    lastLogin: '13:45 Nov 10,2025',
-    status: 'Active',
-    createdDate: '22/11/2024',
-    orders: 6,
-    spending: '2500 EGP'
-  },
-]
+const formatDate = (value?: string) => {
+  if (!value) return '---'
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? '---' : date.toLocaleDateString()
+}
 
-// Customer cell component
 function CustomerCell({ name, detail }: { name: string; detail: string }) {
   return (
     <div className="flex items-center gap-3">
@@ -109,7 +41,6 @@ function CustomerCell({ name, detail }: { name: string; detail: string }) {
   )
 }
 
-// Block/Unblock action button
 function BlockButton({ isBlocked, onClick }: { isBlocked: boolean; onClick?: () => void }) {
   return (
     <button
@@ -118,7 +49,6 @@ function BlockButton({ isBlocked, onClick }: { isBlocked: boolean; onClick?: () 
       title={isBlocked ? 'Unblock user' : 'Block user'}
     >
       {isBlocked ? (
-        // User add icon for unblock
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
           <circle cx="8" cy="6" r="3" stroke="currentColor" strokeWidth="1.5"/>
           <path d="M2 17C2 14.2386 4.23858 12 7 12H9C11.7614 12 14 14.2386 14 17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
@@ -126,7 +56,6 @@ function BlockButton({ isBlocked, onClick }: { isBlocked: boolean; onClick?: () 
           <path d="M14 12H18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
         </svg>
       ) : (
-        // Block icon (circle with slash)
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
           <circle cx="10" cy="10" r="7" stroke="currentColor" strokeWidth="1.5"/>
           <path d="M5 15L15 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
@@ -136,10 +65,9 @@ function BlockButton({ isBlocked, onClick }: { isBlocked: boolean; onClick?: () 
   )
 }
 
-// Show link component
 function ShowLink({ onClick }: { onClick?: () => void }) {
   return (
-    <button 
+    <button
       onClick={onClick}
       className="text-sm text-primary hover:text-red-700 font-medium"
     >
@@ -149,57 +77,80 @@ function ShowLink({ onClick }: { onClick?: () => void }) {
 }
 
 export default function CustomersPage() {
+  const router = useRouter()
   const [currentPage, setCurrentPage] = useState(1)
   const [searchQuery, setSearchQuery] = useState('')
+  const pageSize = 10
 
-  const columns: Column<Customer>[] = [
+  const { data, isLoading, isError } = useAllCustomers({
+    page: currentPage,
+    limit: pageSize,
+    search: searchQuery || undefined,
+  })
+
+  const { mutateAsync } = useUpdateCustomerStatus()
+  const customers = data?.customers ?? []
+  const pagination = data?.pagination
+
+  const handleToggleBlock = async (customer: CustomerListItem) => {
+    const nextStatus = customer.status === 'BLOCKED' ? 'ACTIVE' : 'BLOCKED'
+    await mutateAsync({ id: customer.id, status: nextStatus })
+  }
+
+  const columns: Column<CustomerListItem>[] = [
     {
       key: 'customer',
       header: 'Customer',
       width: 'min-w-[180px]',
       render: (customer) => (
-        <CustomerCell name={customer.name} detail={customer.detail} />
+        <CustomerCell name={customer.fullName} detail={customer.email} />
       )
     },
     {
       key: 'lastLogin',
       header: 'Last Log in',
       width: 'w-[150px]',
+      render: (customer) => formatDate(customer.lastLogin),
     },
     {
       key: 'status',
       header: 'Status',
       width: 'w-[100px]',
-      render: (customer) => (
-        <StatusBadge 
-          label={customer.status} 
-          variant={getStatusVariant(customer.status)}
-        />
-      )
+      render: (customer) => {
+        const label = statusLabel(customer.status)
+        return (
+          <StatusBadge
+            label={label}
+            variant={getStatusVariant(label)}
+          />
+        )
+      }
     },
     {
-      key: 'createdDate',
+      key: 'createdAt',
       header: 'Created',
       width: 'w-[110px]',
+      render: (customer) => formatDate(customer.createdAt),
     },
     {
-      key: 'orders',
+      key: 'totalOrders',
       header: 'Orders',
       width: 'w-[80px]',
     },
     {
-      key: 'spending',
+      key: 'totalSpending',
       header: 'Spending',
-      width: 'w-[100px]',
+      width: 'w-[120px]',
+      render: (customer) => `${customer.totalSpending.toLocaleString()} EGP`,
     },
     {
       key: 'action',
       header: 'Action',
       width: 'w-[80px]',
       render: (customer) => (
-        <BlockButton 
-          isBlocked={customer.status === 'Blocked'} 
-          onClick={() => console.log('Toggle block', customer.id)}
+        <BlockButton
+          isBlocked={customer.status === 'BLOCKED'}
+          onClick={() => handleToggleBlock(customer)}
         />
       )
     },
@@ -207,42 +158,41 @@ export default function CustomersPage() {
       key: 'details',
       header: 'Details',
       width: 'w-[80px]',
-      render: () => <ShowLink onClick={() => console.log('Show details')} />
+      render: (customer) => (
+        <ShowLink onClick={() => router.push(`/admin/customers/${customer.id}`)} />
+      )
     }
   ]
 
   return (
       <div className="p-6">
-        {/* Content Card */}
         <div className="bg-white rounded-lg">
-          {/* Title and Search */}
           <div className="flex items-center justify-between p-6 pb-4">
             <h1 className="text-2xl font-semibold text-neutral-900">All Customers</h1>
             <div className="flex items-center gap-3">
-              <SearchInput 
-                placeholder="Search" 
+              <SearchInput
+                placeholder="Search"
                 value={searchQuery}
                 onChange={setSearchQuery}
                 className="w-64"
               />
-              <FilterButton onClick={() => console.log('Filter')} />
+              <FilterButton onClick={() => undefined} />
             </div>
           </div>
 
-          {/* Table */}
           <DataTable
             columns={columns}
-            data={sampleCustomers}
+            data={customers}
             keyExtractor={(customer) => customer.id}
+            emptyMessage={isLoading ? 'Loading customers...' : isError ? 'Failed to load customers' : 'No customers found'}
           />
 
-          {/* Pagination */}
           <div className="p-6 pt-4">
             <Pagination
-              currentPage={currentPage}
-              totalPages={10}
-              totalItems={99}
-              itemsPerPage={10}
+              currentPage={pagination?.page ?? currentPage}
+              totalPages={pagination?.totalPages ?? 1}
+              totalItems={pagination?.total ?? 0}
+              itemsPerPage={pagination?.limit ?? pageSize}
               onPageChange={setCurrentPage}
             />
           </div>

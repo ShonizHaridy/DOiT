@@ -10,7 +10,7 @@ import type { Product } from '@/types/product'
 
 interface Props {
   params: Promise<{ locale: string; category: string }>
-  searchParams: Promise<{ filters?: string; sortBy?: string }>
+  searchParams: Promise<{ filters?: string; sortBy?: string; page?: string }>
 }
 
 async function getCategories(): Promise<Category[]> {
@@ -146,7 +146,9 @@ export async function generateStaticParams() {
 
 export default async function CategoryPage({ params, searchParams }: Props) {
   const { locale, category: categorySlug } = await params
-  const { filters, sortBy = 'featured' } = await searchParams
+  const { filters, sortBy = 'featured', page = '1' } = await searchParams
+  const pageValue = Array.isArray(page) ? page[0] : page
+  const currentPage = Math.max(1, Number.parseInt(pageValue, 10) || 1)
   
   const categories = await getCategories()
   const categoryData = findCategoryBySlug(categories, categorySlug, locale)
@@ -173,6 +175,8 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   if (sortBy) {
     queryParams.append('sortBy', sortBy)
   }
+  queryParams.append('page', String(currentPage))
+  queryParams.append('limit', '20')
 
   // Fetch filtered products with pagination
   const response = await serverFetch<{
@@ -192,6 +196,12 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   ).catch(() => ({ products: [], pagination: { page: 1, limit: 20, total: 0, totalPages: 0 } }))
 
   const products = response.products
+  const pagination = response.pagination ?? {
+    page: currentPage,
+    limit: 20,
+    total: products.length,
+    totalPages: 1,
+  }
 
   // Build breadcrumb
   const breadcrumbItems = buildBreadcrumb(categoryData, filters, categorySlug, locale)
@@ -213,6 +223,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
         {/* Category Content with Products */}
         <CategoryContent 
           products={products}
+          pagination={pagination}
           locale={locale}
           categoryData={categoryData}
           activeFilters={filters}

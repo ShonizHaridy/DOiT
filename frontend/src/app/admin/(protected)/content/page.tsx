@@ -1,6 +1,7 @@
 'use client'
 
 import DataTable, { Column } from '@/components/admin/DataTable'
+import { useRouter } from 'next/navigation'
 
 interface ContentSection {
   id: string
@@ -33,6 +34,7 @@ function EditButton({ onClick }: { onClick?: () => void }) {
 }
 
 export default function ContentPage() {
+  const router = useRouter()
   const columns: Column<ContentSection>[] = [
     {
       key: 'name',
@@ -44,7 +46,19 @@ export default function ContentPage() {
       header: 'Action',
       width: 'w-[100px]',
       render: (section) => (
-        <EditButton onClick={() => console.log('Edit', section.id)} />
+        <EditButton onClick={() => {
+          const routes: Record<string, string> = {
+            '1': '/admin/content/hero',
+            '2': '/admin/content/vendors',
+            '3': '/admin/content/banner-ads',
+            '4': '/admin/content/featured-products',
+            '5': '/admin/content/styles',
+          }
+          const route = routes[section.id]
+          if (route) {
+            router.push(route)
+          }
+        }} />
       )
     }
   ]

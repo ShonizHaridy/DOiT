@@ -29,7 +29,7 @@ export default function StatCard({ value, label, suffix, variant = 'default' }: 
       {/* Underline bar */}
       <div className={cn(
         'h-1 w-24 mt-2 mb-2',
-        variant === 'highlight' ? 'bg-primary' : 'bg-neutral-900'
+        variant === 'highlight' ? 'bg-primary' : 'bg-secondary'
       )} />
       <span className="text-sm text-neutral-500">{label}</span>
     </div>

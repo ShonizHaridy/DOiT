@@ -1,27 +1,29 @@
 "use client";
-import Image from "next/image";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import { Logo } from "@/components/ui";
 import GrowingDotsBackground from '@/components/ui/GrowingDotsBackground'
-import { Eye, EyeSlash, Lock, Lock1, User } from "iconsax-reactjs";
+import { Eye, EyeSlash, Lock1, User } from "iconsax-reactjs";
+import { useAdminLogin } from "@/hooks/useAuth";
 
 const LoginPage = () => {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [adminId, setAdminId] = useState("");
   const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const { mutateAsync, isPending, error } = useAdminLogin();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-
-    // Simulating API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    console.log("Login attempt:", { adminId, password });
-    setIsLoading(false);
+    try {
+      await mutateAsync({ adminId, password });
+      router.push("/admin/dashboard");
+    } catch {
+      // Error handled by mutation state
+    }
   };
 
   return (
@@ -89,13 +91,19 @@ const LoginPage = () => {
               </a>
             </div>
 
+            {error && (
+              <p className="text-sm text-red-500">
+                {(error as any)?.response?.data?.message || (error as Error).message || "Failed to sign in. Please try again."}
+              </p>
+            )}
+
             {/* Submit Button */}
             <Button
               type="submit"
               variant="solid"
               size="md"
               fullWidth
-              isLoading={isLoading}
+              isLoading={isPending}
               className="mt-4 rounded-xl"
             >
               Log in

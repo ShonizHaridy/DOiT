@@ -1,27 +1,24 @@
 'use client'
 
-interface CategoryData {
+interface TopCategory {
   name: string
   value: number
-  perDay: string
-  color: string
-  size: 'large' | 'medium' | 'small'
 }
 
-const categories: CategoryData[] = [
-  { name: 'Women', value: 4567, perDay: '4.567', color: '#E31837', size: 'large' },
-  { name: 'Kids', value: 3167, perDay: '3.167', color: '#1A1A1A', size: 'medium' },
-  { name: 'Sports', value: 1845, perDay: '1.845', color: '#6B7280', size: 'small' },
-]
+const bubbleColors = ['#E31837', '#1A1A1A', '#6B7280']
+const bubbleTransforms = ['translate(-26%, 2%)', 'translate(36%, -16%)', 'translate(4%, 48%)']
 
-export default function TopSellingCategory() {
+export default function TopSellingCategory({ categories }: { categories: TopCategory[] }) {
+  const topCategories = categories.slice(0, 3)
+  const maxValue = Math.max(...topCategories.map((item) => item.value), 1)
+  const total = categories.reduce((sum, item) => sum + item.value, 0)
+
   return (
     <div className="bg-white rounded-lg border border-neutral-100 p-4 h-full">
-      {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="text-base font-semibold text-neutral-900">Top Selling Category</h3>
-          <p className="text-xs text-neutral-400">Total 10.4k Visitors</p>
+          <p className="text-xs text-neutral-400">Total {total.toLocaleString()} Visitors</p>
         </div>
         <button className="text-neutral-400 hover:text-neutral-600 transition-colors">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -32,55 +29,34 @@ export default function TopSellingCategory() {
         </button>
       </div>
 
-      {/* Bubble Chart */}
-      <div className="relative h-[280px] flex items-center justify-center">
-        {/* Women - Large Circle */}
-        <div 
-          className="absolute flex flex-col items-center justify-center rounded-full"
-          style={{ 
-            width: '180px', 
-            height: '180px', 
-            backgroundColor: '#E31837',
-            left: '10%',
-            top: '20%'
-          }}
-        >
-          <span className="text-white text-xs font-medium">Women</span>
-          <span className="text-white text-2xl font-bold">4.567</span>
-          <span className="text-white/80 text-xs">Per Day</span>
-        </div>
+      <div className="grid place-items-center h-[320px]">
+        {topCategories.length === 0 && (
+          <p className="text-sm text-neutral-400">No data yet</p>
+        )}
 
-        {/* Kids - Medium Circle */}
-        <div 
-          className="absolute flex flex-col items-center justify-center rounded-full"
-          style={{ 
-            width: '130px', 
-            height: '130px', 
-            backgroundColor: '#1A1A1A',
-            right: '15%',
-            top: '35%'
-          }}
-        >
-          <span className="text-white text-xs font-medium">Kids</span>
-          <span className="text-white text-xl font-bold">3.167</span>
-          <span className="text-white/80 text-xs">Per Day</span>
-        </div>
-
-        {/* Sports - Small Circle */}
-        <div 
-          className="absolute flex flex-col items-center justify-center rounded-full"
-          style={{ 
-            width: '100px', 
-            height: '100px', 
-            backgroundColor: '#6B7280',
-            left: '25%',
-            bottom: '5%'
-          }}
-        >
-          <span className="text-white text-xs font-medium">Sports</span>
-          <span className="text-white text-lg font-bold">1.845</span>
-          <span className="text-white/80 text-[10px]">Per Day</span>
-        </div>
+        {topCategories.map((category, index) => {
+          const size = 210 * Math.sqrt(category.value / maxValue)
+          const fontSize = size > 180 ? 'text-3xl' : size > 150 ? 'text-2xl' : 'text-xl'
+          return (
+            <div
+              key={category.name}
+              className="rounded-full flex flex-col items-center justify-center"
+              style={{
+                gridArea: '1 / 1',
+                width: size,
+                height: size,
+                backgroundColor: bubbleColors[index] || '#6B7280',
+                transform: bubbleTransforms[index] || 'translate(0, 0)',
+              }}
+            >
+              <span className="text-white text-xs font-medium">{category.name}</span>
+              <span className={`text-white ${fontSize} font-bold`}>
+                {category.value.toLocaleString()}
+              </span>
+              <span className="text-white/80 text-xs">Per Day</span>
+            </div>
+          )
+        })}
       </div>
     </div>
   )

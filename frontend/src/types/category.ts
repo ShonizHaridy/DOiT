@@ -6,9 +6,11 @@ export interface ProductListItem {
 
 export interface SubCategory {
   id: string;
+  categoryId?: string;
   nameEn: string;
   nameAr: string;
   icon?: string;
+  order?: number;
   productLists?: ProductListItem[];
 }
 
@@ -18,6 +20,10 @@ export interface Category {
   nameAr: string;
   icon?: string;
   status: boolean;
+  order?: number;
+  totalSubCategories?: number;
+  totalProducts?: number;
+  createdAt?: string;
   subCategories?: SubCategory[];
 }
 

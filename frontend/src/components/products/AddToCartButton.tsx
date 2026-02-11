@@ -3,73 +3,38 @@
 import { ShoppingCart } from 'iconsax-reactjs'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
-import { useCartStore } from '@/store'
+import { useUIStore } from '@/store'
+import type { Product } from '@/types/product'
 
 interface AddToCartButtonProps {
-  productId: string
-  title: string
-  image: string
-  price: number
-  currency?: string
-  sizes?: string[]
-  colors?: string[]
-  vendor?: string
-  type?: string
-  gender?: string
-  sku?: string
-  discount?: string
-  quantity?: number
+  product: Product
+  disabled?: boolean
   className?: string
 }
 
 export default function AddToCartButton({
-  productId,
-  title,
-  image,
-  price,
-  currency = 'EGP',
-  sizes = [],
-  colors = [],
-  vendor,
-  type,
-  gender,
-  sku,
-  discount,
-  quantity = 1,
+  product,
+  disabled,
   className,
 }: AddToCartButtonProps) {
-  const { addItem, openCart } = useCartStore()
+  const { openQuickAdd } = useUIStore()
   const t = useTranslations('product')
 
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    const size = sizes[0] || t('oneSize')
-    const color = colors[0] || t('defaultColor')
-    addItem({
-      productId,
-      title,
-      image,
-      price,
-      currency,
-      quantity,
-      size,
-      color,
-      vendor,
-      type,
-      gender,
-      sku,
-      discount,
-    })
-    openCart()
+    if (disabled) return
+    openQuickAdd(product)
   }
 
   return (
     <button
       onClick={handleClick}
+      disabled={disabled}
       className={cn(
         'w-7 h-7 flex items-center justify-center bg-primary rounded',
         'hover:bg-primary/80 transition-colors',
+        disabled && 'opacity-60 cursor-not-allowed',
         className
       )}
       aria-label={t('addToCart')}

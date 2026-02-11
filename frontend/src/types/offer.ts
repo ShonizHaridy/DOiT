@@ -1,54 +1,67 @@
-export type OfferType = 'PERCENTAGE' | 'FIXED_AMOUNT';
-export type OfferTargetUser = 'ALL' | 'NEW' | 'EXISTING';
+export type OfferType = 'PERCENTAGE' | 'FIXED_AMOUNT' | 'BUNDLE' | 'FREE_SHIPPING';
+export type OfferScope =
+  | 'ALL'
+  | 'CATEGORY'
+  | 'SUB_CATEGORY'
+  | 'PRODUCT_LIST'
+  | 'PRODUCT_TYPE';
 
 export interface Offer {
   id: string;
   code: string;
+  nameEn: string;
+  nameAr: string;
   type: OfferType;
   discountValue: number;
-  maxDiscount?: number;
-  minPurchase?: number;
-  usageLimit?: number;
-  usageCount: number;
-  targetedUser: OfferTargetUser;
-  startDate: Date;
-  endDate: Date;
+  minCartValue?: number | null;
+  maxDiscount?: number | null;
+  applyTo: OfferScope;
+  targetId?: string | null;
+  startDate: string;
+  endDate: string;
+  startTime?: string | null;
+  endTime?: string | null;
+  totalUsageLimit?: number | null;
+  perUserLimit?: number | null;
+  currentUsage?: number;
   status: boolean;
-  createdAt: Date;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface CreateOfferRequest {
   code: string;
+  nameEn: string;
+  nameAr: string;
   type: OfferType;
   discountValue: number;
-  maxDiscount?: number;
-  minPurchase?: number;
-  usageLimit?: number;
-  targetedUser: OfferTargetUser;
-  startDate: Date;
-  endDate: Date;
+  minCartValue?: number | null;
+  maxDiscount?: number | null;
+  applyTo: OfferScope;
+  targetId?: string | null;
+  startDate: string;
+  endDate: string;
+  startTime?: string | null;
+  endTime?: string | null;
+  totalUsageLimit?: number | null;
+  perUserLimit?: number | null;
   status?: boolean;
 }
 
 export interface UpdateOfferRequest {
-  code?: string;
+  nameEn?: string;
+  nameAr?: string;
   type?: OfferType;
   discountValue?: number;
-  maxDiscount?: number;
-  minPurchase?: number;
-  usageLimit?: number;
-  targetedUser?: OfferTargetUser;
-  startDate?: Date;
-  endDate?: Date;
+  minCartValue?: number | null;
+  maxDiscount?: number | null;
+  applyTo?: OfferScope;
+  targetId?: string | null;
+  startDate?: string;
+  endDate?: string;
+  startTime?: string | null;
+  endTime?: string | null;
+  totalUsageLimit?: number | null;
+  perUserLimit?: number | null;
   status?: boolean;
-}
-
-export interface PaginatedOffers {
-  offers: Offer[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
 }

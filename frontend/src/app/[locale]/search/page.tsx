@@ -30,7 +30,6 @@ export default async function SearchPage({ params, searchParams }: Props) {
   const { locale } = await params
   const { q = '', page = '1' } = await searchParams
   const t = await getTranslations('search')
-  const tProduct = await getTranslations('product')
   const query = Array.isArray(q) ? q[0] : q
   const pageValue = Array.isArray(page) ? page[0] : page
   const currentPage = Math.max(1, Number.parseInt(pageValue, 10) || 1)
@@ -54,18 +53,6 @@ export default async function SearchPage({ params, searchParams }: Props) {
   const totalPages = response.pagination?.totalPages ?? 1
   const hasResults = products.length > 0
   const hasQuery = trimmedQuery.length > 0
-  const productCardLabels = {
-    colors: tProduct('colors'),
-    sizes: tProduct('sizes'),
-    gender: tProduct('gender'),
-    price: tProduct('price'),
-    genderValues: {
-      MEN: tProduct('genderValues.men'),
-      WOMEN: tProduct('genderValues.women'),
-      KIDS: tProduct('genderValues.kids'),
-      UNISEX: tProduct('genderValues.unisex'),
-    },
-  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -99,7 +86,7 @@ export default async function SearchPage({ params, searchParams }: Props) {
                 colors={product.colors}
                 sizes={product.sizes}
                 gender={product.gender}
-                labels={productCardLabels}
+                quickAddProduct={product}
               />
             ))}
           </div>

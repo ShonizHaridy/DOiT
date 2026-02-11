@@ -4,42 +4,44 @@ import StatCard from '@/components/admin/StatCard'
 import MetricCard from '@/components/admin/MetricCard'
 import TopSellingCategory from '@/components/admin/TopSellingCategory'
 import BestSellingProducts from '@/components/admin/BestSellingProducts'
-
-// Sample chart data
-const ordersChartData = [
-  { value: 20 }, { value: 35 }, { value: 25 }, { value: 45 }, 
-  { value: 40 }, { value: 55 }, { value: 50 }, { value: 60 }
-]
-
-const profitChartData = [
-  { value: 30 }, { value: 45 }, { value: 35 }, { value: 50 }, 
-  { value: 45 }, { value: 55 }, { value: 60 }, { value: 65 }
-]
-
-const discountChartData = [
-  { value: 50 }, { value: 45 }, { value: 55 }, { value: 40 }, 
-  { value: 35 }, { value: 45 }, { value: 30 }, { value: 25 }
-]
+import { useDashboardOverview } from '@/hooks/useAnalytics'
 
 export default function DashboardPage() {
+  const { data, isLoading } = useDashboardOverview()
+  const metrics = data?.metrics
+  const ordersSeries = data?.charts.totalOrdersSeries ?? []
+  const profitSeries = data?.charts.totalProfitSeries ?? []
+  const discountSeries = data?.charts.discountedAmountSeries ?? []
+
+  const ordersChartData = ordersSeries.map((item) => ({ value: item.count }))
+  const profitChartData = profitSeries.map((item) => ({ value: item.profit }))
+  const discountChartData = discountSeries.map((item) => ({ value: item.discount }))
+
+  const totalOrdersValue = ordersSeries.reduce((sum, item) => sum + item.count, 0)
+  const totalProfitValue = profitSeries.reduce((sum, item) => sum + item.profit, 0)
+  const totalDiscountValue = discountSeries.reduce((sum, item) => sum + item.discount, 0)
+
+  const ordersChange = metrics?.previousPeriodComparison.orders ?? 0
+  const profitChange = metrics?.previousPeriodComparison.earnings ?? 0
+
   return (
       <div className="flex flex-col gap-6">
         {/* Top Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard 
-            value="510" 
+            value={metrics ? metrics.totalProducts.toLocaleString() : (isLoading ? '...' : '0')}
             label="Total products" 
           />
           <StatCard 
-            value="350" 
+            value={metrics ? metrics.activeOrders.toLocaleString() : (isLoading ? '...' : '0')}
             label="Active Orders" 
           />
           <StatCard 
-            value="2370" 
+            value={metrics ? metrics.totalCustomers.toLocaleString() : (isLoading ? '...' : '0')}
             label="Total customers" 
           />
           <StatCard 
-            value="120,365" 
+            value={metrics ? metrics.totalEarnings.toLocaleString() : (isLoading ? '...' : '0')}
             suffix="EPG"
             label="Total Earnings" 
             variant="highlight"
@@ -51,24 +53,24 @@ export default function DashboardPage() {
           <MetricCard
             title="Total Orders"
             subtitle="Last 7 days"
-            value="25.7K"
-            percentChange={6}
+            value={totalOrdersValue ? totalOrdersValue.toLocaleString() : (isLoading ? '...' : '0')}
+            percentChange={ordersChange}
             chartData={ordersChartData}
             chartColor="green"
           />
           <MetricCard
             title="Total Profit"
             subtitle="Last 7 days"
-            value="50K"
-            percentChange={12}
+            value={totalProfitValue ? totalProfitValue.toLocaleString() : (isLoading ? '...' : '0')}
+            percentChange={profitChange}
             chartData={profitChartData}
-            chartColor="green"
+            chartColor={profitChange >= 0 ? 'green' : 'red'}
           />
           <MetricCard
             title="Discounted Amount"
             subtitle="Last 7 days"
-            value="12K"
-            percentChange={2}
+            value={totalDiscountValue ? totalDiscountValue.toLocaleString() : (isLoading ? '...' : '0')}
+            percentChange={0}
             chartData={discountChartData}
             chartColor="red"
           />
@@ -76,8 +78,15 @@ export default function DashboardPage() {
 
         {/* Charts Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <TopSellingCategory />
-          <BestSellingProducts />
+          <TopSellingCategory categories={data?.topSellingCategories ?? []} />
+          <BestSellingProducts
+            products={(data?.bestSellingProducts ?? []).map((product) => ({
+              id: product.id,
+              name: product.name,
+              totalOrders: product.totalOrders,
+              stockStatus: product.stockStatus,
+            }))}
+          />
         </div>
       </div>
   )

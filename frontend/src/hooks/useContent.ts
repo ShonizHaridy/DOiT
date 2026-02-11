@@ -1,5 +1,16 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import * as contentService from '@/services/content';
+import type {
+  CreateHeroSectionRequest,
+  UpdateHeroSectionRequest,
+  CreateVendorRequest,
+  UpdateVendorRequest,
+  CreateBannerAdRequest,
+  UpdateBannerAdRequest,
+  CreatePopupOfferRequest,
+  UpdatePopupOfferRequest,
+  FeaturedProductsConfig,
+} from '@/types/content';
 
 export const useHomeContent = () => {
   return useQuery({
@@ -17,6 +28,41 @@ export const usePopupOffer = () => {
   });
 };
 
+export const useHeroSections = () => {
+  return useQuery({
+    queryKey: ['admin', 'content', 'hero-sections'],
+    queryFn: () => contentService.getHeroSections(),
+  });
+};
+
+export const useVendors = () => {
+  return useQuery({
+    queryKey: ['admin', 'content', 'vendors'],
+    queryFn: () => contentService.getVendors(),
+  });
+};
+
+export const useBannerAds = () => {
+  return useQuery({
+    queryKey: ['admin', 'content', 'banners'],
+    queryFn: () => contentService.getBannerAds(),
+  });
+};
+
+export const usePopupOffers = () => {
+  return useQuery({
+    queryKey: ['admin', 'content', 'popup-offers'],
+    queryFn: () => contentService.getPopupOffers(),
+  });
+};
+
+export const useFeaturedProductsConfig = () => {
+  return useQuery({
+    queryKey: ['admin', 'content', 'featured-products'],
+    queryFn: () => contentService.getFeaturedProductsConfig(),
+  });
+};
+
 
 // ... existing customer hooks
 
@@ -31,6 +77,7 @@ export const useCreateHeroSection = () => {
     mutationFn: (data: CreateHeroSectionRequest) => contentService.createHeroSection(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['content', 'home'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'content', 'hero-sections'] });
     },
   });
 };
@@ -43,6 +90,7 @@ export const useUpdateHeroSection = () => {
       contentService.updateHeroSection(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['content', 'home'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'content', 'hero-sections'] });
     },
   });
 };
@@ -54,6 +102,7 @@ export const useDeleteHeroSection = () => {
     mutationFn: (id: string) => contentService.deleteHeroSection(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['content', 'home'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'content', 'hero-sections'] });
     },
   });
 };
@@ -66,6 +115,7 @@ export const useReorderHeroSections = () => {
       contentService.reorderHeroSections(orders),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['content', 'home'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'content', 'hero-sections'] });
     },
   });
 };
@@ -81,6 +131,7 @@ export const useCreateVendor = () => {
     mutationFn: (data: CreateVendorRequest) => contentService.createVendor(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['content', 'home'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'content', 'vendors'] });
     },
   });
 };
@@ -93,6 +144,7 @@ export const useUpdateVendor = () => {
       contentService.updateVendor(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['content', 'home'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'content', 'vendors'] });
     },
   });
 };
@@ -104,6 +156,7 @@ export const useDeleteVendor = () => {
     mutationFn: (id: string) => contentService.deleteVendor(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['content', 'home'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'content', 'vendors'] });
     },
   });
 };
@@ -119,6 +172,7 @@ export const useCreateBannerAd = () => {
     mutationFn: (data: CreateBannerAdRequest) => contentService.createBannerAd(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['content', 'home'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'content', 'banners'] });
     },
   });
 };
@@ -131,6 +185,7 @@ export const useUpdateBannerAd = () => {
       contentService.updateBannerAd(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['content', 'home'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'content', 'banners'] });
     },
   });
 };
@@ -142,6 +197,7 @@ export const useDeleteBannerAd = () => {
     mutationFn: (id: string) => contentService.deleteBannerAd(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['content', 'home'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'content', 'banners'] });
     },
   });
 };
@@ -157,6 +213,7 @@ export const useCreatePopupOffer = () => {
     mutationFn: (data: CreatePopupOfferRequest) => contentService.createPopupOffer(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['content', 'popup-offer'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'content', 'popup-offers'] });
     },
   });
 };
@@ -169,6 +226,7 @@ export const useUpdatePopupOffer = () => {
       contentService.updatePopupOffer(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['content', 'popup-offer'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'content', 'popup-offers'] });
     },
   });
 };
@@ -180,6 +238,19 @@ export const useDeletePopupOffer = () => {
     mutationFn: (id: string) => contentService.deletePopupOffer(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['content', 'popup-offer'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'content', 'popup-offers'] });
+    },
+  });
+};
+
+export const useUpdateFeaturedProductsConfig = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: FeaturedProductsConfig) =>
+      contentService.updateFeaturedProductsConfig(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'content', 'featured-products'] });
     },
   });
 };

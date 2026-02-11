@@ -1,5 +1,13 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import * as categoriesService from '@/services/categories';
+import type {
+  CreateCategoryRequest,
+  UpdateCategoryRequest,
+  CreateSubCategoryRequest,
+  UpdateSubCategoryRequest,
+  CreateProductListRequest,
+  UpdateProductListRequest,
+} from '@/types/category';
 
 export const useCategories = (includeChildren: boolean = false) => {
   return useQuery({
@@ -26,6 +34,23 @@ export const useFilterOptions = () => {
   });
 };
 
+export const useAdminCategories = () => {
+  return useQuery({
+    queryKey: ['admin', 'categories'],
+    queryFn: () => categoriesService.getAdminCategories(),
+    staleTime: 1000 * 60 * 10,
+  });
+};
+
+export const useAdminCategory = (id: string) => {
+  return useQuery({
+    queryKey: ['admin', 'categories', id],
+    queryFn: () => categoriesService.getAdminCategory(id),
+    enabled: !!id,
+    staleTime: 1000 * 60 * 10,
+  });
+};
+
 
 // ... existing customer hooks
 
@@ -40,6 +65,7 @@ export const useCreateCategory = () => {
     mutationFn: (data: CreateCategoryRequest) => categoriesService.createCategory(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'categories'] });
     },
   });
 };
@@ -52,6 +78,7 @@ export const useUpdateCategory = () => {
       categoriesService.updateCategory(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'categories'] });
     },
   });
 };
@@ -63,6 +90,7 @@ export const useDeleteCategory = () => {
     mutationFn: (id: string) => categoriesService.deleteCategory(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'categories'] });
     },
   });
 };
@@ -75,6 +103,7 @@ export const useReorderCategories = () => {
       categoriesService.reorderCategories(orders),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'categories'] });
     },
   });
 };
@@ -87,6 +116,7 @@ export const useCreateSubCategory = () => {
       categoriesService.createSubCategory(categoryId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'categories'] });
     },
   });
 };
@@ -99,6 +129,7 @@ export const useUpdateSubCategory = () => {
       categoriesService.updateSubCategory(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'categories'] });
     },
   });
 };
@@ -110,6 +141,7 @@ export const useDeleteSubCategory = () => {
     mutationFn: (id: string) => categoriesService.deleteSubCategory(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'categories'] });
     },
   });
 };
@@ -122,6 +154,7 @@ export const useCreateProductList = () => {
       categoriesService.createProductList(subCategoryId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'categories'] });
     },
   });
 };
@@ -134,6 +167,7 @@ export const useUpdateProductList = () => {
       categoriesService.updateProductList(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'categories'] });
     },
   });
 };
@@ -145,6 +179,7 @@ export const useDeleteProductList = () => {
     mutationFn: (id: string) => categoriesService.deleteProductList(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'categories'] });
     },
   });
 };

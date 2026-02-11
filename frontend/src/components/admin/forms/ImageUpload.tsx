@@ -9,6 +9,7 @@ export interface UploadedImage {
   id: string
   url: string
   name: string
+  file?: File
 }
 
 interface ImageUploadProps {
@@ -47,7 +48,8 @@ export default function ImageUpload({
     const newImages: UploadedImage[] = Array.from(files).map((file, index) => ({
       id: `${Date.now()}-${index}`,
       url: URL.createObjectURL(file),
-      name: file.name
+      name: file.name,
+      file
     }))
 
     if (single) {

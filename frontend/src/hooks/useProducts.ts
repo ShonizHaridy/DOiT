@@ -1,6 +1,12 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import * as productsService from '@/services/products';
-import type { ProductFilters } from '@/types/product';
+import type {
+  ProductFilters,
+  CreateProductRequest,
+  UpdateProductRequest,
+  ProductVariant,
+  ProductStatus,
+} from '@/types/product';
 
 export const useProducts = (filters?: ProductFilters) => {
   return useQuery({
@@ -33,6 +39,27 @@ export const useProduct = (id: string) => {
 // ADMIN HOOKS
 // ============================================
 
+export const useAdminProducts = (params?: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: ProductStatus;
+  category?: string;
+}) => {
+  return useQuery({
+    queryKey: ['admin', 'products', params],
+    queryFn: () => productsService.getAdminProducts(params),
+  });
+};
+
+export const useAdminProduct = (id: string) => {
+  return useQuery({
+    queryKey: ['admin', 'products', id],
+    queryFn: () => productsService.getAdminProduct(id),
+    enabled: !!id,
+  });
+};
+
 export const useCreateProduct = () => {
   const queryClient = useQueryClient();
 
@@ -40,6 +67,7 @@ export const useCreateProduct = () => {
     mutationFn: (data: CreateProductRequest) => productsService.createProduct(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'products'] });
     },
   });
 };
@@ -53,6 +81,8 @@ export const useUpdateProduct = () => {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
       queryClient.invalidateQueries({ queryKey: ['products', variables.id] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'products'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'products', variables.id] });
     },
   });
 };
@@ -64,6 +94,7 @@ export const useDeleteProduct = () => {
     mutationFn: (id: string) => productsService.deleteProduct(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'products'] });
     },
   });
 };
@@ -72,11 +103,13 @@ export const useToggleProductStatus = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, status }: { id: string; status: 'PUBLISHED' | 'DRAFT' | 'ARCHIVED' }) =>
+    mutationFn: ({ id, status }: { id: string; status: ProductStatus }) =>
       productsService.toggleProductStatus(id, status),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
       queryClient.invalidateQueries({ queryKey: ['products', variables.id] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'products'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'products', variables.id] });
     },
   });
 };
@@ -89,6 +122,7 @@ export const useUploadProductImage = () => {
       productsService.uploadProductImage(productId, formData),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['products', variables.productId] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'products', variables.productId] });
     },
   });
 };
@@ -101,6 +135,7 @@ export const useDeleteProductImage = () => {
       productsService.deleteProductImage(productId, imageId),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['products', variables.productId] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'products', variables.productId] });
     },
   });
 };
@@ -113,6 +148,7 @@ export const useUpdateProductVariants = () => {
       productsService.updateProductVariants(productId, variants),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['products', variables.productId] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'products', variables.productId] });
     },
   });
 };

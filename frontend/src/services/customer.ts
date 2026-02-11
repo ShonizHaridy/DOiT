@@ -69,7 +69,7 @@ export const getAllCustomers = async (params?: {
   page?: number;
   limit?: number;
   search?: string;
-  status?: 'ACTIVE' | 'INACTIVE' | 'BLOCKED';
+  status?: 'all' | 'active' | 'blocked';
 }): Promise<PaginatedCustomers> => {
   const { data } = await apiClient.get<PaginatedCustomers>('/admin/customers', {
     params,
@@ -84,9 +84,9 @@ export const getCustomerById = async (id: string): Promise<CustomerProfile> => {
 
 export const updateCustomerStatus = async (
   id: string,
-  status: 'ACTIVE' | 'INACTIVE' | 'BLOCKED'
+  status: 'ACTIVE' | 'BLOCKED'
 ): Promise<CustomerProfile> => {
-  const response = await apiClient.patch<CustomerProfile>(
+  const response = await apiClient.put<CustomerProfile>(
     `/admin/customers/${id}/status`,
     { status }
   );
@@ -97,5 +97,31 @@ export const getCustomerStatistics = async (): Promise<CustomerStatistics> => {
   const { data } = await apiClient.get<CustomerStatistics>(
     '/admin/customers/statistics'
   );
+  return data;
+};
+
+export const getCustomerOrders = async (id: string, params?: {
+  page?: number;
+  limit?: number;
+}): Promise<{
+  orders: Array<{
+    id: string;
+    orderNumber: string;
+    status: string;
+    createdAt: string;
+    itemsCount: number;
+    total: number;
+    currency: string;
+  }>;
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}> => {
+  const { data } = await apiClient.get(`/admin/customers/${id}/orders`, {
+    params,
+  });
   return data;
 };

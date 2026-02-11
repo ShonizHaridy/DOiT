@@ -1,6 +1,6 @@
 'use client'
 
-import ProductCardSimple from './ProductCardSimple'
+import ProductCard from './ProductCard'
 import { Product } from '@/config/products'
 
 interface ProductGridProps {
@@ -19,9 +19,24 @@ export default function ProductGrid({ products, className = '' }: ProductGridPro
 
   return (
     <div className={`grid grid-cols-2 gap-2 md:gap-4 ${className}`}>
-      {products.map((product) => (
-        <ProductCardSimple key={product.id} {...product} />
-      ))}
+      {products.map((product) => {
+        const [rawPrice, rawCurrency] = product.price.split(' ')
+        const numericPrice = Number.parseFloat(rawPrice?.replace(/,/g, '')) || 0
+        const currency = rawCurrency || 'EGP'
+
+        return (
+          <ProductCard
+            key={product.id}
+            id={product.id}
+            title={product.title}
+            image={product.image}
+            price={numericPrice}
+            currency={currency}
+            href={product.href}
+            variant="minimal"
+          />
+        )
+      })}
     </div>
   )
 }

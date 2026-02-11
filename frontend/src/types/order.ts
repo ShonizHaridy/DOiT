@@ -29,8 +29,8 @@ export interface OrderItem {
   productImage: string;
   sku: string;
   vendor: string;
-  type: string;
-  gender: string;
+  type?: string;
+  gender?: string;
   color: string;
   size: string;
   price: number;
@@ -52,7 +52,7 @@ export interface Order {
   deliveryDate?: Date;
   trackingNumber?: string;
   notes?: string;
-  createdAt: Date;
+  createdAt: string;
   address?: {
     label: string;
     fullAddress: string;
@@ -79,11 +79,45 @@ export interface PaginatedOrders {
 
 export type OrderStatus =
   | 'ORDER_PLACED'
-  | 'PROCESSING'
+  | 'PROCESSED'
   | 'SHIPPED'
   | 'DELIVERED'
-  | 'CANCELLED'
-  | 'RETURNED';
+  | 'CANCELLED';
+
+export interface OrderStatusHistoryItem {
+  status: OrderStatus;
+  notes?: string;
+  createdAt: string;
+}
+
+export interface AdminOrderCustomer {
+  id: string;
+  fullName: string;
+  email: string;
+}
+
+export interface AdminOrder extends Order {
+  customer?: AdminOrderCustomer;
+  itemsCount?: number;
+  statusHistory?: OrderStatusHistoryItem[];
+}
+
+export interface AdminOrdersResponse {
+  orders: AdminOrder[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+  stats?: {
+    totalOrders: number;
+    activeOrders: number;
+    completedOrders: number;
+    cancelledOrders: number;
+    totalRevenue: number;
+  };
+}
 
 export interface OrderStatistics {
   totalOrders: number;
@@ -95,3 +129,4 @@ export interface OrderStatistics {
   deliveredOrders: number;
   cancelledOrders: number;
 }
+

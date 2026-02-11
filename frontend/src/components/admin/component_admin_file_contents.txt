@@ -1,0 +1,2134 @@
+File Path: .\ActionButtons.tsx
+Content:
+'use client'
+
+import { cn } from '@/lib/utils'
+
+interface ActionButtonsProps {
+  onEdit?: () => void
+  onView?: () => void
+  onDelete?: () => void
+  showEdit?: boolean
+  showView?: boolean
+  showDelete?: boolean
+  className?: string
+}
+
+export default function ActionButtons({
+  onEdit,
+  onView,
+  onDelete,
+  showEdit = true,
+  showView = true,
+  showDelete = false,
+  className
+}: ActionButtonsProps) {
+  return (
+    <div className={cn('flex items-center gap-2', className)}>
+      {showEdit && (
+        <button
+          onClick={onEdit}
+          className="p-1.5 text-neutral-400 hover:text-neutral-600 transition-colors"
+          title="Edit"
+        >
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M8.25 3H3C2.60218 3 2.22064 3.15804 1.93934 3.43934C1.65804 3.72064 1.5 4.10218 1.5 4.5V15C1.5 15.3978 1.65804 15.7794 1.93934 16.0607C2.22064 16.342 2.60218 16.5 3 16.5H13.5C13.8978 16.5 14.2794 16.342 14.5607 16.0607C14.842 15.7794 15 15.3978 15 15V9.75" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M13.875 1.87499C14.1734 1.57662 14.578 1.40901 15 1.40901C15.422 1.40901 15.8266 1.57662 16.125 1.87499C16.4234 2.17336 16.591 2.57802 16.591 2.99999C16.591 3.42196 16.4234 3.82662 16.125 4.12499L9 11.25L6 12L6.75 9L13.875 1.87499Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+      )}
+      
+      {showView && (
+        <button
+          onClick={onView}
+          className="p-1.5 text-neutral-400 hover:text-neutral-600 transition-colors"
+          title="View"
+        >
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0.75 9C0.75 9 3.75 3 9 3C14.25 3 17.25 9 17.25 9C17.25 9 14.25 15 9 15C3.75 15 0.75 9 0.75 9Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M9 11.25C10.2426 11.25 11.25 10.2426 11.25 9C11.25 7.75736 10.2426 6.75 9 6.75C7.75736 6.75 6.75 7.75736 6.75 9C6.75 10.2426 7.75736 11.25 9 11.25Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+      )}
+
+      {showDelete && (
+        <button
+          onClick={onDelete}
+          className="p-1.5 text-neutral-400 hover:text-red-500 transition-colors"
+          title="Delete"
+        >
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2.25 4.5H15.75" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M6 4.5V3C6 2.60218 6.15804 2.22064 6.43934 1.93934C6.72064 1.65804 7.10218 1.5 7.5 1.5H10.5C10.8978 1.5 11.2794 1.65804 11.5607 1.93934C11.842 2.22064 12 2.60218 12 3V4.5M14.25 4.5V15C14.25 15.3978 14.092 15.7794 13.8107 16.0607C13.5294 16.342 13.1478 16.5 12.75 16.5H5.25C4.85218 16.5 4.47064 16.342 4.18934 16.0607C3.90804 15.7794 3.75 15.3978 3.75 15V4.5H14.25Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+      )}
+    </div>
+  )
+}
+
+
+--------------------------------------------------------------------------------
+
+File Path: .\AddButton.tsx
+Content:
+'use client'
+
+import { cn } from '@/lib/utils'
+import Link from 'next/link'
+import { AddCircle } from 'iconsax-reactjs'
+
+interface AddButtonProps {
+  label: string
+  href?: string
+  onClick?: () => void
+  className?: string
+}
+
+export default function AddButton({ label, href, onClick, className }: AddButtonProps) {
+  const classes = cn(
+    'inline-flex items-center gap-2 px-5 h-11 rounded-lg',
+    'text-sm font-medium text-white bg-neutral-900',
+    'hover:bg-neutral-800 transition-colors',
+    className
+  )
+
+  const content = (
+    <>
+      <AddCircle size={18} />
+      {label}
+    </>
+  )
+
+  // If href provided, render as Link
+  if (href) {
+    return (
+      <Link href={href} className={classes}>
+        {content}
+      </Link>
+    )
+  }
+
+  // Otherwise render as button
+  return (
+    <button onClick={onClick} className={classes}>
+      {content}
+    </button>
+  )
+}
+
+--------------------------------------------------------------------------------
+
+File Path: .\AdminHeader.tsx
+Content:
+'use client'
+
+import { useState } from 'react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { Logo } from '../ui'
+import { Notification, ProfileCircle } from 'iconsax-reactjs'
+
+export default function AdminHeader() {
+  const [searchQuery, setSearchQuery] = useState('')
+
+  return (
+    <header className="h-[72px] bg-neutral-900 flex items-center justify-between px-6">
+      {/* Logo */}
+      <Link href="/admin/dashboard" className="flex items-center gap-2">
+        <Logo size='md' />
+      </Link>
+
+      {/* Search Bar */}
+      <div className="flex-1 max-w-[400px] mx-8">
+        <div className="relative">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search with product name or SKU"
+            className="w-full h-10 pl-4 pr-10 bg-white rounded-lg text-sm text-neutral-700 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary/20"
+          />
+          <button
+            type="button"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 transition-colors"
+            aria-label="Search"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M11.5 21C16.7467 21 21 16.7467 21 11.5C21 6.25329 16.7467 2 11.5 2C6.25329 2 2 6.25329 2 11.5C2 16.7467 6.25329 21 11.5 21Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M22 22L20 20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      {/* Right Actions */}
+      <div className="flex items-center gap-4">
+        {/* Notifications */}
+        <button
+          type="button"
+          className="relative w-10 h-10 flex items-center justify-center text-white hover:text-primary transition-colors"
+          aria-label="Notifications"
+        >
+          <Notification size={24} variant='Bold' />
+          {/* Notification dot */}
+          <span className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full"></span>
+        </button>
+
+        {/* Profile */}
+        <Link
+          href="/admin/profile"
+          className="w-10 h-10 flex items-center justify-center text-white hover:text-primary transition-colors"
+          aria-label="Profile"
+        >
+          <ProfileCircle size={24} />
+        </Link>
+      </div>
+    </header>
+  )
+}
+
+
+--------------------------------------------------------------------------------
+
+File Path: .\AdminLayout.tsx
+Content:
+// components/admin/AdminLayout.tsx
+'use client'
+
+import AdminHeader from './AdminHeader'
+import AdminSidebar from './AdminSidebar'
+
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="min-h-screen bg-neutral-50">
+      <AdminHeader />
+      <div className="flex">
+        <AdminSidebar />
+        <main className="flex-1 p-6 overflow-auto">
+          {children}
+        </main>
+      </div>
+    </div>
+  )
+}
+
+--------------------------------------------------------------------------------
+
+File Path: .\AdminSidebar.tsx
+Content:
+'use client'
+
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { cn } from '@/lib/utils'
+import { CardEdit, ElementPlus, Profile2User, ShopAdd, ShoppingCart, StatusUp, TicketDiscount } from 'iconsax-reactjs'
+
+interface NavItem {
+  label: string
+  href: string
+  icon: React.ReactNode
+  badge?: number
+}
+
+const navItems: NavItem[] = [
+  {
+    label: 'Overview',
+    href: '/admin/dashboard',
+    icon: (
+      // <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      //   <path d="M9.02 2.84004L3.63 7.04004C2.73 7.74004 2 9.23004 2 10.36V17.77C2 20.09 3.89 21.99 6.21 21.99H17.79C20.11 21.99 22 20.09 22 17.78V10.5C22 9.29004 21.19 7.74004 20.2 7.05004L14.02 2.72004C12.62 1.74004 10.37 1.79004 9.02 2.84004Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      //   <path d="M12 17.99V14.99" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      // </svg>
+      <StatusUp size={24} />
+    ),
+  },
+  {
+    label: 'Products',
+    href: '/admin/products',
+    icon: (
+      <ShopAdd size={24} />
+    ),
+  },
+  {
+    label: 'Categories',
+    href: '/admin/categories',
+    icon: (
+      <ElementPlus size={24} />
+    ),
+  },
+  {
+    label: 'Orders',
+    href: '/admin/orders',
+    icon: (
+      <ShoppingCart size={24} />
+    ),
+    badge: 10,
+  },
+  {
+    label: 'Customers',
+    href: '/admin/customers',
+    icon: (
+      <Profile2User size={24} variant='Outline' />
+    ),
+    badge: 10,
+  },
+  {
+    label: 'Offers',
+    href: '/admin/offers',
+    icon: (
+      <TicketDiscount size={24} />
+    ),
+    badge: 2,
+  },
+  {
+    label: 'Content',
+    href: '/admin/content',
+    icon: (
+      <CardEdit size={24} variant='Outline' />
+    ),
+  },
+]
+
+export default function AdminSidebar() {
+  const pathname = usePathname()
+
+  return (
+    <aside className="w-55 min-h-screen bg-white border-r border-neutral-200 py-6">
+      <nav className="flex flex-col gap-1">
+        {navItems.map((item) => {
+          const isActive = pathname === item.href
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                'flex items-center justify-between px-6 py-3 transition-colors group',
+                isActive
+                  ? 'bg-neutral-50 border-l-4 border-primary text-neutral-900'
+                  : 'text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 border-l-4 border-transparent'
+              )}
+            >
+              <div className="flex items-center gap-3">
+                <span className={cn(
+                  'transition-colors',
+                  isActive ? 'text-neutral-900' : 'text-neutral-500 group-hover:text-neutral-700'
+                )}>
+                  {item.icon}
+                </span>
+                <span className="text-sm font-medium">{item.label}</span>
+              </div>
+              {item.badge && (
+                <span className="min-w-5 h-5 px-1.5 flex items-center justify-center bg-primary text-white text-xs font-medium rounded-full">
+                  {item.badge}
+                </span>
+              )}
+            </Link>
+          )
+        })}
+      </nav>
+    </aside>
+  )
+}
+
+
+--------------------------------------------------------------------------------
+
+File Path: .\BestSellingProducts.tsx
+Content:
+'use client'
+
+import { cn } from '@/lib/utils'
+
+interface Product {
+  id: string
+  name: string
+  totalOrder: number
+  status: 'Stock' | 'Out'
+  price: number
+}
+
+const products: Product[] = [
+  { id: '1', name: 'Bounce Sneakers Lace', totalOrder: 506, status: 'Stock', price: 999.29 },
+  { id: '2', name: 'Nike Air Jordan', totalOrder: 506, status: 'Stock', price: 721.40 },
+  { id: '3', name: 'SuperBreak Plus Bag', totalOrder: 506, status: 'Stock', price: 499.90 },
+  { id: '4', name: 'ACTIVE Puma Black', totalOrder: 506, status: 'Out', price: 249.99 },
+  { id: '5', name: 'GYM BALL', totalOrder: 506, status: 'Stock', price: 79.40 },
+]
+
+export default function BestSellingProducts() {
+  return (
+    <div className="bg-white rounded-lg border border-neutral-100 p-4 h-full">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-base font-semibold text-neutral-900">Best Selling Products</h3>
+        <button className="text-neutral-400 hover:text-neutral-600 transition-colors">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M5 10C3.9 10 3 10.9 3 12C3 13.1 3.9 14 5 14C6.1 14 7 13.1 7 12C7 10.9 6.1 10 5 10Z" fill="currentColor"/>
+            <path d="M19 10C17.9 10 17 10.9 17 12C17 13.1 17.9 14 19 14C20.1 14 21 13.1 21 12C21 10.9 20.1 10 19 10Z" fill="currentColor"/>
+            <path d="M12 10C10.9 10 10 10.9 10 12C10 13.1 10.9 14 12 14C13.1 14 14 13.1 14 12C14 10.9 13.1 10 12 10Z" fill="currentColor"/>
+          </svg>
+        </button>
+      </div>
+
+      {/* Table */}
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-neutral-100">
+              <th className="text-left text-xs font-medium text-neutral-400 uppercase tracking-wider pb-3 pr-4">
+                Product
+              </th>
+              <th className="text-left text-xs font-medium text-neutral-400 uppercase tracking-wider pb-3 pr-4">
+                Total Order
+              </th>
+              <th className="text-left text-xs font-medium text-neutral-400 uppercase tracking-wider pb-3 pr-4">
+                Status
+              </th>
+              <th className="text-right text-xs font-medium text-neutral-400 uppercase tracking-wider pb-3">
+                Price
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-neutral-50">
+            {products.map((product) => (
+              <tr key={product.id} className="hover:bg-neutral-50 transition-colors">
+                <td className="py-3 pr-4">
+                  <span className="text-sm font-medium text-neutral-900">
+                    {product.name}
+                  </span>
+                </td>
+                <td className="py-3 pr-4">
+                  <span className="text-sm text-neutral-600">
+                    {product.totalOrder}
+                  </span>
+                </td>
+                <td className="py-3 pr-4">
+                  <div className="flex items-center gap-1.5">
+                    <span className={cn(
+                      'w-2 h-2 rounded-full',
+                      product.status === 'Stock' ? 'bg-green-500' : 'bg-red-500'
+                    )} />
+                    <span className={cn(
+                      'text-sm font-medium',
+                      product.status === 'Stock' ? 'text-green-500' : 'text-red-500'
+                    )}>
+                      {product.status}
+                    </span>
+                  </div>
+                </td>
+                <td className="py-3 text-right">
+                  <span className="text-sm font-medium text-neutral-900">
+                    ${product.price.toFixed(2)}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}
+
+
+--------------------------------------------------------------------------------
+
+File Path: .\DataTable.tsx
+Content:
+'use client'
+
+import { cn } from '@/lib/utils'
+import { ReactNode } from 'react'
+
+export interface Column<T> {
+  key: string
+  header: string
+  width?: string
+  render?: (item: T, index: number) => ReactNode
+  headerClassName?: string
+  cellClassName?: string
+}
+
+interface DataTableProps<T> {
+  columns: Column<T>[]
+  data: T[]
+  keyExtractor: (item: T, index: number) => string | number
+  className?: string
+  headerClassName?: string
+  rowClassName?: string | ((item: T, index: number) => string)
+  emptyMessage?: string
+  onRowClick?: (item: T, index: number) => void
+}
+
+export default function DataTable<T>({
+  columns,
+  data,
+  keyExtractor,
+  className,
+  headerClassName,
+  rowClassName,
+  emptyMessage = 'No data available',
+  onRowClick
+}: DataTableProps<T>) {
+  return (
+    <div className={cn('w-full overflow-x-auto', className)}>
+      <table className="w-full">
+        <thead>
+          <tr className={cn('bg-neutral-50 border-y border-neutral-200', headerClassName)}>
+            {columns.map((column) => (
+              <th
+                key={column.key}
+                className={cn(
+                  'px-4 py-3 text-left text-sm font-medium text-neutral-500',
+                  column.width,
+                  column.headerClassName
+                )}
+              >
+                {column.header}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {data.length === 0 ? (
+            <tr>
+              <td
+                colSpan={columns.length}
+                className="px-4 py-8 text-center text-sm text-neutral-500"
+              >
+                {emptyMessage}
+              </td>
+            </tr>
+          ) : (
+            data.map((item, index) => (
+              <tr
+                key={keyExtractor(item, index)}
+                onClick={() => onRowClick?.(item, index)}
+                className={cn(
+                  'border-b border-neutral-100 hover:bg-neutral-50 transition-colors',
+                  onRowClick && 'cursor-pointer',
+                  typeof rowClassName === 'function'
+                    ? rowClassName(item, index)
+                    : rowClassName
+                )}
+              >
+                {columns.map((column) => (
+                  <td
+                    key={column.key}
+                    className={cn(
+                      'px-4 py-4 text-sm text-neutral-900',
+                      column.width,
+                      column.cellClassName
+                    )}
+                  >
+                    {column.render
+                      ? column.render(item, index)
+                      : (item as Record<string, unknown>)[column.key] as ReactNode}
+                  </td>
+                ))}
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+
+--------------------------------------------------------------------------------
+
+File Path: .\ExportButton.tsx
+Content:
+'use client'
+
+import { cn } from '@/lib/utils'
+
+interface ExportButtonProps {
+  onClick?: () => void
+  className?: string
+}
+
+export default function ExportButton({ onClick, className }: ExportButtonProps) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        'inline-flex items-center gap-2 px-4 h-10 rounded-lg',
+        'text-sm text-white bg-neutral-900',
+        'hover:bg-neutral-800 transition-colors',
+        className
+      )}
+    >
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M14 10V12.6667C14 13.0203 13.8595 13.3594 13.6095 13.6095C13.3594 13.8595 13.0203 14 12.6667 14H3.33333C2.97971 14 2.64057 13.8595 2.39052 13.6095C2.14048 13.3594 2 13.0203 2 12.6667V10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M4.66699 6.66667L8.00033 10L11.3337 6.66667" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M8 10V2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+      Export
+    </button>
+  )
+}
+
+
+--------------------------------------------------------------------------------
+
+File Path: .\files_to_txt_latest.py
+Content:
+import os
+
+def write_files_to_txt(directory, output_file, ignored_directories, files_only_ignored_directories, ignored_files, ignored_extensions):
+    normalized_ignored_dirs = [os.path.normpath(os.path.abspath(d)) for d in ignored_directories]
+    normalized_files_only_ignored_dirs = [os.path.normpath(os.path.abspath(d)) for d in files_only_ignored_directories]
+
+    with open(output_file, "w", encoding="utf-8") as out:
+        for root, dirs, files in os.walk(directory):
+            dirs_to_remove = []
+            for d in dirs:
+                dir_path = os.path.normpath(os.path.abspath(os.path.join(root, d)))
+                if dir_path in normalized_ignored_dirs:
+                    dirs_to_remove.append(d)
+            for d in dirs_to_remove:
+                dirs.remove(d)
+
+            for file in files:
+                file_path = os.path.join(root, file)
+                ext = os.path.splitext(file)[1].lower()
+
+                if (file_path in ignored_files or file in ignored_files) or (ext in ignored_extensions):
+                    continue
+
+                skip_file = False
+                for files_only_ignored_dir in normalized_files_only_ignored_dirs:
+                    if os.path.normpath(os.path.abspath(root)) == files_only_ignored_dir:
+                        skip_file = True
+                        break
+                if skip_file:
+                    continue
+
+                out.write(f"File Path: {file_path}\n")
+                try:
+                    with open(file_path, "r", encoding="utf-8") as f:
+                        content = f.read()
+                        out.write("Content:\n")
+                        out.write(content + "\n")
+                except Exception as e:
+                    out.write(f"Could not read file {file_path}: {e}\n")
+
+                out.write("\n" + "-" * 80 + "\n\n")
+
+def get_ignored_directories(directory):
+    fully_ignored = []
+    files_only_ignored = []
+    count = input("Enter number of directories to ignore (0 for none): ")
+    try:
+        count = int(count)
+        for i in range(count):
+            name = input(f"Enter directory name {i+1}: ")
+            full_path = name if os.path.isabs(name) else os.path.join(directory, name)
+            print(f"\nFor directory '{name}':")
+            print("1. Full exclusion (ignore directory and all subdirectories)")
+            print("2. Files-only exclusion (ignore files in this directory but include subdirectories)")
+            choice = input("Choose option (1 or 2): ").strip()
+            if choice == "1":
+                fully_ignored.append(full_path)
+                print(f"✓ '{name}' will be fully excluded")
+            elif choice == "2":
+                files_only_ignored.append(full_path)
+                print(f"✓ Files in '{name}' will be excluded, but subdirectories will be included")
+            else:
+                fully_ignored.append(full_path)
+                print("Invalid choice, defaulting to full exclusion")
+            print("-" * 50)
+    except ValueError:
+        print("Invalid number, ignoring directories.")
+    return fully_ignored, files_only_ignored
+
+def get_ignored_files(directory):
+    items = []
+    count = input("Enter number of files to ignore (0 for none): ")
+    try:
+        count = int(count)
+        for i in range(count):
+            name = input(f"Enter file name {i+1}: ")
+            full_path = os.path.join(directory, name)
+            items.extend([full_path, name])
+    except ValueError:
+        print("Invalid number, ignoring files.")
+    return items
+
+def get_ignored_extensions():
+    exts = []
+    count = input("Enter number of file extensions to ignore (0 for none): ")
+    try:
+        count = int(count)
+        for i in range(count):
+            ext = input(f"Enter extension {i+1} (e.g., .scss or scss): ").strip().lower()
+            if not ext.startswith('.'):
+                ext = '.' + ext
+            exts.append(ext)
+    except ValueError:
+        print("Invalid number, ignoring extensions.")
+    return exts
+
+def main():
+    print("=" * 60)
+    print("FILE CONTENT EXTRACTOR TO TEXT FILE")
+    print("=" * 60)
+
+    directory = input("Enter the directory path: ")
+
+    if not os.path.exists(directory):
+        print(f"Error: Directory '{directory}' does not exist!")
+        return
+
+    print(f"\nScanning directory: {directory}")
+    print("=" * 60)
+
+    fully_ignored_directories, files_only_ignored_directories = get_ignored_directories(directory)
+    ignored_files = get_ignored_files(directory)
+    ignored_extensions = get_ignored_extensions()
+
+    output_file = os.path.join(directory, "file_contents.txt")
+    write_files_to_txt(directory, output_file, fully_ignored_directories, files_only_ignored_directories, ignored_files, ignored_extensions)
+
+    print(f"\n✓ Text file saved as: {output_file}")
+
+if __name__ == "__main__":
+    main()
+
+
+--------------------------------------------------------------------------------
+
+File Path: .\file_contents.txt
+Content:
+File Path: .\ActionButtons.tsx
+Content:
+'use client'
+
+import { cn } from '@/lib/utils'
+
+interface ActionButtonsProps {
+  onEdit?: () => void
+  onView?: () => void
+  onDelete?: () => void
+  showEdit?: boolean
+  showView?: boolean
+  showDelete?: boolean
+  className?: string
+}
+
+export default function ActionButtons({
+  onEdit,
+  onView,
+  onDelete,
+  showEdit = true,
+  showView = true,
+  showDelete = false,
+  className
+}: ActionButtonsProps) {
+  return (
+    <div className={cn('flex items-center gap-2', className)}>
+      {showEdit && (
+        <button
+          onClick={onEdit}
+          className="p-1.5 text-neutral-400 hover:text-neutral-600 transition-colors"
+          title="Edit"
+        >
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M8.25 3H3C2.60218 3 2.22064 3.15804 1.93934 3.43934C1.65804 3.72064 1.5 4.10218 1.5 4.5V15C1.5 15.3978 1.65804 15.7794 1.93934 16.0607C2.22064 16.342 2.60218 16.5 3 16.5H13.5C13.8978 16.5 14.2794 16.342 14.5607 16.0607C14.842 15.7794 15 15.3978 15 15V9.75" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M13.875 1.87499C14.1734 1.57662 14.578 1.40901 15 1.40901C15.422 1.40901 15.8266 1.57662 16.125 1.87499C16.4234 2.17336 16.591 2.57802 16.591 2.99999C16.591 3.42196 16.4234 3.82662 16.125 4.12499L9 11.25L6 12L6.75 9L13.875 1.87499Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+      )}
+      
+      {showView && (
+        <button
+          onClick={onView}
+          className="p-1.5 text-neutral-400 hover:text-neutral-600 transition-colors"
+          title="View"
+        >
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0.75 9C0.75 9 3.75 3 9 3C14.25 3 17.25 9 17.25 9C17.25 9 14.25 15 9 15C3.75 15 0.75 9 0.75 9Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M9 11.25C10.2426 11.25 11.25 10.2426 11.25 9C11.25 7.75736 10.2426 6.75 9 6.75C7.75736 6.75 6.75 7.75736 6.75 9C6.75 10.2426 7.75736 11.25 9 11.25Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+      )}
+
+      {showDelete && (
+        <button
+          onClick={onDelete}
+          className="p-1.5 text-neutral-400 hover:text-red-500 transition-colors"
+          title="Delete"
+        >
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2.25 4.5H15.75" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M6 4.5V3C6 2.60218 6.15804 2.22064 6.43934 1.93934C6.72064 1.65804 7.10218 1.5 7.5 1.5H10.5C10.8978 1.5 11.2794 1.65804 11.5607 1.93934C11.842 2.22064 12 2.60218 12 3V4.5M14.25 4.5V15C14.25 15.3978 14.092 15.7794 13.8107 16.0607C13.5294 16.342 13.1478 16.5 12.75 16.5H5.25C4.85218 16.5 4.47064 16.342 4.18934 16.0607C3.90804 15.7794 3.75 15.3978 3.75 15V4.5H14.25Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+      )}
+    </div>
+  )
+}
+
+
+--------------------------------------------------------------------------------
+
+File Path: .\AddButton.tsx
+Content:
+'use client'
+
+import { cn } from '@/lib/utils'
+import Link from 'next/link'
+import { AddCircle } from 'iconsax-reactjs'
+
+interface AddButtonProps {
+  label: string
+  href?: string
+  onClick?: () => void
+  className?: string
+}
+
+export default function AddButton({ label, href, onClick, className }: AddButtonProps) {
+  const classes = cn(
+    'inline-flex items-center gap-2 px-5 h-11 rounded-lg',
+    'text-sm font-medium text-white bg-neutral-900',
+    'hover:bg-neutral-800 transition-colors',
+    className
+  )
+
+  const content = (
+    <>
+      <AddCircle size={18} />
+      {label}
+    </>
+  )
+
+  // If href provided, render as Link
+  if (href) {
+    return (
+      <Link href={href} className={classes}>
+        {content}
+      </Link>
+    )
+  }
+
+  // Otherwise render as button
+  return (
+    <button onClick={onClick} className={classes}>
+      {content}
+    </button>
+  )
+}
+
+--------------------------------------------------------------------------------
+
+File Path: .\AdminHeader.tsx
+Content:
+'use client'
+
+import { useState } from 'react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { Logo } from '../ui'
+import { Notification, ProfileCircle } from 'iconsax-reactjs'
+
+export default function AdminHeader() {
+  const [searchQuery, setSearchQuery] = useState('')
+
+  return (
+    <header className="h-[72px] bg-neutral-900 flex items-center justify-between px-6">
+      {/* Logo */}
+      <Link href="/admin/dashboard" className="flex items-center gap-2">
+        <Logo size='md' />
+      </Link>
+
+      {/* Search Bar */}
+      <div className="flex-1 max-w-[400px] mx-8">
+        <div className="relative">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search with product name or SKU"
+            className="w-full h-10 pl-4 pr-10 bg-white rounded-lg text-sm text-neutral-700 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary/20"
+          />
+          <button
+            type="button"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 transition-colors"
+            aria-label="Search"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M11.5 21C16.7467 21 21 16.7467 21 11.5C21 6.25329 16.7467 2 11.5 2C6.25329 2 2 6.25329 2 11.5C2 16.7467 6.25329 21 11.5 21Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M22 22L20 20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      {/* Right Actions */}
+      <div className="flex items-center gap-4">
+        {/* Notifications */}
+        <button
+          type="button"
+          className="relative w-10 h-10 flex items-center justify-center text-white hover:text-primary transition-colors"
+          aria-label="Notifications"
+        >
+          <Notification size={24} variant='Bold' />
+          {/* Notification dot */}
+          <span className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full"></span>
+        </button>
+
+        {/* Profile */}
+        <Link
+          href="/admin/profile"
+          className="w-10 h-10 flex items-center justify-center text-white hover:text-primary transition-colors"
+          aria-label="Profile"
+        >
+          <ProfileCircle size={24} />
+        </Link>
+      </div>
+    </header>
+  )
+}
+
+
+--------------------------------------------------------------------------------
+
+File Path: .\AdminLayout.tsx
+Content:
+// components/admin/AdminLayout.tsx
+'use client'
+
+import AdminHeader from './AdminHeader'
+import AdminSidebar from './AdminSidebar'
+
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="min-h-screen bg-neutral-50">
+      <AdminHeader />
+      <div className="flex">
+        <AdminSidebar />
+        <main className="flex-1 p-6 overflow-auto">
+          {children}
+        </main>
+      </div>
+    </div>
+  )
+}
+
+--------------------------------------------------------------------------------
+
+File Path: .\AdminSidebar.tsx
+Content:
+'use client'
+
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { cn } from '@/lib/utils'
+import { CardEdit, ElementPlus, Profile2User, ShopAdd, ShoppingCart, StatusUp, TicketDiscount } from 'iconsax-reactjs'
+
+interface NavItem {
+  label: string
+  href: string
+  icon: React.ReactNode
+  badge?: number
+}
+
+const navItems: NavItem[] = [
+  {
+    label: 'Overview',
+    href: '/admin/dashboard',
+    icon: (
+      // <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      //   <path d="M9.02 2.84004L3.63 7.04004C2.73 7.74004 2 9.23004 2 10.36V17.77C2 20.09 3.89 21.99 6.21 21.99H17.79C20.11 21.99 22 20.09 22 17.78V10.5C22 9.29004 21.19 7.74004 20.2 7.05004L14.02 2.72004C12.62 1.74004 10.37 1.79004 9.02 2.84004Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      //   <path d="M12 17.99V14.99" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      // </svg>
+      <StatusUp size={24} />
+    ),
+  },
+  {
+    label: 'Products',
+    href: '/admin/products',
+    icon: (
+      <ShopAdd size={24} />
+    ),
+  },
+  {
+    label: 'Categories',
+    href: '/admin/categories',
+    icon: (
+      <ElementPlus size={24} />
+    ),
+  },
+  {
+    label: 'Orders',
+    href: '/admin/orders',
+    icon: (
+      <ShoppingCart size={24} />
+    ),
+    badge: 10,
+  },
+  {
+    label: 'Customers',
+    href: '/admin/customers',
+    icon: (
+      <Profile2User size={24} variant='Outline' />
+    ),
+    badge: 10,
+  },
+  {
+    label: 'Offers',
+    href: '/admin/offers',
+    icon: (
+      <TicketDiscount size={24} />
+    ),
+    badge: 2,
+  },
+  {
+    label: 'Content',
+    href: '/admin/content',
+    icon: (
+      <CardEdit size={24} variant='Outline' />
+    ),
+  },
+]
+
+export default function AdminSidebar() {
+  const pathname = usePathname()
+
+  return (
+    <aside className="w-55 min-h-screen bg-white border-r border-neutral-200 py-6">
+      <nav className="flex flex-col gap-1">
+        {navItems.map((item) => {
+          const isActive = pathname === item.href
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                'flex items-center justify-between px-6 py-3 transition-colors group',
+                isActive
+                  ? 'bg-neutral-50 border-l-4 border-primary text-neutral-900'
+                  : 'text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 border-l-4 border-transparent'
+              )}
+            >
+              <div className="flex items-center gap-3">
+                <span className={cn(
+                  'transition-colors',
+                  isActive ? 'text-neutral-900' : 'text-neutral-500 group-hover:text-neutral-700'
+                )}>
+                  {item.icon}
+                </span>
+                <span className="text-sm font-medium">{item.label}</span>
+              </div>
+              {item.badge && (
+                <span className="min-w-5 h-5 px-1.5 flex items-center justify-center bg-primary text-white text-xs font-medium rounded-full">
+                  {item.badge}
+                </span>
+              )}
+            </Link>
+          )
+        })}
+      </nav>
+    </aside>
+  )
+}
+
+
+--------------------------------------------------------------------------------
+
+File Path: .\BestSellingProducts.tsx
+Content:
+'use client'
+
+import { cn } from '@/lib/utils'
+
+interface Product {
+  id: string
+  name: string
+  totalOrder: number
+  status: 'Stock' | 'Out'
+  price: number
+}
+
+const products: Product[] = [
+  { id: '1', name: 'Bounce Sneakers Lace', totalOrder: 506, status: 'Stock', price: 999.29 },
+  { id: '2', name: 'Nike Air Jordan', totalOrder: 506, status: 'Stock', price: 721.40 },
+  { id: '3', name: 'SuperBreak Plus Bag', totalOrder: 506, status: 'Stock', price: 499.90 },
+  { id: '4', name: 'ACTIVE Puma Black', totalOrder: 506, status: 'Out', price: 249.99 },
+  { id: '5', name: 'GYM BALL', totalOrder: 506, status: 'Stock', price: 79.40 },
+]
+
+export default function BestSellingProducts() {
+  return (
+    <div className="bg-white rounded-lg border border-neutral-100 p-4 h-full">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-base font-semibold text-neutral-900">Best Selling Products</h3>
+        <button className="text-neutral-400 hover:text-neutral-600 transition-colors">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M5 10C3.9 10 3 10.9 3 12C3 13.1 3.9 14 5 14C6.1 14 7 13.1 7 12C7 10.9 6.1 10 5 10Z" fill="currentColor"/>
+            <path d="M19 10C17.9 10 17 10.9 17 12C17 13.1 17.9 14 19 14C20.1 14 21 13.1 21 12C21 10.9 20.1 10 19 10Z" fill="currentColor"/>
+            <path d="M12 10C10.9 10 10 10.9 10 12C10 13.1 10.9 14 12 14C13.1 14 14 13.1 14 12C14 10.9 13.1 10 12 10Z" fill="currentColor"/>
+          </svg>
+        </button>
+      </div>
+
+      {/* Table */}
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-neutral-100">
+              <th className="text-left text-xs font-medium text-neutral-400 uppercase tracking-wider pb-3 pr-4">
+                Product
+              </th>
+              <th className="text-left text-xs font-medium text-neutral-400 uppercase tracking-wider pb-3 pr-4">
+                Total Order
+              </th>
+              <th className="text-left text-xs font-medium text-neutral-400 uppercase tracking-wider pb-3 pr-4">
+                Status
+              </th>
+              <th className="text-right text-xs font-medium text-neutral-400 uppercase tracking-wider pb-3">
+                Price
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-neutral-50">
+            {products.map((product) => (
+              <tr key={product.id} className="hover:bg-neutral-50 transition-colors">
+                <td className="py-3 pr-4">
+                  <span className="text-sm font-medium text-neutral-900">
+                    {product.name}
+                  </span>
+                </td>
+                <td className="py-3 pr-4">
+                  <span className="text-sm text-neutral-600">
+                    {product.totalOrder}
+                  </span>
+                </td>
+                <td className="py-3 pr-4">
+                  <div className="flex items-center gap-1.5">
+                    <span className={cn(
+                      'w-2 h-2 rounded-full',
+                      product.status === 'Stock' ? 'bg-green-500' : 'bg-red-500'
+                    )} />
+                    <span className={cn(
+                      'text-sm font-medium',
+                      product.status === 'Stock' ? 'text-green-500' : 'text-red-500'
+                    )}>
+                      {product.status}
+                    </span>
+                  </div>
+                </td>
+                <td className="py-3 text-right">
+                  <span className="text-sm font-medium text-neutral-900">
+                    ${product.price.toFixed(2)}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}
+
+
+--------------------------------------------------------------------------------
+
+File Path: .\DataTable.tsx
+Content:
+
+
+--------------------------------------------------------------------------------
+
+File Path: .\FilterButton.tsx
+Content:
+'use client'
+
+import { cn } from '@/lib/utils'
+
+interface FilterButtonProps {
+  onClick?: () => void
+  className?: string
+}
+
+export default function FilterButton({ onClick, className }: FilterButtonProps) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        'inline-flex items-center gap-2 px-4 h-10 rounded-lg border border-neutral-200',
+        'text-sm text-neutral-600 bg-white',
+        'hover:bg-neutral-50 transition-colors',
+        className
+      )}
+    >
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2 4H14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        <path d="M4 8H12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        <path d="M6 12H10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+      </svg>
+      Filter
+    </button>
+  )
+}
+
+
+--------------------------------------------------------------------------------
+
+File Path: .\index.ts
+Content:
+export { default as AdminLayout } from './AdminLayout'
+export { default as AdminHeader } from './AdminHeader'
+export { default as AdminSidebar } from './AdminSidebar'
+export { default as StatCard } from './StatCard'
+export { default as MetricCard } from './MetricCard'
+export { default as TopSellingCategory } from './TopSellingCategory'
+export { default as BestSellingProducts } from './BestSellingProducts'
+
+// Reusable table components
+export { default as DataTable } from './DataTable'
+export type { Column } from './DataTable'
+export { default as Pagination } from './Pagination'
+export { default as StatusBadge, getStatusVariant } from './StatusBadge'
+export { default as SearchInput } from './SearchInput'
+export { default as FilterButton } from './FilterButton'
+export { default as ExportButton } from './ExportButton'
+export { default as ActionButtons } from './ActionButtons'
+export { default as AddButton } from './AddButton'
+
+
+
+
+
+
+--------------------------------------------------------------------------------
+
+File Path: .\MetricCard.tsx
+Content:
+'use client'
+
+import { useState, useEffect } from 'react'
+import { LineChart, Line } from 'recharts'
+import { cn } from '@/lib/utils'
+
+interface MetricCardProps {
+  title: string
+  subtitle: string
+  value: string
+  percentChange: number
+  chartData: { value: number }[]
+  chartColor?: 'green' | 'red'
+}
+
+export default function MetricCard({
+  title,
+  subtitle,
+  value,
+  percentChange,
+  chartData,
+  chartColor = 'green'
+}: MetricCardProps) {
+  const [mounted, setMounted] = useState(false)
+  const isPositive = percentChange >= 0
+  const strokeColor = chartColor === 'green' ? '#22C55E' : '#EF4444'
+
+  // Only render chart after component mounts (client-side)
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  return (
+    <div className="flex flex-col p-5 bg-white rounded-lg">
+      {/* Header */}
+      <div className="mb-3">
+        <h3 className="text-base font-semibold text-neutral-900">{title}</h3>
+        <p className="text-xs text-neutral-400">{subtitle}</p>
+      </div>
+
+      {/* Value and Chart Row */}
+      <div className="flex items-end justify-between">
+        <div className="flex flex-col">
+          <span className="text-3xl font-bold text-neutral-900">{value}</span>
+          <div className="flex items-center gap-1 mt-2">
+            <span className={cn(
+              'text-sm font-medium flex items-center gap-0.5',
+              isPositive ? 'text-green-500' : 'text-red-500'
+            )}>
+              {isPositive ? (
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M6 9.5V2.5M6 2.5L2.5 6M6 2.5L9.5 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              ) : (
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M6 2.5V9.5M6 9.5L9.5 6M6 9.5L2.5 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              )}
+              {Math.abs(percentChange)}%
+            </span>
+            <span className="text-xs text-neutral-400">vs last 7 days</span>
+          </div>
+        </div>
+
+        {/* Mini Chart - only render on client */}
+        <div className="w-[100px] h-[50px]">
+          {mounted && (
+            <LineChart width={100} height={50} data={chartData}>
+              <Line
+                type="monotone"
+                dataKey="value"
+                stroke={strokeColor}
+                strokeWidth={2}
+                dot={false}
+              />
+            </LineChart>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+
+--------------------------------------------------------------------------------
+
+File Path: .\Pagination.tsx
+Content:
+'use client'
+
+import { cn } from '@/lib/utils'
+
+interface PaginationProps {
+  currentPage: number
+  totalPages: number
+  totalItems: number
+  itemsPerPage: number
+  onPageChange: (page: number) => void
+  className?: string
+}
+
+export default function Pagination({
+  currentPage,
+  totalPages,
+  totalItems,
+  itemsPerPage,
+  onPageChange,
+  className
+}: PaginationProps) {
+  const startItem = (currentPage - 1) * itemsPerPage + 1
+  const endItem = Math.min(currentPage * itemsPerPage, totalItems)
+
+  // Generate page numbers to display
+  const getPageNumbers = () => {
+    const pages: (number | string)[] = []
+    
+    if (totalPages <= 7) {
+      // Show all pages if 7 or less
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i)
+      }
+    } else {
+      // Always show first 3 pages
+      pages.push(1, 2, 3)
+      
+      if (currentPage > 4) {
+        pages.push('...')
+      }
+      
+      // Show pages around current page
+      if (currentPage > 3 && currentPage < totalPages - 2) {
+        if (currentPage > 4) {
+          pages.push(currentPage)
+        }
+      }
+      
+      if (currentPage < totalPages - 3) {
+        pages.push('...')
+      }
+      
+      // Always show last 3 pages
+      if (totalPages > 3) {
+        const lastPages = [totalPages - 2, totalPages - 1, totalPages].filter(p => p > 3)
+        pages.push(...lastPages)
+      }
+    }
+    
+    // Remove duplicates and sort
+    return [...new Set(pages)]
+  }
+
+  const pageNumbers = getPageNumbers()
+
+  return (
+    <div className={cn('flex items-center justify-between', className)}>
+      <p className="text-sm text-neutral-500">
+        Showing {startItem} to {endItem} of {totalItems}
+      </p>
+      
+      <div className="flex items-center gap-1">
+        {/* Previous Button */}
+        <button
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          className={cn(
+            'w-8 h-8 flex items-center justify-center rounded border text-sm',
+            currentPage === 1
+              ? 'border-neutral-200 text-neutral-300 cursor-not-allowed'
+              : 'border-neutral-300 text-neutral-600 hover:bg-neutral-50'
+          )}
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+
+        {/* Page Numbers */}
+        {pageNumbers.map((page, index) => (
+          <button
+            key={index}
+            onClick={() => typeof page === 'number' && onPageChange(page)}
+            disabled={page === '...'}
+            className={cn(
+              'w-8 h-8 flex items-center justify-center rounded text-sm',
+              page === currentPage
+                ? 'bg-neutral-900 text-white'
+                : page === '...'
+                ? 'cursor-default text-neutral-400'
+                : 'border border-neutral-300 text-neutral-600 hover:bg-neutral-50'
+            )}
+          >
+            {page}
+          </button>
+        ))}
+
+        {/* Next Button */}
+        <button
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className={cn(
+            'w-8 h-8 flex items-center justify-center rounded border text-sm',
+            currentPage === totalPages
+              ? 'border-neutral-200 text-neutral-300 cursor-not-allowed'
+              : 'border-neutral-300 text-neutral-600 hover:bg-neutral-50'
+          )}
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M6 4L10 8L6 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  )
+}
+
+
+--------------------------------------------------------------------------------
+
+File Path: .\SearchInput.tsx
+Content:
+'use client'
+
+import { cn } from '@/lib/utils'
+
+interface SearchInputProps {
+  placeholder?: string
+  value?: string
+  onChange?: (value: string) => void
+  className?: string
+}
+
+export default function SearchInput({
+  placeholder = 'Search',
+  value = '',
+  onChange,
+  className
+}: SearchInputProps) {
+  return (
+    <div className={cn('relative', className)}>
+      <svg
+        className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400"
+        width="20"
+        height="20"
+        viewBox="0 0 20 20"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <circle cx="9" cy="9" r="6" stroke="currentColor" strokeWidth="1.5"/>
+        <path d="M13.5 13.5L17 17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+      </svg>
+      <input
+        type="text"
+        placeholder={placeholder}
+        value={value}
+        onChange={(e) => onChange?.(e.target.value)}
+        className={cn(
+          'w-full h-10 pl-10 pr-4 rounded-lg border border-neutral-200',
+          'text-sm text-neutral-900 placeholder:text-neutral-400',
+          'focus:outline-none focus:ring-2 focus:ring-neutral-200 focus:border-neutral-300',
+          'transition-colors'
+        )}
+      />
+    </div>
+  )
+}
+
+
+--------------------------------------------------------------------------------
+
+File Path: .\StatCard.tsx
+Content:
+import { cn } from '@/lib/utils'
+
+interface StatCardProps {
+  value: string
+  label: string
+  suffix?: string
+  variant?: 'default' | 'highlight'
+}
+
+export default function StatCard({ value, label, suffix, variant = 'default' }: StatCardProps) {
+  return (
+    <div className="flex flex-col justify-center p-5 rounded-lg bg-white shadow-sm">
+      <div className="flex items-baseline gap-1">
+        <span className={cn(
+          'text-4xl font-bold',
+          variant === 'highlight' ? 'text-primary' : 'text-neutral-900'
+        )}>
+          {value}
+        </span>
+        {suffix && (
+          <span className={cn(
+            'text-sm font-medium',
+            variant === 'highlight' ? 'text-primary' : 'text-neutral-600'
+          )}>
+            {suffix}
+          </span>
+        )}
+      </div>
+      {/* Underline bar */}
+      <div className={cn(
+        'h-1 w-24 mt-2 mb-2',
+        variant === 'highlight' ? 'bg-primary' : 'bg-neutral-900'
+      )} />
+      <span className="text-sm text-neutral-500">{label}</span>
+    </div>
+  )
+}
+
+
+--------------------------------------------------------------------------------
+
+File Path: .\StatusBadge.tsx
+Content:
+import { cn } from '@/lib/utils'
+
+type StatusVariant = 
+  | 'success'      // Green - In stock, Published, Completed
+  | 'warning'      // Yellow/Orange - Low stock, In progress
+  | 'error'        // Red - Out of stock, Unpublished, Canceled
+  | 'info'         // Blue - Shipped
+  | 'default'      // Gray - New, etc.
+
+interface StatusBadgeProps {
+  label: string
+  variant?: StatusVariant
+  className?: string
+}
+
+const variantStyles: Record<StatusVariant, string> = {
+  success: 'bg-green-50 text-green-600 border-green-200',
+  warning: 'bg-orange-50 text-orange-600 border-orange-200',
+  error: 'bg-red-50 text-red-600 border-red-200',
+  info: 'bg-blue-50 text-blue-600 border-blue-200',
+  default: 'bg-neutral-50 text-neutral-600 border-neutral-200',
+}
+
+export default function StatusBadge({ 
+  label, 
+  variant = 'default',
+  className 
+}: StatusBadgeProps) {
+  return (
+    <span className={cn(
+      'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border',
+      variantStyles[variant],
+      className
+    )}>
+      {label}
+    </span>
+  )
+}
+
+// Helper function to get variant from status string
+export function getStatusVariant(status: string): StatusVariant {
+  const statusLower = status.toLowerCase()
+  
+  // Success states
+  if (['in stock', 'published', 'completed', 'active'].includes(statusLower)) {
+    return 'success'
+  }
+  
+  // Warning states
+  if (['low stock', 'in progress', 'pending', 'processing'].includes(statusLower)) {
+    return 'warning'
+  }
+  
+  // Error states
+  if (['out of stock', 'out fo stock', 'unpublished', 'canceled', 'cancelled', 'inactive'].includes(statusLower)) {
+    return 'error'
+  }
+  
+  // Info states
+  if (['shipped', 'delivering'].includes(statusLower)) {
+    return 'info'
+  }
+  
+  return 'default'
+}
+
+
+--------------------------------------------------------------------------------
+
+File Path: .\TopSellingCategory.tsx
+Content:
+'use client'
+
+interface CategoryData {
+  name: string
+  value: number
+  perDay: string
+  color: string
+  size: 'large' | 'medium' | 'small'
+}
+
+const categories: CategoryData[] = [
+  { name: 'Women', value: 4567, perDay: '4.567', color: '#E31837', size: 'large' },
+  { name: 'Kids', value: 3167, perDay: '3.167', color: '#1A1A1A', size: 'medium' },
+  { name: 'Sports', value: 1845, perDay: '1.845', color: '#6B7280', size: 'small' },
+]
+
+export default function TopSellingCategory() {
+  return (
+    <div className="bg-white rounded-lg border border-neutral-100 p-4 h-full">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h3 className="text-base font-semibold text-neutral-900">Top Selling Category</h3>
+          <p className="text-xs text-neutral-400">Total 10.4k Visitors</p>
+        </div>
+        <button className="text-neutral-400 hover:text-neutral-600 transition-colors">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M5 10C3.9 10 3 10.9 3 12C3 13.1 3.9 14 5 14C6.1 14 7 13.1 7 12C7 10.9 6.1 10 5 10Z" fill="currentColor"/>
+            <path d="M19 10C17.9 10 17 10.9 17 12C17 13.1 17.9 14 19 14C20.1 14 21 13.1 21 12C21 10.9 20.1 10 19 10Z" fill="currentColor"/>
+            <path d="M12 10C10.9 10 10 10.9 10 12C10 13.1 10.9 14 12 14C13.1 14 14 13.1 14 12C14 10.9 13.1 10 12 10Z" fill="currentColor"/>
+          </svg>
+        </button>
+      </div>
+
+      {/* Bubble Chart */}
+      <div className="relative h-[280px] flex items-center justify-center">
+        {/* Women - Large Circle */}
+        <div 
+          className="absolute flex flex-col items-center justify-center rounded-full"
+          style={{ 
+            width: '180px', 
+            height: '180px', 
+            backgroundColor: '#E31837',
+            left: '10%',
+            top: '20%'
+          }}
+        >
+          <span className="text-white text-xs font-medium">Women</span>
+          <span className="text-white text-2xl font-bold">4.567</span>
+          <span className="text-white/80 text-xs">Per Day</span>
+        </div>
+
+        {/* Kids - Medium Circle */}
+        <div 
+          className="absolute flex flex-col items-center justify-center rounded-full"
+          style={{ 
+            width: '130px', 
+            height: '130px', 
+            backgroundColor: '#1A1A1A',
+            right: '15%',
+            top: '35%'
+          }}
+        >
+          <span className="text-white text-xs font-medium">Kids</span>
+          <span className="text-white text-xl font-bold">3.167</span>
+          <span className="text-white/80 text-xs">Per Day</span>
+        </div>
+
+        {/* Sports - Small Circle */}
+        <div 
+          className="absolute flex flex-col items-center justify-center rounded-full"
+          style={{ 
+            width: '100px', 
+            height: '100px', 
+            backgroundColor: '#6B7280',
+            left: '25%',
+            bottom: '5%'
+          }}
+        >
+          <span className="text-white text-xs font-medium">Sports</span>
+          <span className="text-white text-lg font-bold">1.845</span>
+          <span className="text-white/80 text-[10px]">Per Day</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+
+--------------------------------------------------------------------------------
+
+File Path: .\forms\FormInput.tsx
+Content:
+'use client'
+
+import { cn } from '@/lib/utils'
+import { forwardRef } from 'react'
+import { FieldError } from 'react-hook-form'
+
+interface FormInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  label?: string
+  error?: FieldError
+  inputClassName?: string
+}
+
+const FormInput = forwardRef<HTMLInputElement, FormInputProps>(({
+  label,
+  error,
+  className,
+  inputClassName,
+  ...props
+}, ref) => {
+  return (
+    <div className={cn('flex flex-col gap-1.5', className)}>
+      {label && (
+        <label className="text-sm font-medium text-neutral-900">{label}</label>
+      )}
+      <input
+        ref={ref}
+        className={cn(
+          'h-10 px-3 rounded-lg border bg-white',
+          'text-sm text-neutral-900 placeholder:text-neutral-400',
+          'focus:outline-none focus:ring-2 focus:ring-neutral-200 focus:border-neutral-300',
+          'disabled:bg-neutral-50 disabled:text-neutral-500',
+          'transition-colors',
+          error ? 'border-red-300 focus:ring-red-100' : 'border-neutral-200',
+          inputClassName
+        )}
+        {...props}
+      />
+      {error && (
+        <p className="text-xs text-red-500">{error.message}</p>
+      )}
+    </div>
+  )
+})
+
+FormInput.displayName = 'FormInput'
+
+export default FormInput
+
+
+--------------------------------------------------------------------------------
+
+File Path: .\forms\FormPageHeader.tsx
+Content:
+'use client'
+
+import { cn } from '@/lib/utils'
+import { ArrowLeft, ArchiveTick, Trash } from 'iconsax-reactjs'
+import { useRouter } from 'next/navigation'
+
+interface FormPageHeaderProps {
+  title: string
+  onSave?: () => void
+  onCancel?: () => void
+  onDelete?: () => void
+  showDelete?: boolean
+  saveLabel?: string
+  cancelLabel?: string
+  deleteLabel?: string
+  backHref?: string
+  isSubmitting?: boolean
+  className?: string
+}
+
+export default function FormPageHeader({
+  title,
+  onSave,
+  onCancel,
+  onDelete,
+  showDelete = false,
+  saveLabel = 'Save',
+  cancelLabel = 'Cancel',
+  deleteLabel = 'Delete',
+  backHref,
+  isSubmitting = false,
+  className
+}: FormPageHeaderProps) {
+  const router = useRouter()
+
+  const handleBack = () => {
+    if (backHref) {
+      router.push(backHref)
+    } else {
+      router.back()
+    }
+  }
+
+  const handleCancel = () => {
+    if (onCancel) {
+      onCancel()
+    } else {
+      handleBack()
+    }
+  }
+
+  return (
+    <div className={cn('flex items-center justify-between py-4', className)}>
+      {/* Left: Back arrow + Title */}
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={handleBack}
+          className="p-1 text-neutral-600 hover:text-neutral-900 transition-colors"
+        >
+          <ArrowLeft size={20} />
+        </button>
+        <h1 className="text-xl font-semibold text-neutral-900">{title}</h1>
+      </div>
+
+      {/* Right: Action buttons */}
+      <div className="flex items-center gap-3">
+        {showDelete && (
+          <button
+            type="button"
+            onClick={onDelete}
+            className="inline-flex items-center gap-2 px-4 h-10 rounded-lg border border-neutral-200 text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors"
+          >
+            <Trash size={18} />
+            {deleteLabel}
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={handleCancel}
+          className="inline-flex items-center gap-2 px-4 h-10 rounded-lg border border-neutral-200 text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors"
+        >
+          {cancelLabel}
+        </button>
+        <button
+          type="submit"
+          onClick={onSave}
+          disabled={isSubmitting}
+          className="inline-flex items-center gap-2 px-4 h-10 rounded-lg bg-neutral-900 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          <ArchiveTick size={18} />
+          {isSubmitting ? 'Saving...' : saveLabel}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+
+--------------------------------------------------------------------------------
+
+File Path: .\forms\FormSelect.tsx
+Content:
+'use client'
+
+import { cn } from '@/lib/utils'
+import { forwardRef } from 'react'
+import { FieldError } from 'react-hook-form'
+import { ArrowDown2 } from 'iconsax-reactjs'
+
+interface SelectOption {
+  value: string
+  label: string
+}
+
+interface FormSelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
+  label?: string
+  error?: FieldError
+  options: SelectOption[]
+  placeholder?: string
+  selectClassName?: string
+}
+
+const FormSelect = forwardRef<HTMLSelectElement, FormSelectProps>(({
+  label,
+  error,
+  options,
+  placeholder = 'Select...',
+  className,
+  selectClassName,
+  ...props
+}, ref) => {
+  return (
+    <div className={cn('flex flex-col gap-1.5', className)}>
+      {label && (
+        <label className="text-sm font-medium text-neutral-900">{label}</label>
+      )}
+      <div className="relative">
+        <select
+          ref={ref}
+          className={cn(
+            'w-full h-10 px-3 pe-10 rounded-lg border bg-white',
+            'text-sm text-neutral-900 appearance-none',
+            'focus:outline-none focus:ring-2 focus:ring-neutral-200 focus:border-neutral-300',
+            'disabled:bg-neutral-50 disabled:text-neutral-500',
+            'transition-colors cursor-pointer',
+            error ? 'border-red-300 focus:ring-red-100' : 'border-neutral-200',
+            selectClassName
+          )}
+          {...props}
+        >
+          <option value="">{placeholder}</option>
+          {options.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+        <ArrowDown2 
+          size={16} 
+          className="absolute end-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none" 
+        />
+      </div>
+      {error && (
+        <p className="text-xs text-red-500">{error.message}</p>
+      )}
+    </div>
+  )
+})
+
+FormSelect.displayName = 'FormSelect'
+
+export default FormSelect
+
+
+--------------------------------------------------------------------------------
+
+File Path: .\forms\FormTextarea.tsx
+Content:
+'use client'
+
+import { cn } from '@/lib/utils'
+import { forwardRef } from 'react'
+import { FieldError } from 'react-hook-form'
+
+interface FormTextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+  label?: string
+  error?: FieldError
+  textareaClassName?: string
+}
+
+const FormTextarea = forwardRef<HTMLTextAreaElement, FormTextareaProps>(({
+  label,
+  error,
+  className,
+  textareaClassName,
+  rows = 4,
+  ...props
+}, ref) => {
+  return (
+    <div className={cn('flex flex-col gap-1.5', className)}>
+      {label && (
+        <label className="text-sm font-medium text-neutral-900">{label}</label>
+      )}
+      <textarea
+        ref={ref}
+        rows={rows}
+        className={cn(
+          'px-3 py-2.5 rounded-lg border bg-white',
+          'text-sm text-neutral-900 placeholder:text-neutral-400',
+          'focus:outline-none focus:ring-2 focus:ring-neutral-200 focus:border-neutral-300',
+          'disabled:bg-neutral-50 disabled:text-neutral-500',
+          'transition-colors resize-none',
+          error ? 'border-red-300 focus:ring-red-100' : 'border-neutral-200',
+          textareaClassName
+        )}
+        {...props}
+      />
+      {error && (
+        <p className="text-xs text-red-500">{error.message}</p>
+      )}
+    </div>
+  )
+})
+
+FormTextarea.displayName = 'FormTextarea'
+
+export default FormTextarea
+
+
+--------------------------------------------------------------------------------
+
+File Path: .\forms\ImageUpload.tsx
+Content:
+'use client'
+
+import { cn } from '@/lib/utils'
+import { GalleryAdd, CloseCircle, Trash } from 'iconsax-reactjs'
+import { useRef } from 'react'
+import { FieldError } from 'react-hook-form'
+
+export interface UploadedImage {
+  id: string
+  url: string
+  name: string
+}
+
+interface ImageUploadProps {
+  label?: string
+  value?: UploadedImage[]
+  onChange?: (images: UploadedImage[]) => void
+  error?: FieldError
+  maxImages?: number
+  maxSizeMB?: number
+  allowedTypes?: string[]
+  className?: string
+  single?: boolean
+}
+
+export default function ImageUpload({
+  label,
+  value = [],
+  onChange,
+  error,
+  maxImages = 5,
+  maxSizeMB = 50,
+  allowedTypes = ['jpg', 'png', 'xls'],
+  className,
+  single = false
+}: ImageUploadProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleSelectFile = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files) return
+
+    const newImages: UploadedImage[] = Array.from(files).map((file, index) => ({
+      id: `${Date.now()}-${index}`,
+      url: URL.createObjectURL(file),
+      name: file.name
+    }))
+
+    if (single) {
+      onChange?.(newImages.slice(0, 1))
+    } else {
+      onChange?.([...value, ...newImages].slice(0, maxImages))
+    }
+    
+    e.target.value = ''
+  }
+
+  const handleRemoveImage = (id: string) => {
+    onChange?.(value.filter(img => img.id !== id))
+  }
+
+  const emptySlots = single ? (value.length === 0 ? 1 : 0) : Math.max(0, maxImages - value.length)
+
+  return (
+    <div className={cn('flex flex-col gap-2', className)}>
+      {label && (
+        <label className="text-sm font-medium text-neutral-900">{label}</label>
+      )}
+      
+      <div className="flex items-center gap-2 text-sm text-neutral-500">
+        <span>Drag the image here</span>
+        <span>Or</span>
+        <button
+          type="button"
+          onClick={handleSelectFile}
+          className="px-3 py-1.5 border border-neutral-300 rounded text-neutral-700 hover:bg-neutral-50 transition-colors"
+        >
+          Select File
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          multiple={!single}
+          onChange={handleFileChange}
+          className="hidden"
+        />
+      </div>
+
+      <div className={cn('flex gap-3 flex-wrap', single && 'max-w-[120px]')}>
+        {/* Uploaded images */}
+        {value.map((image) => (
+          <div
+            key={image.id}
+            className="relative w-[100px] h-[80px] rounded-lg border border-neutral-200 overflow-hidden group"
+          >
+            <img
+              src={image.url}
+              alt={image.name}
+              className="w-full h-full object-cover"
+            />
+            <button
+              type="button"
+              onClick={() => handleRemoveImage(image.id)}
+              className="absolute top-1 right-1 w-5 h-5 bg-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+            >
+              <CloseCircle size={14} className="text-neutral-500" />
+            </button>
+          </div>
+        ))}
+
+        {/* Empty slots */}
+        {Array.from({ length: emptySlots }).map((_, index) => (
+          <button
+            key={`empty-${index}`}
+            type="button"
+            onClick={handleSelectFile}
+            className={cn(
+              'w-[100px] h-[80px] rounded-lg border-2 border-dashed',
+              'flex items-center justify-center hover:border-neutral-300 transition-colors',
+              error ? 'border-red-200' : 'border-neutral-200'
+            )}
+          >
+            <GalleryAdd size={24} className={error ? 'text-red-300' : 'text-neutral-300'} />
+          </button>
+        ))}
+      </div>
+
+      <p className="text-xs text-neutral-400">
+        Maximum size {maxSizeMB}MB&nbsp;&nbsp;&nbsp;Allowed files: {allowedTypes.join(', ')}
+      </p>
+      
+      {error && (
+        <p className="text-xs text-red-500">{error.message}</p>
+      )}
+    </div>
+  )
+}
+
+
+--------------------------------------------------------------------------------
+
+File Path: .\forms\index.ts
+Content:
+export { default as FormInput } from './FormInput'
+export { default as FormTextarea } from './FormTextarea'
+export { default as FormSelect } from './FormSelect'
+export { default as ImageUpload } from './ImageUpload'
+export type { UploadedImage } from './ImageUpload'
+export { default as FormPageHeader } from './FormPageHeader'
+
+--------------------------------------------------------------------------------
+

@@ -1,4 +1,4 @@
-import { QueryProvider } from '@/providers/QueryProvider'
+import AdminGuard from '@/components/admin/AdminGuard'
 import AdminShell from '@/components/admin/AdminLayout'
 
 export default function AdminLayout({
@@ -7,8 +7,8 @@ export default function AdminLayout({
   children: React.ReactNode
 }) {
   return (
-    <QueryProvider>
+    <AdminGuard>
       <AdminShell>{children}</AdminShell>
-    </QueryProvider>
+    </AdminGuard>
   )
 }

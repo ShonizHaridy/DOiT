@@ -38,10 +38,11 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     // Handle 401 Unauthorized (token expired)
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 && typeof window !== 'undefined') {
       localStorage.removeItem('access_token');
       useAuthStore.getState().clearAuth();
-      window.location.href = '/sign-in';
+      const isAdminRoute = window.location.pathname.startsWith('/admin');
+      window.location.href = isAdminRoute ? '/admin/login' : '/sign-in';
     }
     
     return Promise.reject(error);

@@ -1,11 +1,13 @@
 import { apiClient } from '@/lib/axios-client';
-import { ProductVariant } from '@/lib/schemas/admin';
 import type {
   Product,
+  AdminProductsResponse,
   PaginatedProducts,
   ProductFilters,
   CreateProductRequest,
   UpdateProductRequest,
+  ProductStatus,
+  ProductVariant,
 } from '@/types/product';
 
 export const getProducts = async (
@@ -33,6 +35,24 @@ export const getProduct = async (id: string): Promise<Product> => {
 // ADMIN OPERATIONS
 // ============================================
 
+export const getAdminProducts = async (params?: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: ProductStatus;
+  category?: string;
+}): Promise<AdminProductsResponse> => {
+  const { data } = await apiClient.get<AdminProductsResponse>('/admin/products', {
+    params,
+  });
+  return data;
+};
+
+export const getAdminProduct = async (id: string): Promise<Product> => {
+  const { data } = await apiClient.get<Product>(`/admin/products/${id}`);
+  return data;
+};
+
 export const createProduct = async (data: CreateProductRequest): Promise<Product> => {
   const response = await apiClient.post<Product>('/admin/products', data);
   return response.data;
@@ -52,7 +72,7 @@ export const deleteProduct = async (id: string): Promise<void> => {
 
 export const toggleProductStatus = async (
   id: string,
-  status: 'PUBLISHED' | 'DRAFT' | 'ARCHIVED'
+  status: ProductStatus
 ): Promise<Product> => {
   const response = await apiClient.patch<Product>(
     `/admin/products/${id}/status`,
@@ -62,11 +82,11 @@ export const toggleProductStatus = async (
 };
 
 export const uploadProductImage = async (
-  productId: string,
+  _productId: string,
   formData: FormData
 ): Promise<{ url: string }> => {
   const response = await apiClient.post<{ url: string }>(
-    `/admin/products/${productId}/images`,
+    '/upload/product-image',
     formData,
     {
       headers: { 'Content-Type': 'multipart/form-data' },

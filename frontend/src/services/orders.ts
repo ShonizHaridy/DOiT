@@ -6,6 +6,8 @@ import type {
   CreateGuestOrderRequest,
   OrderStatistics,
   OrderStatus,
+  AdminOrdersResponse,
+  AdminOrder,
 } from '@/types/order';
 
 // Guest order creation (no auth required)
@@ -58,21 +60,27 @@ export const getAllOrders = async (params?: {
   search?: string;
   dateFrom?: string;
   dateTo?: string;
-}): Promise<PaginatedOrders> => {
-  const { data } = await apiClient.get<PaginatedOrders>('/admin/orders', {
+}): Promise<AdminOrdersResponse> => {
+  const { data } = await apiClient.get<AdminOrdersResponse>('/admin/orders', {
     params,
   });
+  return data;
+};
+
+export const getAdminOrder = async (id: string): Promise<AdminOrder> => {
+  const { data } = await apiClient.get<AdminOrder>(`/admin/orders/${id}`);
   return data;
 };
 
 export const updateOrderStatus = async (
   orderId: string,
   status: OrderStatus,
-  notes?: string
-): Promise<Order> => {
-  const response = await apiClient.patch<Order>(
+  notes?: string,
+  trackingNumber?: string
+): Promise<AdminOrder> => {
+  const response = await apiClient.put<AdminOrder>(
     `/admin/orders/${orderId}/status`,
-    { status, notes }
+    { status, notes, trackingNumber }
   );
   return response.data;
 };

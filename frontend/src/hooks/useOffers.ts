@@ -3,10 +3,7 @@ import * as offersService from '@/services/offers';
 import type { CreateOfferRequest, UpdateOfferRequest } from '@/types/offer';
 
 export const useOffers = (params?: {
-  page?: number;
-  limit?: number;
-  status?: boolean;
-  type?: 'PERCENTAGE' | 'FIXED_AMOUNT';
+  status?: 'all' | 'active' | 'expired' | 'inactive';
 }) => {
   return useQuery({
     queryKey: ['offers', params],

@@ -1,0 +1,2866 @@
+File Path: .\files_to_txt_latest.py
+Content:
+import os
+
+def write_files_to_txt(directory, output_file, ignored_directories, files_only_ignored_directories, ignored_files, ignored_extensions):
+    normalized_ignored_dirs = [os.path.normpath(os.path.abspath(d)) for d in ignored_directories]
+    normalized_files_only_ignored_dirs = [os.path.normpath(os.path.abspath(d)) for d in files_only_ignored_directories]
+
+    with open(output_file, "w", encoding="utf-8") as out:
+        for root, dirs, files in os.walk(directory):
+            dirs_to_remove = []
+            for d in dirs:
+                dir_path = os.path.normpath(os.path.abspath(os.path.join(root, d)))
+                if dir_path in normalized_ignored_dirs:
+                    dirs_to_remove.append(d)
+            for d in dirs_to_remove:
+                dirs.remove(d)
+
+            for file in files:
+                file_path = os.path.join(root, file)
+                ext = os.path.splitext(file)[1].lower()
+
+                if (file_path in ignored_files or file in ignored_files) or (ext in ignored_extensions):
+                    continue
+
+                skip_file = False
+                for files_only_ignored_dir in normalized_files_only_ignored_dirs:
+                    if os.path.normpath(os.path.abspath(root)) == files_only_ignored_dir:
+                        skip_file = True
+                        break
+                if skip_file:
+                    continue
+
+                out.write(f"File Path: {file_path}\n")
+                try:
+                    with open(file_path, "r", encoding="utf-8") as f:
+                        content = f.read()
+                        out.write("Content:\n")
+                        out.write(content + "\n")
+                except Exception as e:
+                    out.write(f"Could not read file {file_path}: {e}\n")
+
+                out.write("\n" + "-" * 80 + "\n\n")
+
+def get_ignored_directories(directory):
+    fully_ignored = []
+    files_only_ignored = []
+    count = input("Enter number of directories to ignore (0 for none): ")
+    try:
+        count = int(count)
+        for i in range(count):
+            name = input(f"Enter directory name {i+1}: ")
+            full_path = name if os.path.isabs(name) else os.path.join(directory, name)
+            print(f"\nFor directory '{name}':")
+            print("1. Full exclusion (ignore directory and all subdirectories)")
+            print("2. Files-only exclusion (ignore files in this directory but include subdirectories)")
+            choice = input("Choose option (1 or 2): ").strip()
+            if choice == "1":
+                fully_ignored.append(full_path)
+                print(f"✓ '{name}' will be fully excluded")
+            elif choice == "2":
+                files_only_ignored.append(full_path)
+                print(f"✓ Files in '{name}' will be excluded, but subdirectories will be included")
+            else:
+                fully_ignored.append(full_path)
+                print("Invalid choice, defaulting to full exclusion")
+            print("-" * 50)
+    except ValueError:
+        print("Invalid number, ignoring directories.")
+    return fully_ignored, files_only_ignored
+
+def get_ignored_files(directory):
+    items = []
+    count = input("Enter number of files to ignore (0 for none): ")
+    try:
+        count = int(count)
+        for i in range(count):
+            name = input(f"Enter file name {i+1}: ")
+            full_path = os.path.join(directory, name)
+            items.extend([full_path, name])
+    except ValueError:
+        print("Invalid number, ignoring files.")
+    return items
+
+def get_ignored_extensions():
+    exts = []
+    count = input("Enter number of file extensions to ignore (0 for none): ")
+    try:
+        count = int(count)
+        for i in range(count):
+            ext = input(f"Enter extension {i+1} (e.g., .scss or scss): ").strip().lower()
+            if not ext.startswith('.'):
+                ext = '.' + ext
+            exts.append(ext)
+    except ValueError:
+        print("Invalid number, ignoring extensions.")
+    return exts
+
+def main():
+    print("=" * 60)
+    print("FILE CONTENT EXTRACTOR TO TEXT FILE")
+    print("=" * 60)
+
+    directory = input("Enter the directory path: ")
+
+    if not os.path.exists(directory):
+        print(f"Error: Directory '{directory}' does not exist!")
+        return
+
+    print(f"\nScanning directory: {directory}")
+    print("=" * 60)
+
+    fully_ignored_directories, files_only_ignored_directories = get_ignored_directories(directory)
+    ignored_files = get_ignored_files(directory)
+    ignored_extensions = get_ignored_extensions()
+
+    output_file = os.path.join(directory, "file_contents.txt")
+    write_files_to_txt(directory, output_file, fully_ignored_directories, files_only_ignored_directories, ignored_files, ignored_extensions)
+
+    print(f"\n✓ Text file saved as: {output_file}")
+
+if __name__ == "__main__":
+    main()
+
+
+--------------------------------------------------------------------------------
+
+File Path: .\file_contents.txt
+Content:
+
+
+--------------------------------------------------------------------------------
+
+File Path: .\layout.tsx
+Content:
+import type { Metadata } from 'next'
+import '../globals.css'
+
+export const metadata: Metadata = {
+  title: {
+    template: '%s | DOiT Admin',
+    default: 'DOiT Admin Dashboard',
+  },
+}
+
+export default function AdminRootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <html lang="en">
+      <body>{children}</body>
+    </html>
+  )
+}
+
+
+--------------------------------------------------------------------------------
+
+File Path: .\(auth)\login\page.tsx
+Content:
+"use client";
+import Image from "next/image";
+
+import { useState } from "react";
+import Button from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
+import { Logo } from "@/components/ui";
+import GrowingDotsBackground from '@/components/ui/GrowingDotsBackground'
+import { Eye, EyeSlash, Lock, Lock1, User } from "iconsax-reactjs";
+
+const LoginPage = () => {
+  const [showPassword, setShowPassword] = useState(false);
+  const [adminId, setAdminId] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    // Simulating API call
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    console.log("Login attempt:", { adminId, password });
+    setIsLoading(false);
+  };
+
+  return (
+    <main className="relative min-h-screen w-full bg-neutral-900 flex items-center justify-center overflow-hidden">
+      <GrowingDotsBackground />
+      {/* Login Card */}
+      <div className="relative z-10 w-full max-w-md mx-4">
+        <div className="bg-white rounded-2xl shadow-lg p-8 md:p-10">
+          {/* Logo */}
+          <div className="flex justify-center mb-6">
+            <div className="flex items-center gap-1">
+
+              <Logo size="lg" />
+
+            </div>
+          </div>
+
+          {/* Title */}
+          <h1 className="text-2xl font-semibold text-center text-neutral-900 mb-8">
+            Log In
+          </h1>
+
+          {/* Login Form */}
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Admin ID Field */}
+            <Input
+              label="Admin ID"
+              type="text"
+              id="adminId"
+              value={adminId}
+              onChange={(e) => setAdminId(e.target.value)}
+              placeholder="Enter Your ID"
+              leftIcon={
+                <User size={20} className="text-neutral-400" />
+              }
+              required
+            />
+
+            {/* Password Field */}
+            <div className="space-y-2">
+              <Input
+                label="Password"
+                type={showPassword ? "text" : "password"}
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••••••"
+                leftIcon={
+                  <Lock1 size={20} className="text-neutral-400" />
+                }
+                rightIcon={
+                  showPassword ? (
+                    <EyeSlash size={20} className="text-neutral-400" />
+                  ) : (
+                    <Eye size={20} className="text-neutral-400" />
+                  )
+                }
+                onRightIconClick={() => setShowPassword(!showPassword)}
+                required
+              />
+
+              {/* Forgot Password Link */}
+              <a href="#" className="inline-block text-sm text-neutral-500 hover:text-primary transition-colors mt-1">
+                Forgot Password?
+              </a>
+            </div>
+
+            {/* Submit Button */}
+            <Button
+              type="submit"
+              variant="solid"
+              size="md"
+              fullWidth
+              isLoading={isLoading}
+              className="mt-4 rounded-xl"
+            >
+              Log in
+            </Button>
+          </form>
+        </div>
+      </div>
+    </main>
+  );
+}
+
+export default LoginPage;
+
+--------------------------------------------------------------------------------
+
+File Path: .\(protected)\layout.tsx
+Content:
+import { QueryProvider } from '@/providers/QueryProvider'
+import AdminShell from '@/components/admin/AdminLayout'
+
+export default function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <QueryProvider>
+      <AdminShell>{children}</AdminShell>
+    </QueryProvider>
+  )
+}
+
+
+--------------------------------------------------------------------------------
+
+File Path: .\(protected)\categories\page.tsx
+Content:
+'use client'
+
+import { useState } from 'react'
+import DataTable, { Column } from '@/components/admin/DataTable'
+import Pagination from '@/components/admin/Pagination'
+import SearchInput from '@/components/admin/SearchInput'
+import ActionButtons from '@/components/admin/ActionButtons'
+
+interface Category {
+  id: string
+  name: string
+  subCategories: number
+  productsLists: number
+  totalProducts: number
+}
+
+// Sample data
+const sampleCategories: Category[] = [
+  {
+    id: '1',
+    name: 'Men',
+    subCategories: 5,
+    productsLists: 41,
+    totalProducts: 520
+  },
+  {
+    id: '2',
+    name: 'Women',
+    subCategories: 5,
+    productsLists: 44,
+    totalProducts: 670
+  },
+  {
+    id: '3',
+    name: 'Kids',
+    subCategories: 4,
+    productsLists: 20,
+    totalProducts: 230
+  },
+  {
+    id: '4',
+    name: 'Accessories',
+    subCategories: 6,
+    productsLists: 12,
+    totalProducts: 90
+  },
+  {
+    id: '5',
+    name: 'Sports',
+    subCategories: 12,
+    productsLists: 32,
+    totalProducts: 1200
+  },
+]
+
+export default function CategoriesPage() {
+  const [currentPage, setCurrentPage] = useState(1)
+  const [searchQuery, setSearchQuery] = useState('')
+
+  const columns: Column<Category>[] = [
+    {
+      key: 'name',
+      header: 'Name',
+      width: 'min-w-[200px]',
+    },
+    {
+      key: 'subCategories',
+      header: 'Sub Categories',
+      width: 'w-[150px]',
+    },
+    {
+      key: 'productsLists',
+      header: 'Products lists',
+      width: 'w-[150px]',
+    },
+    {
+      key: 'totalProducts',
+      header: 'Total Products',
+      width: 'w-[150px]',
+    },
+    {
+      key: 'actions',
+      header: '',
+      width: 'w-[80px]',
+      render: () => (
+        <ActionButtons 
+          onEdit={() => console.log('Edit')}
+          onView={() => console.log('View')}
+        />
+      )
+    }
+  ]
+
+  return (
+      <div className="p-6">
+        {/* Content Card */}
+        <div className="bg-white rounded-lg">
+          {/* Title and Search */}
+          <div className="flex items-center justify-between p-6 pb-4">
+            <h1 className="text-2xl font-semibold text-neutral-900">All Categories</h1>
+            <SearchInput 
+              placeholder="Search" 
+              value={searchQuery}
+              onChange={setSearchQuery}
+              className="w-72"
+            />
+          </div>
+
+          {/* Table */}
+          <DataTable
+            columns={columns}
+            data={sampleCategories}
+            keyExtractor={(category) => category.id}
+          />
+
+          {/* Pagination */}
+          <div className="p-6 pt-4">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={10}
+              totalItems={99}
+              itemsPerPage={10}
+              onPageChange={setCurrentPage}
+            />
+          </div>
+        </div>
+      </div>
+  )
+}
+
+
+--------------------------------------------------------------------------------
+
+File Path: .\(protected)\categories\[id]\edit\page.tsx
+Content:
+'use client'
+
+import { useState } from 'react'
+import { useForm, useFieldArray } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { FormInput, FormPageHeader } from '@/components/admin/forms'
+import { categorySchema, CategoryFormData } from '@/lib/schemas/admin'
+import { Add, Category2 } from 'iconsax-reactjs'
+
+// Sample pre-filled data
+const sampleCategoryData: CategoryFormData = {
+  nameEn: 'Men',
+  nameAr: 'رجالي',
+  subCategories: [
+    {
+      id: '1',
+      nameEn: 'footwear',
+      nameAr: 'أحذية',
+      productLists: [
+        { id: '1-1', valueEn: 'Running', valueAr: 'الجري' },
+        { id: '1-2', valueEn: 'Training', valueAr: 'التمرين' },
+        { id: '1-3', valueEn: 'Lifestyle', valueAr: 'اناقة' },
+        { id: '1-4', valueEn: 'Slides & Flip flops', valueAr: 'شباشب بحر' },
+        { id: '1-5', valueEn: 'football', valueAr: 'كرة قدم' },
+        { id: '1-6', valueEn: 'basketball', valueAr: 'كرة سلة' },
+        { id: '1-7', valueEn: 'indoor', valueAr: 'داخلي' },
+      ]
+    },
+    {
+      id: '2',
+      nameEn: 'accessories',
+      nameAr: 'اكسسوارات',
+      productLists: [
+        { id: '2-1', valueEn: 'bags', valueAr: 'حقائب' },
+        { id: '2-2', valueEn: 'bottles', valueAr: 'زجاجات' },
+        { id: '2-3', valueEn: 'socks', valueAr: 'جوارب' },
+        { id: '2-4', valueEn: 'head wear', valueAr: 'قبعات' },
+      ]
+    },
+    {
+      id: '3',
+      nameEn: 'clothing',
+      nameAr: 'ملابس',
+      productLists: [
+        { id: '3-1', valueEn: 'jackets', valueAr: 'جاكيتات' },
+        { id: '3-2', valueEn: 'pants', valueAr: 'بنطلونات' },
+        { id: '3-3', valueEn: 'swimwear', valueAr: 'ملابس سباحة' },
+        { id: '3-4', valueEn: 't.shirts', valueAr: 'تيشيرتات' },
+        { id: '3-5', valueEn: 'hoodie', valueAr: 'هودي' },
+        { id: '3-6', valueEn: 'tights', valueAr: 'تايتس' },
+        { id: '3-7', valueEn: 'tracksuit', valueAr: 'بدلة رياضية' },
+        { id: '3-8', valueEn: 'tracktop', valueAr: 'جاكيت رياضي' },
+        { id: '3-9', valueEn: 'shorts', valueAr: 'شورتات' },
+      ]
+    },
+    {
+      id: '4',
+      nameEn: 'brands',
+      nameAr: 'علامة تجارية',
+      productLists: [
+        { id: '4-1', valueEn: 'adidas', valueAr: 'اديداس' },
+        { id: '4-2', valueEn: 'nike', valueAr: 'نايك' },
+        { id: '4-3', valueEn: 'Reebok', valueAr: 'ريبوك' },
+        { id: '4-4', valueEn: 'puma', valueAr: 'بوما' },
+        { id: '4-5', valueEn: 'body sculpture', valueAr: 'بودي سكلبتر' },
+        { id: '4-6', valueEn: 'Wilson', valueAr: 'ويلسون' },
+        { id: '4-7', valueEn: 'jan sport', valueAr: 'جان سبورت' },
+        { id: '4-8', valueEn: 'liveup', valueAr: 'لايف اب' },
+        { id: '4-9', valueEn: 'babolat', valueAr: 'بابولات' },
+        { id: '4-10', valueEn: 'technofibre', valueAr: 'تكنوفايبر' },
+        { id: '4-11', valueEn: 'asics', valueAr: 'اسيكس' },
+      ]
+    },
+    {
+      id: '5',
+      nameEn: 'sports',
+      nameAr: 'رياضة',
+      productLists: [
+        { id: '5-1', valueEn: 'football', valueAr: 'كرة قدم' },
+        { id: '5-2', valueEn: 'basketball', valueAr: 'كرة سلة' },
+        { id: '5-3', valueEn: 'tennis', valueAr: 'تنس' },
+        { id: '5-4', valueEn: 'running', valueAr: 'جري' },
+        { id: '5-5', valueEn: 'training', valueAr: 'تدريب' },
+        { id: '5-6', valueEn: 'squash', valueAr: 'اسكواش' },
+        { id: '5-7', valueEn: 'padle', valueAr: 'بادل' },
+        { id: '5-8', valueEn: 'swimming', valueAr: 'سباحة' },
+        { id: '5-9', valueEn: 'fitness', valueAr: 'فيتنس' },
+        { id: '5-10', valueEn: 'motor sport', valueAr: 'رياضة السيارات' },
+      ]
+    },
+  ]
+}
+
+// Nested ProductLists component
+function ProductListsFields({ 
+  subCategoryIndex, 
+  control, 
+  register, 
+  errors,
+  isEnglish 
+}: { 
+  subCategoryIndex: number
+  control: any
+  register: any
+  errors: any
+  isEnglish: boolean
+}) {
+  const { fields, append } = useFieldArray({
+    control,
+    name: `subCategories.${subCategoryIndex}.productLists`
+  })
+
+  return (
+    <>
+      <div className="grid grid-cols-4 gap-4">
+        {fields.map((field, index) => (
+          <div key={field.id}>
+            <label className={`block text-xs font-medium text-neutral-500 mb-1 ${!isEnglish ? 'text-right' : ''}`}>
+              {isEnglish ? `Product list ${index + 1}` : `قائمة منتجات ${index + 1}`}
+            </label>
+            <input
+              type="text"
+              dir={isEnglish ? 'ltr' : 'rtl'}
+              className={`w-full h-9 px-3 rounded-lg border border-neutral-200 bg-white text-sm text-neutral-900 focus:outline-none focus:ring-2 focus:ring-neutral-200 ${!isEnglish ? 'text-right' : ''}`}
+              {...register(`subCategories.${subCategoryIndex}.productLists.${index}.${isEnglish ? 'valueEn' : 'valueAr'}`)}
+            />
+          </div>
+        ))}
+
+        {/* Add Product List Button */}
+        <div className="flex items-end">
+          <button
+            type="button"
+            onClick={() => append({ id: `${Date.now()}`, valueEn: '', valueAr: '' })}
+            className="w-full h-9 flex items-center justify-center gap-1.5 border-2 border-dashed border-neutral-200 rounded-lg text-sm text-neutral-500 hover:border-neutral-300 hover:text-neutral-600 transition-colors"
+          >
+            <Add size={16} />
+            {isEnglish ? 'Add' : 'إضافة'}
+          </button>
+        </div>
+      </div>
+    </>
+  )
+}
+
+export default function EditCategoryPage() {
+  const [currentLang, setCurrentLang] = useState<'en' | 'ar'>('en')
+  const isEnglish = currentLang === 'en'
+
+  const {
+    register,
+    control,
+    handleSubmit,
+    formState: { errors, isSubmitting }
+  } = useForm<CategoryFormData>({
+    resolver: zodResolver(categorySchema),
+    defaultValues: sampleCategoryData
+  })
+
+  const { fields: subCategoryFields, append: appendSubCategory } = useFieldArray({
+    control,
+    name: 'subCategories'
+  })
+
+  const onSubmit = async (data: CategoryFormData) => {
+    console.log('Saving category:', data)
+    // API call here
+  }
+
+  const handleNext = () => setCurrentLang('ar')
+  const handlePrevious = () => setCurrentLang('en')
+
+  return (
+      <form onSubmit={handleSubmit(onSubmit)} className="p-6">
+        <FormPageHeader
+          title="Edit Category"
+          backHref="/admin/categories"
+          isSubmitting={isSubmitting}
+        />
+
+        <div className="bg-white rounded-lg p-6">
+          {/* Language Indicator */}
+          <div className={`flex items-center gap-2 text-sm text-neutral-600 mb-6 ${!isEnglish ? 'justify-end' : ''}`}>
+            {isEnglish ? (
+              <>
+                <span className="text-base">🇺🇸</span>
+                <span>English</span>
+              </>
+            ) : (
+              <>
+                <span>عربي</span>
+                <span className="text-base">🇪🇬</span>
+              </>
+            )}
+          </div>
+
+          {/* Category Name */}
+          <div className="mb-6">
+            <label className={`block text-sm font-medium text-neutral-900 mb-1.5 ${!isEnglish ? 'text-right' : ''}`}>
+              {isEnglish ? 'Name' : 'اسم الفئة'}
+            </label>
+            <div className="relative">
+              <Category2 size={18} className={`absolute ${isEnglish ? 'left-3' : 'right-3'} top-1/2 -translate-y-1/2 text-neutral-400`} />
+              <input
+                type="text"
+                dir={isEnglish ? 'ltr' : 'rtl'}
+                className={`w-full h-10 ${isEnglish ? 'pl-10 pr-3' : 'pr-10 pl-3 text-right'} rounded-lg border border-neutral-200 bg-white text-sm text-neutral-900 focus:outline-none focus:ring-2 focus:ring-neutral-200`}
+                {...register(isEnglish ? 'nameEn' : 'nameAr')}
+              />
+            </div>
+            {(isEnglish ? errors.nameEn : errors.nameAr) && (
+              <p className="text-xs text-red-500 mt-1">
+                {isEnglish ? errors.nameEn?.message : errors.nameAr?.message}
+              </p>
+            )}
+          </div>
+
+          {/* Sub Categories */}
+          <div className="space-y-6">
+            {subCategoryFields.map((subCat, subIndex) => (
+              <div key={subCat.id} className="border border-neutral-200 rounded-lg p-4">
+                {/* Sub Category Header */}
+                <h3 className={`text-sm font-semibold text-primary mb-3 ${!isEnglish ? 'text-right' : ''}`}>
+                  {isEnglish ? `sub category ${subIndex + 1}` : `الفئة الفرعية ${subIndex + 1}`}
+                </h3>
+
+                {/* Sub Category Name */}
+                <div className="relative mb-4">
+                  <Category2 size={18} className={`absolute ${isEnglish ? 'left-3' : 'right-3'} top-1/2 -translate-y-1/2 text-neutral-400`} />
+                  <input
+                    type="text"
+                    dir={isEnglish ? 'ltr' : 'rtl'}
+                    className={`w-full h-10 ${isEnglish ? 'pl-10 pr-3' : 'pr-10 pl-3 text-right'} rounded-lg border border-neutral-200 bg-neutral-50 text-sm text-neutral-900 focus:outline-none focus:ring-2 focus:ring-neutral-200`}
+                    {...register(`subCategories.${subIndex}.${isEnglish ? 'nameEn' : 'nameAr'}`)}
+                  />
+                </div>
+
+                {/* Product Lists Grid */}
+                <ProductListsFields
+                  subCategoryIndex={subIndex}
+                  control={control}
+                  register={register}
+                  errors={errors}
+                  isEnglish={isEnglish}
+                />
+              </div>
+            ))}
+          </div>
+
+          {/* Bottom Actions */}
+          <div className="flex items-center justify-between mt-6 pt-6 border-t border-neutral-100">
+            {/* Add Subcategory */}
+            <button
+              type="button"
+              onClick={() => appendSubCategory({
+                id: Date.now().toString(),
+                nameEn: '',
+                nameAr: '',
+                productLists: [{ id: `${Date.now()}-1`, valueEn: '', valueAr: '' }]
+              })}
+              className="inline-flex items-center gap-2 px-4 h-10 border border-neutral-200 rounded-lg text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors"
+            >
+              <Add size={18} />
+              Add Subcategory
+            </button>
+
+            {/* Navigation */}
+            {isEnglish ? (
+              <button
+                type="button"
+                onClick={handleNext}
+                className="px-6 h-10 bg-neutral-900 text-white text-sm font-medium rounded-lg hover:bg-neutral-800 transition-colors"
+              >
+                Next
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handlePrevious}
+                className="px-6 h-10 border border-neutral-200 text-neutral-700 text-sm font-medium rounded-lg hover:bg-neutral-50 transition-colors"
+              >
+                Previous
+              </button>
+            )}
+          </div>
+        </div>
+      </form>
+  )
+}
+
+
+--------------------------------------------------------------------------------
+
+File Path: .\(protected)\content\page.tsx
+Content:
+'use client'
+
+import DataTable, { Column } from '@/components/admin/DataTable'
+
+interface ContentSection {
+  id: string
+  name: string
+}
+
+// Sample data
+const contentSections: ContentSection[] = [
+  { id: '1', name: 'Hero Section' },
+  { id: '2', name: 'Vendors Section' },
+  { id: '3', name: 'Banner Ads' },
+  { id: '4', name: 'Featured Products' },
+  { id: '5', name: 'Styles Section' },
+]
+
+// Edit button
+function EditButton({ onClick }: { onClick?: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="p-1.5 text-neutral-400 hover:text-neutral-600 transition-colors"
+      title="Edit"
+    >
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M8.25 3H3C2.60218 3 2.22064 3.15804 1.93934 3.43934C1.65804 3.72064 1.5 4.10218 1.5 4.5V15C1.5 15.3978 1.65804 15.7794 1.93934 16.0607C2.22064 16.342 2.60218 16.5 3 16.5H13.5C13.8978 16.5 14.2794 16.342 14.5607 16.0607C14.842 15.7794 15 15.3978 15 15V9.75" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M13.875 1.87499C14.1734 1.57662 14.578 1.40901 15 1.40901C15.422 1.40901 15.8266 1.57662 16.125 1.87499C16.4234 2.17336 16.591 2.57802 16.591 2.99999C16.591 3.42196 16.4234 3.82662 16.125 4.12499L9 11.25L6 12L6.75 9L13.875 1.87499Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    </button>
+  )
+}
+
+export default function ContentPage() {
+  const columns: Column<ContentSection>[] = [
+    {
+      key: 'name',
+      header: 'Section Name',
+      width: 'min-w-[300px]',
+    },
+    {
+      key: 'action',
+      header: 'Action',
+      width: 'w-[100px]',
+      render: (section) => (
+        <EditButton onClick={() => console.log('Edit', section.id)} />
+      )
+    }
+  ]
+
+  return (
+      <div className="p-6">
+        {/* Content Card */}
+        <div className="bg-white rounded-lg">
+          {/* Title */}
+          <div className="p-6 pb-4">
+            <h1 className="text-2xl font-semibold text-neutral-900">Content Management</h1>
+          </div>
+
+          {/* Table */}
+          <DataTable
+            columns={columns}
+            data={contentSections}
+            keyExtractor={(section) => section.id}
+          />
+        </div>
+      </div>
+  )
+}
+
+
+--------------------------------------------------------------------------------
+
+File Path: .\(protected)\customers\page.tsx
+Content:
+'use client'
+
+import { useState } from 'react'
+import DataTable, { Column } from '@/components/admin/DataTable'
+import Pagination from '@/components/admin/Pagination'
+import SearchInput from '@/components/admin/SearchInput'
+import FilterButton from '@/components/admin/FilterButton'
+import StatusBadge, { getStatusVariant } from '@/components/admin/StatusBadge'
+
+interface Customer {
+  id: string
+  name: string
+  detail: string
+  avatar: string
+  lastLogin: string
+  status: string
+  createdDate: string
+  orders: number
+  spending: string
+}
+
+// Sample data
+const sampleCustomers: Customer[] = [
+  {
+    id: '1',
+    name: 'User Name',
+    detail: 'User details',
+    avatar: '/avatars/user1.jpg',
+    lastLogin: '13:45 Nov 10,2025',
+    status: 'Active',
+    createdDate: '22/11/2024',
+    orders: 2,
+    spending: '2500 EGP'
+  },
+  {
+    id: '2',
+    name: 'User Name',
+    detail: 'User details',
+    avatar: '/avatars/user2.jpg',
+    lastLogin: '13:45 Nov 10,2025',
+    status: 'Active',
+    createdDate: '22/11/2024',
+    orders: 11,
+    spending: '2500 EGP'
+  },
+  {
+    id: '3',
+    name: 'User Name',
+    detail: 'User details',
+    avatar: '/avatars/user3.jpg',
+    lastLogin: '13:45 Nov 10,2025',
+    status: 'Blocked',
+    createdDate: '22/11/2024',
+    orders: 4,
+    spending: '2500 EGP'
+  },
+  {
+    id: '4',
+    name: 'User Name',
+    detail: 'User details',
+    avatar: '/avatars/user4.jpg',
+    lastLogin: '13:45 Nov 10,2025',
+    status: 'Active',
+    createdDate: '22/11/2024',
+    orders: 1,
+    spending: '2500 EGP'
+  },
+  {
+    id: '5',
+    name: 'User Name',
+    detail: 'User details',
+    avatar: '/avatars/user5.jpg',
+    lastLogin: '13:45 Nov 10,2025',
+    status: 'Active',
+    createdDate: '22/11/2024',
+    orders: 2,
+    spending: '2500 EGP'
+  },
+  {
+    id: '6',
+    name: 'User Name',
+    detail: 'User details',
+    avatar: '/avatars/user6.jpg',
+    lastLogin: '13:45 Nov 10,2025',
+    status: 'Active',
+    createdDate: '22/11/2024',
+    orders: 6,
+    spending: '2500 EGP'
+  },
+]
+
+// Customer cell component
+function CustomerCell({ name, detail }: { name: string; detail: string }) {
+  return (
+    <div className="flex items-center gap-3">
+      <div className="w-10 h-10 bg-neutral-200 rounded-full overflow-hidden flex-shrink-0">
+        <div className="w-full h-full bg-neutral-300 flex items-center justify-center">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="text-neutral-500">
+            <circle cx="10" cy="8" r="3" stroke="currentColor" strokeWidth="1.5"/>
+            <path d="M4 18C4 14.6863 6.68629 12 10 12C13.3137 12 16 14.6863 16 18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+          </svg>
+        </div>
+      </div>
+      <div>
+        <p className="font-medium text-neutral-900">{name}</p>
+        <p className="text-xs text-neutral-400">{detail}</p>
+      </div>
+    </div>
+  )
+}
+
+// Block/Unblock action button
+function BlockButton({ isBlocked, onClick }: { isBlocked: boolean; onClick?: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="p-1.5 text-red-500 hover:text-red-600 transition-colors"
+      title={isBlocked ? 'Unblock user' : 'Block user'}
+    >
+      {isBlocked ? (
+        // User add icon for unblock
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="8" cy="6" r="3" stroke="currentColor" strokeWidth="1.5"/>
+          <path d="M2 17C2 14.2386 4.23858 12 7 12H9C11.7614 12 14 14.2386 14 17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+          <path d="M16 10V14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+          <path d="M14 12H18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        </svg>
+      ) : (
+        // Block icon (circle with slash)
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="10" cy="10" r="7" stroke="currentColor" strokeWidth="1.5"/>
+          <path d="M5 15L15 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        </svg>
+      )}
+    </button>
+  )
+}
+
+// Show link component
+function ShowLink({ onClick }: { onClick?: () => void }) {
+  return (
+    <button 
+      onClick={onClick}
+      className="text-sm text-primary hover:text-red-700 font-medium"
+    >
+      Show
+    </button>
+  )
+}
+
+export default function CustomersPage() {
+  const [currentPage, setCurrentPage] = useState(1)
+  const [searchQuery, setSearchQuery] = useState('')
+
+  const columns: Column<Customer>[] = [
+    {
+      key: 'customer',
+      header: 'Customer',
+      width: 'min-w-[180px]',
+      render: (customer) => (
+        <CustomerCell name={customer.name} detail={customer.detail} />
+      )
+    },
+    {
+      key: 'lastLogin',
+      header: 'Last Log in',
+      width: 'w-[150px]',
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      width: 'w-[100px]',
+      render: (customer) => (
+        <StatusBadge 
+          label={customer.status} 
+          variant={getStatusVariant(customer.status)}
+        />
+      )
+    },
+    {
+      key: 'createdDate',
+      header: 'Created',
+      width: 'w-[110px]',
+    },
+    {
+      key: 'orders',
+      header: 'Orders',
+      width: 'w-[80px]',
+    },
+    {
+      key: 'spending',
+      header: 'Spending',
+      width: 'w-[100px]',
+    },
+    {
+      key: 'action',
+      header: 'Action',
+      width: 'w-[80px]',
+      render: (customer) => (
+        <BlockButton 
+          isBlocked={customer.status === 'Blocked'} 
+          onClick={() => console.log('Toggle block', customer.id)}
+        />
+      )
+    },
+    {
+      key: 'details',
+      header: 'Details',
+      width: 'w-[80px]',
+      render: () => <ShowLink onClick={() => console.log('Show details')} />
+    }
+  ]
+
+  return (
+      <div className="p-6">
+        {/* Content Card */}
+        <div className="bg-white rounded-lg">
+          {/* Title and Search */}
+          <div className="flex items-center justify-between p-6 pb-4">
+            <h1 className="text-2xl font-semibold text-neutral-900">All Customers</h1>
+            <div className="flex items-center gap-3">
+              <SearchInput 
+                placeholder="Search" 
+                value={searchQuery}
+                onChange={setSearchQuery}
+                className="w-64"
+              />
+              <FilterButton onClick={() => console.log('Filter')} />
+            </div>
+          </div>
+
+          {/* Table */}
+          <DataTable
+            columns={columns}
+            data={sampleCustomers}
+            keyExtractor={(customer) => customer.id}
+          />
+
+          {/* Pagination */}
+          <div className="p-6 pt-4">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={10}
+              totalItems={99}
+              itemsPerPage={10}
+              onPageChange={setCurrentPage}
+            />
+          </div>
+        </div>
+      </div>
+  )
+}
+
+
+--------------------------------------------------------------------------------
+
+File Path: .\(protected)\dashboard\page.tsx
+Content:
+'use client'
+
+import StatCard from '@/components/admin/StatCard'
+import MetricCard from '@/components/admin/MetricCard'
+import TopSellingCategory from '@/components/admin/TopSellingCategory'
+import BestSellingProducts from '@/components/admin/BestSellingProducts'
+
+// Sample chart data
+const ordersChartData = [
+  { value: 20 }, { value: 35 }, { value: 25 }, { value: 45 }, 
+  { value: 40 }, { value: 55 }, { value: 50 }, { value: 60 }
+]
+
+const profitChartData = [
+  { value: 30 }, { value: 45 }, { value: 35 }, { value: 50 }, 
+  { value: 45 }, { value: 55 }, { value: 60 }, { value: 65 }
+]
+
+const discountChartData = [
+  { value: 50 }, { value: 45 }, { value: 55 }, { value: 40 }, 
+  { value: 35 }, { value: 45 }, { value: 30 }, { value: 25 }
+]
+
+export default function DashboardPage() {
+  return (
+      <div className="flex flex-col gap-6">
+        {/* Top Stats Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard 
+            value="510" 
+            label="Total products" 
+          />
+          <StatCard 
+            value="350" 
+            label="Active Orders" 
+          />
+          <StatCard 
+            value="2370" 
+            label="Total customers" 
+          />
+          <StatCard 
+            value="120,365" 
+            suffix="EPG"
+            label="Total Earnings" 
+            variant="highlight"
+          />
+        </div>
+
+        {/* Metric Cards Row */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <MetricCard
+            title="Total Orders"
+            subtitle="Last 7 days"
+            value="25.7K"
+            percentChange={6}
+            chartData={ordersChartData}
+            chartColor="green"
+          />
+          <MetricCard
+            title="Total Profit"
+            subtitle="Last 7 days"
+            value="50K"
+            percentChange={12}
+            chartData={profitChartData}
+            chartColor="green"
+          />
+          <MetricCard
+            title="Discounted Amount"
+            subtitle="Last 7 days"
+            value="12K"
+            percentChange={2}
+            chartData={discountChartData}
+            chartColor="red"
+          />
+        </div>
+
+        {/* Charts Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <TopSellingCategory />
+          <BestSellingProducts />
+        </div>
+      </div>
+  )
+}
+
+
+--------------------------------------------------------------------------------
+
+File Path: .\(protected)\offers\page.tsx
+Content:
+'use client'
+
+import { useState } from 'react'
+import DataTable, { Column } from '@/components/admin/DataTable'
+import Pagination from '@/components/admin/Pagination'
+import SearchInput from '@/components/admin/SearchInput'
+import FilterButton from '@/components/admin/FilterButton'
+import ExportButton from '@/components/admin/ExportButton'
+import AddButton from '@/components/admin/AddButton'
+import StatusBadge, { getStatusVariant } from '@/components/admin/StatusBadge'
+
+interface Offer {
+  id: string
+  name: string
+  type: string
+  status: string
+  startDate: string
+  endDate: string
+  timesUsed: string
+}
+
+// Sample data
+const sampleOffers: Offer[] = [
+  {
+    id: '1',
+    name: 'Running Shoes 50%',
+    type: 'Percentage',
+    status: 'Active',
+    startDate: '22/11/2024',
+    endDate: '22/12/2024',
+    timesUsed: '300'
+  },
+  {
+    id: '2',
+    name: 'Al Ahly Jercy offer',
+    type: 'Buy one get one',
+    status: 'Draft',
+    startDate: '22/11/2024',
+    endDate: '22/12/2024',
+    timesUsed: 'NA'
+  },
+  {
+    id: '3',
+    name: '500 EGP on accessories',
+    type: 'fixed amount',
+    status: 'Expired',
+    startDate: '22/11/2024',
+    endDate: '22/12/2024',
+    timesUsed: '500'
+  },
+  {
+    id: '4',
+    name: 'Ball + bottle + socks 20% off',
+    type: 'Bundle',
+    status: 'Scheduled',
+    startDate: '22/11/2024',
+    endDate: '22/12/2024',
+    timesUsed: 'NA'
+  },
+  {
+    id: '5',
+    name: 'free shipping Over 1000 EGP',
+    type: 'free shipping',
+    status: 'Active',
+    startDate: '22/11/2024',
+    endDate: '22/12/2024',
+    timesUsed: '230'
+  },
+  {
+    id: '6',
+    name: '30% on Kids',
+    type: 'Percentage',
+    status: 'Active',
+    startDate: '22/11/2024',
+    endDate: '22/12/2024',
+    timesUsed: '400'
+  },
+]
+
+// Edit button
+function EditButton({ onClick }: { onClick?: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="p-1.5 text-neutral-400 hover:text-neutral-600 transition-colors"
+      title="Edit"
+    >
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M8.25 3H3C2.60218 3 2.22064 3.15804 1.93934 3.43934C1.65804 3.72064 1.5 4.10218 1.5 4.5V15C1.5 15.3978 1.65804 15.7794 1.93934 16.0607C2.22064 16.342 2.60218 16.5 3 16.5H13.5C13.8978 16.5 14.2794 16.342 14.5607 16.0607C14.842 15.7794 15 15.3978 15 15V9.75" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M13.875 1.87499C14.1734 1.57662 14.578 1.40901 15 1.40901C15.422 1.40901 15.8266 1.57662 16.125 1.87499C16.4234 2.17336 16.591 2.57802 16.591 2.99999C16.591 3.42196 16.4234 3.82662 16.125 4.12499L9 11.25L6 12L6.75 9L13.875 1.87499Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    </button>
+  )
+}
+
+// Toggle (Play/Pause) button for active/inactive offers
+function ToggleButton({ isActive, onClick }: { isActive: boolean; onClick?: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`p-1.5 transition-colors ${isActive ? 'text-primary hover:text-red-700' : 'text-neutral-400 hover:text-neutral-600'}`}
+      title={isActive ? 'Pause offer' : 'Activate offer'}
+    >
+      {isActive ? (
+        // Pause icon (two vertical bars)
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="4" y="3" width="3" height="12" rx="1" stroke="currentColor" strokeWidth="1.5"/>
+          <rect x="11" y="3" width="3" height="12" rx="1" stroke="currentColor" strokeWidth="1.5"/>
+        </svg>
+      ) : (
+        // Play icon
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M5 3.80385C5 3.01191 5.86395 2.52404 6.53 2.9381L14.2298 7.73425C14.8536 8.12216 14.8536 9.07784 14.2298 9.46575L6.53 14.2619C5.86395 14.676 5 14.1881 5 13.3962V3.80385Z" stroke="currentColor" strokeWidth="1.5"/>
+        </svg>
+      )}
+    </button>
+  )
+}
+
+// Action buttons container
+function OfferActions({ status, onEdit, onToggle }: { status: string; onEdit?: () => void; onToggle?: () => void }) {
+  const isActive = status.toLowerCase() === 'active'
+  
+  return (
+    <div className="flex items-center gap-1">
+      <EditButton onClick={onEdit} />
+      <ToggleButton isActive={isActive} onClick={onToggle} />
+    </div>
+  )
+}
+
+export default function OffersPage() {
+  const [currentPage, setCurrentPage] = useState(1)
+  const [searchQuery, setSearchQuery] = useState('')
+
+  const columns: Column<Offer>[] = [
+    {
+      key: 'name',
+      header: 'Offer Name',
+      width: 'min-w-[200px]',
+    },
+    {
+      key: 'type',
+      header: 'Type',
+      width: 'w-[140px]',
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      width: 'w-[110px]',
+      render: (offer) => (
+        <StatusBadge 
+          label={offer.status} 
+          variant={getStatusVariant(offer.status)}
+        />
+      )
+    },
+    {
+      key: 'startDate',
+      header: 'Start date',
+      width: 'w-[110px]',
+    },
+    {
+      key: 'endDate',
+      header: 'End date',
+      width: 'w-[110px]',
+    },
+    {
+      key: 'timesUsed',
+      header: 'Times Used',
+      width: 'w-[100px]',
+    },
+    {
+      key: 'actions',
+      header: 'Action',
+      width: 'w-[80px]',
+      render: (offer) => (
+        <OfferActions 
+          status={offer.status}
+          onEdit={() => console.log('Edit', offer.id)}
+          onToggle={() => console.log('Toggle', offer.id)}
+        />
+      )
+    }
+  ]
+
+  return (
+      <div className="p-6">
+        {/* Header */}
+        <div className="flex items-center justify-end mb-6">
+          <AddButton label="Create New Offer" onClick={() => console.log('Create new offer')} />
+        </div>
+
+        {/* Content Card */}
+        <div className="bg-white rounded-lg">
+          {/* Title and Search */}
+          <div className="flex items-center justify-between p-6 pb-4">
+            <h1 className="text-2xl font-semibold text-neutral-900">All Offers</h1>
+            <div className="flex items-center gap-3">
+              <SearchInput 
+                placeholder="Search" 
+                value={searchQuery}
+                onChange={setSearchQuery}
+                className="w-56"
+              />
+              <FilterButton onClick={() => console.log('Filter')} />
+              <ExportButton onClick={() => console.log('Export')} />
+            </div>
+          </div>
+
+          {/* Table */}
+          <DataTable
+            columns={columns}
+            data={sampleOffers}
+            keyExtractor={(offer) => offer.id}
+          />
+
+          {/* Pagination */}
+          <div className="p-6 pt-4">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={10}
+              totalItems={99}
+              itemsPerPage={10}
+              onPageChange={setCurrentPage}
+            />
+          </div>
+        </div>
+      </div>
+  )
+}
+
+
+--------------------------------------------------------------------------------
+
+File Path: .\(protected)\orders\page.tsx
+Content:
+'use client'
+
+import { useState } from 'react'
+import DataTable, { Column } from '@/components/admin/DataTable'
+import Pagination from '@/components/admin/Pagination'
+import SearchInput from '@/components/admin/SearchInput'
+import FilterButton from '@/components/admin/FilterButton'
+import ExportButton from '@/components/admin/ExportButton'
+import StatusBadge, { getStatusVariant } from '@/components/admin/StatusBadge'
+
+interface Order {
+  id: string
+  orderId: string
+  customerName: string
+  customerDetail: string
+  customerAvatar: string
+  status: string
+  createdDate: string
+  items: number
+  total: string
+  phoneNumber?: string
+}
+
+// Sample data for All Orders
+const allOrders: Order[] = [
+  {
+    id: '1',
+    orderId: '#3776426',
+    customerName: 'User Name',
+    customerDetail: 'User details',
+    customerAvatar: '/avatars/user1.jpg',
+    status: 'Completed',
+    createdDate: '22/11/2025',
+    items: 2,
+    total: '2500 EGP'
+  },
+  {
+    id: '2',
+    orderId: '#3776426',
+    customerName: 'User Name',
+    customerDetail: 'User details',
+    customerAvatar: '/avatars/user2.jpg',
+    status: 'Shipped',
+    createdDate: '22/11/2025',
+    items: 4,
+    total: '2500 EGP'
+  },
+  {
+    id: '3',
+    orderId: '#3776426',
+    customerName: 'User Name',
+    customerDetail: 'User details',
+    customerAvatar: '/avatars/user3.jpg',
+    status: 'In progress',
+    createdDate: '22/11/2025',
+    items: 1,
+    total: '2500 EGP'
+  },
+  {
+    id: '4',
+    orderId: '#3776426',
+    customerName: 'User Name',
+    customerDetail: 'User details',
+    customerAvatar: '/avatars/user4.jpg',
+    status: 'In progress',
+    createdDate: '22/11/2025',
+    items: 4,
+    total: '2500 EGP'
+  },
+  {
+    id: '5',
+    orderId: '#3776426',
+    customerName: 'User Name',
+    customerDetail: 'User details',
+    customerAvatar: '/avatars/user5.jpg',
+    status: 'Canceled',
+    createdDate: '22/11/2025',
+    items: 2,
+    total: '2500 EGP'
+  },
+  {
+    id: '6',
+    orderId: '#3776426',
+    customerName: 'User Name',
+    customerDetail: 'User details',
+    customerAvatar: '/avatars/user6.jpg',
+    status: 'Completed',
+    createdDate: '22/11/2025',
+    items: 3,
+    total: '2500 EGP'
+  },
+]
+
+// Sample data for Custom Made Orders
+const customOrders: Order[] = [
+  {
+    id: '1',
+    orderId: '#3776426',
+    customerName: 'User Name',
+    customerDetail: 'User details',
+    customerAvatar: '/avatars/user1.jpg',
+    status: 'Completed',
+    phoneNumber: '01228769804',
+    createdDate: '22/11/2025',
+    items: 0,
+    total: '2500 EGP'
+  },
+  {
+    id: '2',
+    orderId: '#3776426',
+    customerName: 'User Name',
+    customerDetail: 'User details',
+    customerAvatar: '/avatars/user2.jpg',
+    status: 'Shipped',
+    phoneNumber: '01228769804',
+    createdDate: '22/11/2025',
+    items: 0,
+    total: '2500 EGP'
+  },
+  {
+    id: '3',
+    orderId: '#3776426',
+    customerName: 'User Name',
+    customerDetail: 'User details',
+    customerAvatar: '/avatars/user3.jpg',
+    status: 'New',
+    phoneNumber: '01228769804',
+    createdDate: '22/11/2025',
+    items: 0,
+    total: 'NA'
+  },
+  {
+    id: '4',
+    orderId: '#3776426',
+    customerName: 'User Name',
+    customerDetail: 'User details',
+    customerAvatar: '/avatars/user4.jpg',
+    status: 'In progress',
+    phoneNumber: '01228769804',
+    createdDate: '22/11/2025',
+    items: 0,
+    total: '2500 EGP'
+  },
+  {
+    id: '5',
+    orderId: '#3776426',
+    customerName: 'User Name',
+    customerDetail: 'User details',
+    customerAvatar: '/avatars/user5.jpg',
+    status: 'In progress',
+    phoneNumber: '01228769804',
+    createdDate: '22/11/2025',
+    items: 0,
+    total: '2500 EGP'
+  },
+  {
+    id: '6',
+    orderId: '#3776426',
+    customerName: 'User Name',
+    customerDetail: 'User details',
+    customerAvatar: '/avatars/user6.jpg',
+    status: 'Completed',
+    phoneNumber: '01228769804',
+    createdDate: '22/11/2025',
+    items: 0,
+    total: '2500 EGP'
+  },
+]
+
+// Customer cell component
+function CustomerCell({ name, detail }: { name: string; detail: string }) {
+  return (
+    <div className="flex items-center gap-3">
+      <div className="w-10 h-10 bg-neutral-200 rounded-full overflow-hidden flex-shrink-0">
+        {/* Placeholder avatar */}
+        <div className="w-full h-full bg-neutral-300 flex items-center justify-center">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="text-neutral-500">
+            <circle cx="10" cy="8" r="3" stroke="currentColor" strokeWidth="1.5"/>
+            <path d="M4 18C4 14.6863 6.68629 12 10 12C13.3137 12 16 14.6863 16 18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+          </svg>
+        </div>
+      </div>
+      <div>
+        <p className="font-medium text-neutral-900">{name}</p>
+        <p className="text-xs text-neutral-400">{detail}</p>
+      </div>
+    </div>
+  )
+}
+
+// Show link component
+function ShowLink({ onClick }: { onClick?: () => void }) {
+  return (
+    <button 
+      onClick={onClick}
+      className="text-sm text-primary hover:text-red-700 font-medium"
+    >
+      Show
+    </button>
+  )
+}
+
+export default function OrdersPage() {
+  const [allOrdersPage, setAllOrdersPage] = useState(1)
+  const [customOrdersPage, setCustomOrdersPage] = useState(1)
+  const [allOrdersSearch, setAllOrdersSearch] = useState('')
+  const [customOrdersSearch, setCustomOrdersSearch] = useState('')
+
+  // Columns for All Orders table
+  const allOrdersColumns: Column<Order>[] = [
+    {
+      key: 'orderId',
+      header: 'Order ID',
+      width: 'w-[100px]',
+    },
+    {
+      key: 'customer',
+      header: 'Customer',
+      width: 'min-w-[180px]',
+      render: (order) => (
+        <CustomerCell name={order.customerName} detail={order.customerDetail} />
+      )
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      width: 'w-[120px]',
+      render: (order) => (
+        <StatusBadge 
+          label={order.status} 
+          variant={getStatusVariant(order.status)}
+        />
+      )
+    },
+    {
+      key: 'createdDate',
+      header: 'Created',
+      width: 'w-[110px]',
+    },
+    {
+      key: 'items',
+      header: 'Items',
+      width: 'w-[80px]',
+    },
+    {
+      key: 'total',
+      header: 'Total',
+      width: 'w-[100px]',
+    },
+    {
+      key: 'details',
+      header: 'Details',
+      width: 'w-[80px]',
+      render: () => <ShowLink onClick={() => console.log('Show details')} />
+    }
+  ]
+
+  // Columns for Custom Made Orders table
+  const customOrdersColumns: Column<Order>[] = [
+    {
+      key: 'orderId',
+      header: 'Order ID',
+      width: 'w-[100px]',
+    },
+    {
+      key: 'customer',
+      header: 'Customer',
+      width: 'min-w-[180px]',
+      render: (order) => (
+        <CustomerCell name={order.customerName} detail={order.customerDetail} />
+      )
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      width: 'w-[120px]',
+      render: (order) => (
+        <StatusBadge 
+          label={order.status} 
+          variant={getStatusVariant(order.status)}
+        />
+      )
+    },
+    {
+      key: 'phoneNumber',
+      header: 'Phone Number',
+      width: 'w-[130px]',
+    },
+    {
+      key: 'createdDate',
+      header: 'Created',
+      width: 'w-[110px]',
+    },
+    {
+      key: 'total',
+      header: 'Total',
+      width: 'w-[100px]',
+    },
+    {
+      key: 'details',
+      header: 'Details',
+      width: 'w-[80px]',
+      render: () => <ShowLink onClick={() => console.log('Show details')} />
+    }
+  ]
+
+  return (
+      <div className="p-6 space-y-8">
+        {/* All Orders Section */}
+        <div className="bg-white rounded-lg">
+          {/* Title and Actions */}
+          <div className="flex items-center justify-between p-6 pb-4">
+            <h1 className="text-2xl font-semibold text-neutral-900">All Orders</h1>
+            <div className="flex items-center gap-3">
+              <SearchInput 
+                placeholder="Search" 
+                value={allOrdersSearch}
+                onChange={setAllOrdersSearch}
+                className="w-56"
+              />
+              <FilterButton onClick={() => console.log('Filter')} />
+              <ExportButton onClick={() => console.log('Export')} />
+            </div>
+          </div>
+
+          {/* Table */}
+          <DataTable
+            columns={allOrdersColumns}
+            data={allOrders}
+            keyExtractor={(order, index) => `${order.id}-${index}`}
+          />
+
+          {/* Pagination */}
+          <div className="p-6 pt-4">
+            <Pagination
+              currentPage={allOrdersPage}
+              totalPages={10}
+              totalItems={99}
+              itemsPerPage={10}
+              onPageChange={setAllOrdersPage}
+            />
+          </div>
+        </div>
+
+        {/* Custom Made Orders Section */}
+        <div className="bg-white rounded-lg">
+          {/* Title and Actions */}
+          <div className="flex items-center justify-between p-6 pb-4">
+            <h1 className="text-2xl font-semibold text-neutral-900">Custom Made Orders</h1>
+            <div className="flex items-center gap-3">
+              <SearchInput 
+                placeholder="Search" 
+                value={customOrdersSearch}
+                onChange={setCustomOrdersSearch}
+                className="w-56"
+              />
+              <FilterButton onClick={() => console.log('Filter')} />
+              <ExportButton onClick={() => console.log('Export')} />
+            </div>
+          </div>
+
+          {/* Table */}
+          <DataTable
+            columns={customOrdersColumns}
+            data={customOrders}
+            keyExtractor={(order, index) => `custom-${order.id}-${index}`}
+          />
+
+          {/* Pagination */}
+          <div className="p-6 pt-4">
+            <Pagination
+              currentPage={customOrdersPage}
+              totalPages={10}
+              totalItems={99}
+              itemsPerPage={10}
+              onPageChange={setCustomOrdersPage}
+            />
+          </div>
+        </div>
+      </div>
+  )
+}
+
+
+--------------------------------------------------------------------------------
+
+File Path: .\(protected)\products\page.tsx
+Content:
+'use client'
+
+import { useState } from 'react'
+import Image from 'next/image'
+import DataTable, { Column } from '@/components/admin/DataTable'
+import Pagination from '@/components/admin/Pagination'
+import SearchInput from '@/components/admin/SearchInput'
+import FilterButton from '@/components/admin/FilterButton'
+import AddButton from '@/components/admin/AddButton'
+import StatusBadge, { getStatusVariant } from '@/components/admin/StatusBadge'
+import ActionButtons from '@/components/admin/ActionButtons'
+
+interface Product {
+  id: string
+  name: string
+  sku: string
+  image: string
+  price: number
+  currency: string
+  availability: string
+  status: string
+  totalOrders: number
+  category: string
+}
+
+// Sample data
+const sampleProducts: Product[] = [
+  {
+    id: '1',
+    name: 'Product Name',
+    sku: 'SKU: 5840383',
+    image: '/products/jacket.jpg',
+    price: 1200,
+    currency: 'EGP',
+    availability: 'In stock',
+    status: 'Published',
+    totalOrders: 120,
+    category: 'Men'
+  },
+  {
+    id: '2',
+    name: 'Product Name',
+    sku: 'SKU: 5840383',
+    image: '/products/suit.jpg',
+    price: 1200,
+    currency: 'EGP',
+    availability: 'In stock',
+    status: 'Published',
+    totalOrders: 213,
+    category: 'Women'
+  },
+  {
+    id: '3',
+    name: 'Product Name',
+    sku: 'SKU: 5840383',
+    image: '/products/pants.jpg',
+    price: 1200,
+    currency: 'EGP',
+    availability: 'Out of stock',
+    status: 'Unpublished',
+    totalOrders: 310,
+    category: 'Kids'
+  },
+  {
+    id: '4',
+    name: 'Product Name',
+    sku: 'SKU: 5840383',
+    image: '/products/dress.jpg',
+    price: 1200,
+    currency: 'EGP',
+    availability: 'In stock',
+    status: 'Published',
+    totalOrders: 90,
+    category: 'Accessories'
+  },
+  {
+    id: '5',
+    name: 'Product Name',
+    sku: 'SKU: 5840383',
+    image: '/products/watch.jpg',
+    price: 1200,
+    currency: 'EGP',
+    availability: 'Low stock',
+    status: 'Published',
+    totalOrders: 801,
+    category: 'Sports'
+  },
+  {
+    id: '6',
+    name: 'Product Name',
+    sku: 'SKU: 5840383',
+    image: '/products/shoes.jpg',
+    price: 1200,
+    currency: 'EGP',
+    availability: 'In stock',
+    status: 'Published',
+    totalOrders: 450,
+    category: 'Women'
+  },
+]
+
+export default function ProductsPage() {
+  const [currentPage, setCurrentPage] = useState(1)
+  const [searchQuery, setSearchQuery] = useState('')
+
+  const columns: Column<Product>[] = [
+    {
+      key: 'name',
+      header: 'Name',
+      width: 'min-w-[280px]',
+      render: (product) => (
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 bg-neutral-100 rounded-lg overflow-hidden flex-shrink-0">
+            {/* Placeholder for image */}
+            <div className="w-full h-full bg-neutral-200 flex items-center justify-center">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-neutral-400">
+                <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5"/>
+                <circle cx="8.5" cy="8.5" r="1.5" stroke="currentColor" strokeWidth="1.5"/>
+                <path d="M21 15L16 10L5 21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+          </div>
+          <div>
+            <p className="font-medium text-neutral-900">{product.name}</p>
+            <p className="text-xs text-neutral-400">{product.sku}</p>
+          </div>
+        </div>
+      )
+    },
+    {
+      key: 'price',
+      header: 'Price',
+      width: 'w-[120px]',
+      render: (product) => (
+        <span>{product.price} {product.currency}</span>
+      )
+    },
+    {
+      key: 'availability',
+      header: 'Availability',
+      width: 'w-[130px]',
+      render: (product) => (
+        <StatusBadge 
+          label={product.availability} 
+          variant={getStatusVariant(product.availability)}
+        />
+      )
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      width: 'w-[120px]',
+      render: (product) => (
+        <StatusBadge 
+          label={product.status} 
+          variant={getStatusVariant(product.status)}
+        />
+      )
+    },
+    {
+      key: 'totalOrders',
+      header: 'Total Orders',
+      width: 'w-[120px]',
+    },
+    {
+      key: 'category',
+      header: 'Category',
+      width: 'w-[120px]',
+    },
+    {
+      key: 'actions',
+      header: '',
+      width: 'w-[80px]',
+      render: () => (
+        <ActionButtons 
+          onEdit={() => console.log('Edit')}
+          onView={() => console.log('View')}
+        />
+      )
+    }
+  ]
+
+  return (
+      <div className="p-6">
+        {/* Header */}
+        <div className="flex items-center justify-end mb-6">
+          <AddButton label="Add Product" href="/admin/products/add" />
+        </div>
+
+        {/* Content Card */}
+        <div className="bg-white rounded-lg">
+          {/* Title and Search */}
+          <div className="flex items-center justify-between p-6 pb-4">
+            <h1 className="text-2xl font-semibold text-neutral-900">All Products</h1>
+            <div className="flex items-center gap-3">
+              <SearchInput 
+                placeholder="Search" 
+                value={searchQuery}
+                onChange={setSearchQuery}
+                className="w-64"
+              />
+              <FilterButton onClick={() => console.log('Filter')} />
+            </div>
+          </div>
+
+          {/* Table */}
+          <DataTable
+            columns={columns}
+            data={sampleProducts}
+            keyExtractor={(product) => product.id}
+          />
+
+          {/* Pagination */}
+          <div className="p-6 pt-4">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={10}
+              totalItems={99}
+              itemsPerPage={10}
+              onPageChange={setCurrentPage}
+            />
+          </div>
+        </div>
+      </div>
+  )
+}
+
+
+--------------------------------------------------------------------------------
+
+File Path: .\(protected)\products\add\page.tsx
+Content:
+'use client'
+
+import { useForm, useFieldArray, Controller } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { FormInput, FormTextarea, FormSelect, ImageUpload, FormPageHeader, UploadedImage } from '@/components/admin/forms'
+import { productSchema, ProductFormData } from '@/lib/schemas/admin'
+import { Add, Trash } from 'iconsax-reactjs'
+import { useState } from 'react'
+
+const statusOptions = [
+  { value: 'published', label: 'Published' },
+  { value: 'unpublished', label: 'Unpublished' },
+  { value: 'draft', label: 'Draft' }
+]
+
+const vendorOptions = [
+  { value: 'bounce', label: 'Bounce' },
+  { value: 'nike', label: 'Nike' },
+  { value: 'adidas', label: 'Adidas' }
+]
+
+const genderOptions = [
+  { value: 'men', label: 'Men' },
+  { value: 'women', label: 'Women' },
+  { value: 'unisex', label: 'Unisex' },
+  { value: 'kids', label: 'Kids' }
+]
+
+const categoryOptions = [
+  { value: 'men', label: 'Men' },
+  { value: 'women', label: 'Women' },
+  { value: 'kids', label: 'Kids' },
+  { value: 'accessories', label: 'Accessories' },
+  { value: 'sports', label: 'Sports' }
+]
+
+const subCategoryOptions = [
+  { value: 'footwear', label: 'Footwear' },
+  { value: 'clothing', label: 'Clothing' },
+  { value: 'accessories', label: 'Accessories' }
+]
+
+const productListOptions = [
+  { value: 'running', label: 'Running' },
+  { value: 'training', label: 'Training' },
+  { value: 'lifestyle', label: 'Lifestyle' }
+]
+
+const typeOptions = [
+  { value: 'running-shoes', label: 'Running Shoes' },
+  { value: 'sneakers', label: 'Sneakers' },
+  { value: 'boots', label: 'Boots' }
+]
+
+const colorOptions = [
+  { value: 'black', label: 'Black' },
+  { value: 'white', label: 'White' },
+  { value: 'grey', label: 'Grey' },
+  { value: 'blue', label: 'Blue' },
+  { value: 'red', label: 'Red' }
+]
+
+const sizeOptions = [
+  { value: '40', label: '40' },
+  { value: '41', label: '41' },
+  { value: '42', label: '42' },
+  { value: '43', label: '43' },
+  { value: '44', label: '44' },
+  { value: '45', label: '45' }
+]
+
+export default function AddProductPage() {
+  const [mediaImages, setMediaImages] = useState<UploadedImage[]>([])
+  const [sizeChartImages, setSizeChartImages] = useState<UploadedImage[]>([])
+
+  const {
+    register,
+    control,
+    handleSubmit,
+    formState: { errors, isSubmitting }
+  } = useForm<ProductFormData>({
+    resolver: zodResolver(productSchema),
+    defaultValues: {
+      nameEn: '',
+      descriptionEn: '',
+      detailsEn: '',
+      nameAr: '',
+      descriptionAr: '',
+      detailsAr: '',
+      sku: '',
+      quantity: '',
+      status: 'published',
+      basePrice: '',
+      discountPercentage: '',
+      vendor: '',
+      gender: '',
+      category: '',
+      subCategory: '',
+      productList: '',
+      type: '',
+      variants: [{ id: '1', color: '', size: '', quantity: '' }]
+    }
+  })
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: 'variants'
+  })
+
+  const onSubmit = async (data: ProductFormData) => {
+    console.log('Submitting product:', { ...data, mediaImages, sizeChartImages })
+    // API call here
+  }
+
+  return (
+      <form onSubmit={handleSubmit(onSubmit)} className="p-6">
+        <FormPageHeader
+          title="Add Product"
+          backHref="/admin/products"
+          isSubmitting={isSubmitting}
+        />
+
+        <div className="bg-white rounded-lg p-6">
+          {/* Bilingual Content Section */}
+          <div className="grid grid-cols-2 gap-8 pb-6 border-b border-neutral-100">
+            {/* English Column */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-sm text-neutral-600 mb-4">
+                <span className="text-base">🇺🇸</span>
+                <span>English</span>
+              </div>
+              
+              <FormInput
+                label="Product Name"
+                placeholder="Enter product name"
+                error={errors.nameEn}
+                {...register('nameEn')}
+              />
+              
+              <FormTextarea
+                label="Description"
+                placeholder="Enter product description"
+                rows={3}
+                error={errors.descriptionEn}
+                {...register('descriptionEn')}
+              />
+              
+              <FormTextarea
+                label="Details"
+                placeholder="• Detail 1&#10;• Detail 2&#10;• Detail 3"
+                rows={6}
+                error={errors.detailsEn}
+                {...register('detailsEn')}
+              />
+            </div>
+
+            {/* Arabic Column */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-sm text-neutral-600 mb-4 justify-end">
+                <span>عربي</span>
+                <span className="text-base">🇪🇬</span>
+              </div>
+              
+              <FormInput
+                label="اسم المنتج"
+                placeholder="أدخل اسم المنتج"
+                dir="rtl"
+                inputClassName="text-right"
+                error={errors.nameAr}
+                {...register('nameAr')}
+              />
+              
+              <FormTextarea
+                label="الوصف"
+                placeholder="أدخل وصف المنتج"
+                rows={3}
+                dir="rtl"
+                textareaClassName="text-right"
+                error={errors.descriptionAr}
+                {...register('descriptionAr')}
+              />
+              
+              <FormTextarea
+                label="التفاصيل"
+                placeholder="• تفصيل 1&#10;• تفصيل 2&#10;• تفصيل 3"
+                rows={6}
+                dir="rtl"
+                textareaClassName="text-right"
+                error={errors.detailsAr}
+                {...register('detailsAr')}
+              />
+            </div>
+          </div>
+
+          {/* Media and Pricing Section */}
+          <div className="grid grid-cols-3 gap-8 py-6">
+            {/* Left: Media + SKU/Quantity/Status + Variants */}
+            <div className="col-span-2 space-y-6">
+              {/* Media Upload */}
+              <ImageUpload
+                label="Media"
+                value={mediaImages}
+                onChange={setMediaImages}
+                maxImages={5}
+              />
+
+              {/* SKU, Quantity, Status */}
+              <div className="grid grid-cols-3 gap-4">
+                <FormInput
+                  label="SKU"
+                  placeholder="Enter SKU"
+                  error={errors.sku}
+                  {...register('sku')}
+                />
+                <FormInput
+                  label="Quantity"
+                  type="number"
+                  placeholder="0"
+                  error={errors.quantity}
+                  {...register('quantity')}
+                />
+                <FormSelect
+                  label="Status"
+                  options={statusOptions}
+                  error={errors.status}
+                  {...register('status')}
+                />
+              </div>
+
+              {/* Variants */}
+              <div className="space-y-4">
+                {fields.map((field, index) => (
+                  <div key={field.id} className="flex items-end gap-4">
+                    <span className="text-sm font-medium text-neutral-500 pb-2.5 w-16">
+                      Variant {index + 1}:
+                    </span>
+                    <FormSelect
+                      label={index === 0 ? 'Color' : undefined}
+                      options={colorOptions}
+                      placeholder="Color"
+                      className="flex-1"
+                      error={errors.variants?.[index]?.color}
+                      {...register(`variants.${index}.color`)}
+                    />
+                    <FormSelect
+                      label={index === 0 ? 'Size' : undefined}
+                      options={sizeOptions}
+                      placeholder="Size"
+                      className="flex-1"
+                      error={errors.variants?.[index]?.size}
+                      {...register(`variants.${index}.size`)}
+                    />
+                    <FormInput
+                      label={index === 0 ? 'Quantity' : undefined}
+                      type="number"
+                      placeholder="0"
+                      className="flex-1"
+                      error={errors.variants?.[index]?.quantity}
+                      {...register(`variants.${index}.quantity`)}
+                    />
+                    {fields.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => remove(index)}
+                        className="p-2 text-neutral-400 hover:text-red-500 transition-colors mb-0.5"
+                      >
+                        <Trash size={18} />
+                      </button>
+                    )}
+                  </div>
+                ))}
+
+                <button
+                  type="button"
+                  onClick={() => append({ id: Date.now().toString(), color: '', size: '', quantity: '' })}
+                  className="inline-flex items-center gap-2 text-sm font-medium text-neutral-700 hover:text-neutral-900 transition-colors"
+                >
+                  <Add size={18} />
+                  Add Variant
+                </button>
+              </div>
+            </div>
+
+            {/* Right: Pricing & Categories */}
+            <div className="space-y-4">
+              <FormInput
+                label="Base Price"
+                placeholder="0 EGP"
+                error={errors.basePrice}
+                {...register('basePrice')}
+              />
+              <FormInput
+                label="Discount Percentage"
+                placeholder="0%"
+                error={errors.discountPercentage}
+                {...register('discountPercentage')}
+              />
+              <FormSelect
+                label="Vendor"
+                options={vendorOptions}
+                placeholder="Select vendor"
+                error={errors.vendor}
+                {...register('vendor')}
+              />
+              <FormSelect
+                label="Gender"
+                options={genderOptions}
+                placeholder="Select gender"
+                error={errors.gender}
+                {...register('gender')}
+              />
+              <FormSelect
+                label="Category"
+                options={categoryOptions}
+                placeholder="Select category"
+                error={errors.category}
+                {...register('category')}
+              />
+              <FormSelect
+                label="Sub category"
+                options={subCategoryOptions}
+                placeholder="Select sub category"
+                error={errors.subCategory}
+                {...register('subCategory')}
+              />
+              <FormSelect
+                label="Product List"
+                options={productListOptions}
+                placeholder="Select product list"
+                error={errors.productList}
+                {...register('productList')}
+              />
+              <FormSelect
+                label="Type"
+                options={typeOptions}
+                placeholder="Select type"
+                error={errors.type}
+                {...register('type')}
+              />
+
+              {/* Size Chart */}
+              <ImageUpload
+                label="Size chart"
+                value={sizeChartImages}
+                onChange={setSizeChartImages}
+                maxImages={1}
+                single
+              />
+            </div>
+          </div>
+        </div>
+      </form>
+  )
+}
+
+
+--------------------------------------------------------------------------------
+
+File Path: .\(protected)\products\[id]\edit\page.tsx
+Content:
+'use client'
+
+import { useForm, useFieldArray } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { FormInput, FormTextarea, FormSelect, ImageUpload, FormPageHeader, UploadedImage } from '@/components/admin/forms'
+import { productSchema, ProductFormData } from '@/lib/schemas/admin'
+import { Add, Trash } from 'iconsax-reactjs'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+
+// Sample pre-filled data for editing
+const sampleProductData: ProductFormData = {
+  nameEn: 'BOUNCE SPORT RUNNING LACE SHOES',
+  descriptionEn: 'Designed the follow the contour of your foot. Cushioned to feel comfortable during every activity. Made with a layered mesh upper and a Bounce midsole that feels springy and light.',
+  detailsEn: '• Regular fit.\n• Sandwich mesh upper.\n• Textile lining.\n• Upper contains a minimum of 50% recycled content.\n• Lace closure.\n• Bounce midsole.\n• No-marking rubber outsole.',
+  nameAr: 'حذاء الجري الرياضي برباط BOUNCE',
+  descriptionAr: 'مصمم ليتبع شكل قدمك. مبطن ليمنحك شعورًا بالراحة أثناء كل نشاط. مصنوع من جزء علوي شبكي متعدد الطبقات ونعل أوسط Bounce يمنح إحساسًا بالخفة والمرونة.',
+  detailsAr: '• مقاس عادي.\n• جزء علوي من شبكة ساندويتش.\n• بطانة نسيجية.\n• يحتوي الجزء العلوي على ما لا يقل عن 50% من مواد مُعاد تدويرها.\n• إغلاق برباط.\n• نعل أوسط Bounce.\n• نعل خارجي مطاطي لا يترك آثارًا.',
+  sku: '364UOw2',
+  quantity: '124',
+  status: 'published',
+  basePrice: '1,630 EGP',
+  discountPercentage: '20%',
+  vendor: 'bounce',
+  gender: 'unisex',
+  category: 'men',
+  subCategory: 'footwear',
+  productList: 'running',
+  type: 'running-shoes',
+  variants: [
+    { id: '1', color: 'black', size: '42', quantity: '12' },
+    { id: '2', color: 'black', size: '43', quantity: '10' },
+    { id: '3', color: 'black', size: '44', quantity: '3' },
+    { id: '4', color: 'grey', size: '42', quantity: '8' },
+    { id: '5', color: 'grey', size: '43', quantity: '8' },
+    { id: '6', color: 'grey', size: '44', quantity: '4' },
+    { id: '7', color: 'blue', size: '42', quantity: '2' },
+  ]
+}
+
+const sampleMediaImages: UploadedImage[] = [
+  { id: '1', url: '/products/shoe-1.jpg', name: 'shoe-1.jpg' },
+  { id: '2', url: '/products/shoe-2.jpg', name: 'shoe-2.jpg' },
+  { id: '3', url: '/products/shoe-3.jpg', name: 'shoe-3.jpg' },
+  { id: '4', url: '/products/shoe-4.jpg', name: 'shoe-4.jpg' },
+]
+
+const sampleSizeChart: UploadedImage[] = [
+  { id: '1', url: '/products/size-chart.jpg', name: 'size-chart.jpg' },
+]
+
+const statusOptions = [
+  { value: 'published', label: 'Published' },
+  { value: 'unpublished', label: 'Unpublished' },
+  { value: 'draft', label: 'Draft' }
+]
+
+const vendorOptions = [
+  { value: 'bounce', label: 'Bounce' },
+  { value: 'nike', label: 'Nike' },
+  { value: 'adidas', label: 'Adidas' }
+]
+
+const genderOptions = [
+  { value: 'men', label: 'Men' },
+  { value: 'women', label: 'Women' },
+  { value: 'unisex', label: 'Unisex' },
+  { value: 'kids', label: 'Kids' }
+]
+
+const categoryOptions = [
+  { value: 'men', label: 'Men' },
+  { value: 'women', label: 'Women' },
+  { value: 'kids', label: 'Kids' },
+  { value: 'accessories', label: 'Accessories' },
+  { value: 'sports', label: 'Sports' }
+]
+
+const subCategoryOptions = [
+  { value: 'footwear', label: 'footwear' },
+  { value: 'clothing', label: 'clothing' },
+  { value: 'accessories', label: 'accessories' }
+]
+
+const productListOptions = [
+  { value: 'running', label: 'Running' },
+  { value: 'training', label: 'Training' },
+  { value: 'lifestyle', label: 'Lifestyle' }
+]
+
+const typeOptions = [
+  { value: 'running-shoes', label: 'Running Shoes' },
+  { value: 'sneakers', label: 'Sneakers' },
+  { value: 'boots', label: 'Boots' }
+]
+
+const colorOptions = [
+  { value: 'black', label: 'Black' },
+  { value: 'white', label: 'White' },
+  { value: 'grey', label: 'Grey' },
+  { value: 'blue', label: 'Blue' },
+  { value: 'red', label: 'Red' }
+]
+
+const sizeOptions = [
+  { value: '40', label: '40' },
+  { value: '41', label: '41' },
+  { value: '42', label: '42' },
+  { value: '43', label: '43' },
+  { value: '44', label: '44' },
+  { value: '45', label: '45' }
+]
+
+export default function EditProductPage() {
+  const router = useRouter()
+  const [mediaImages, setMediaImages] = useState<UploadedImage[]>(sampleMediaImages)
+  const [sizeChartImages, setSizeChartImages] = useState<UploadedImage[]>(sampleSizeChart)
+
+  const {
+    register,
+    control,
+    handleSubmit,
+    formState: { errors, isSubmitting }
+  } = useForm<ProductFormData>({
+    resolver: zodResolver(productSchema),
+    defaultValues: sampleProductData
+  })
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: 'variants'
+  })
+
+  const onSubmit = async (data: ProductFormData) => {
+    console.log('Updating product:', { ...data, mediaImages, sizeChartImages })
+    // API call here
+  }
+
+  const handleDelete = () => {
+    if (confirm('Are you sure you want to delete this product?')) {
+      console.log('Deleting product')
+      router.push('/admin/products')
+    }
+  }
+
+  return (
+      <form onSubmit={handleSubmit(onSubmit)} className="p-6">
+        <FormPageHeader
+          title="Edit Product"
+          backHref="/admin/products"
+          showDelete
+          onDelete={handleDelete}
+          isSubmitting={isSubmitting}
+        />
+
+        <div className="bg-white rounded-lg p-6">
+          {/* Bilingual Content Section */}
+          <div className="grid grid-cols-2 gap-8 pb-6 border-b border-neutral-100">
+            {/* English Column */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-sm text-neutral-600 mb-4">
+                <span className="text-base">🇺🇸</span>
+                <span>English</span>
+              </div>
+              
+              <FormInput
+                label="Product Name"
+                placeholder="Enter product name"
+                error={errors.nameEn}
+                {...register('nameEn')}
+              />
+              
+              <FormTextarea
+                label="Description"
+                placeholder="Enter product description"
+                rows={3}
+                error={errors.descriptionEn}
+                {...register('descriptionEn')}
+              />
+              
+              <FormTextarea
+                label="Details"
+                placeholder="• Detail 1&#10;• Detail 2&#10;• Detail 3"
+                rows={6}
+                error={errors.detailsEn}
+                {...register('detailsEn')}
+              />
+            </div>
+
+            {/* Arabic Column */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-sm text-neutral-600 mb-4 justify-end">
+                <span>عربي</span>
+                <span className="text-base">🇪🇬</span>
+              </div>
+              
+              <FormInput
+                label="اسم المنتج"
+                placeholder="أدخل اسم المنتج"
+                dir="rtl"
+                inputClassName="text-right"
+                error={errors.nameAr}
+                {...register('nameAr')}
+              />
+              
+              <FormTextarea
+                label="الوصف"
+                placeholder="أدخل وصف المنتج"
+                rows={3}
+                dir="rtl"
+                textareaClassName="text-right"
+                error={errors.descriptionAr}
+                {...register('descriptionAr')}
+              />
+              
+              <FormTextarea
+                label="التفاصيل"
+                placeholder="• تفصيل 1&#10;• تفصيل 2&#10;• تفصيل 3"
+                rows={6}
+                dir="rtl"
+                textareaClassName="text-right"
+                error={errors.detailsAr}
+                {...register('detailsAr')}
+              />
+            </div>
+          </div>
+
+          {/* Media and Pricing Section */}
+          <div className="grid grid-cols-3 gap-8 py-6">
+            {/* Left: Media + SKU/Quantity/Status + Variants */}
+            <div className="col-span-2 space-y-6">
+              {/* Media Upload */}
+              <ImageUpload
+                label="Media"
+                value={mediaImages}
+                onChange={setMediaImages}
+                maxImages={5}
+              />
+
+              {/* SKU, Quantity, Status */}
+              <div className="grid grid-cols-3 gap-4">
+                <FormInput
+                  label="SKU"
+                  placeholder="Enter SKU"
+                  error={errors.sku}
+                  {...register('sku')}
+                />
+                <FormInput
+                  label="Quantity"
+                  type="number"
+                  placeholder="0"
+                  error={errors.quantity}
+                  {...register('quantity')}
+                />
+                <FormSelect
+                  label="Status"
+                  options={statusOptions}
+                  error={errors.status}
+                  {...register('status')}
+                />
+              </div>
+
+              {/* Variants */}
+              <div className="space-y-4">
+                {fields.map((field, index) => (
+                  <div key={field.id} className="flex items-end gap-4">
+                    <span className="text-sm font-medium text-neutral-500 pb-2.5 w-16">
+                      Variant {index + 1}:
+                    </span>
+                    <FormSelect
+                      label={index === 0 ? 'Color' : undefined}
+                      options={colorOptions}
+                      placeholder="Color"
+                      className="flex-1"
+                      error={errors.variants?.[index]?.color}
+                      {...register(`variants.${index}.color`)}
+                    />
+                    <FormSelect
+                      label={index === 0 ? 'Size' : undefined}
+                      options={sizeOptions}
+                      placeholder="Size"
+                      className="flex-1"
+                      error={errors.variants?.[index]?.size}
+                      {...register(`variants.${index}.size`)}
+                    />
+                    <FormInput
+                      label={index === 0 ? 'Quantity' : undefined}
+                      type="number"
+                      placeholder="0"
+                      className="flex-1"
+                      error={errors.variants?.[index]?.quantity}
+                      {...register(`variants.${index}.quantity`)}
+                    />
+                    {fields.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => remove(index)}
+                        className="p-2 text-neutral-400 hover:text-red-500 transition-colors mb-0.5"
+                      >
+                        <Trash size={18} />
+                      </button>
+                    )}
+                  </div>
+                ))}
+
+                <button
+                  type="button"
+                  onClick={() => append({ id: Date.now().toString(), color: '', size: '', quantity: '' })}
+                  className="inline-flex items-center gap-2 text-sm font-medium text-neutral-700 hover:text-neutral-900 transition-colors"
+                >
+                  <Add size={18} />
+                  Add Variant
+                </button>
+              </div>
+            </div>
+
+            {/* Right: Pricing & Categories */}
+            <div className="space-y-4">
+              <FormInput
+                label="Base Price"
+                placeholder="0 EGP"
+                error={errors.basePrice}
+                {...register('basePrice')}
+              />
+              <FormInput
+                label="Discount Percentage"
+                placeholder="0%"
+                error={errors.discountPercentage}
+                {...register('discountPercentage')}
+              />
+              <FormSelect
+                label="Vendor"
+                options={vendorOptions}
+                placeholder="Select vendor"
+                error={errors.vendor}
+                {...register('vendor')}
+              />
+              <FormSelect
+                label="Gender"
+                options={genderOptions}
+                placeholder="Select gender"
+                error={errors.gender}
+                {...register('gender')}
+              />
+              <FormSelect
+                label="Category"
+                options={categoryOptions}
+                placeholder="Select category"
+                error={errors.category}
+                {...register('category')}
+              />
+              <FormSelect
+                label="Sub category"
+                options={subCategoryOptions}
+                placeholder="Select sub category"
+                error={errors.subCategory}
+                {...register('subCategory')}
+              />
+              <FormSelect
+                label="Product List"
+                options={productListOptions}
+                placeholder="Select product list"
+                error={errors.productList}
+                {...register('productList')}
+              />
+              <FormSelect
+                label="Type"
+                options={typeOptions}
+                placeholder="Select type"
+                error={errors.type}
+                {...register('type')}
+              />
+
+              {/* Size Chart */}
+              <ImageUpload
+                label="Size chart"
+                value={sizeChartImages}
+                onChange={setSizeChartImages}
+                maxImages={1}
+                single
+              />
+            </div>
+          </div>
+        </div>
+      </form>
+  )
+}
+
+
+--------------------------------------------------------------------------------
+
+File Path: .\(protected)\profile\page.tsx
+Content:
+'use client'
+
+import { 
+  User, 
+  Edit2, 
+  Lock1, 
+  LogoutCurve,
+  GalleryEdit
+} from 'iconsax-reactjs'
+
+interface UserProfile {
+  name: string
+  role: string
+  email: string
+  phone: string
+  avatar?: string
+}
+
+// Sample user data
+const userProfile: UserProfile = {
+  name: 'Ahemd Ashraf',
+  role: 'Supervisor',
+  email: 'ahmed@doit.com',
+  phone: '01018128987',
+  avatar: '/avatars/admin.jpg'
+}
+
+export default function ProfilePage() {
+  return (
+      <div className="p-6">
+        {/* Profile Card */}
+        <div className="bg-white rounded-lg max-w-2xl">
+          {/* Header */}
+          <div className="flex items-center gap-3 p-6 pb-4">
+            <User size={24} variant="Linear" className="text-neutral-600" />
+            <h1 className="text-xl font-semibold text-neutral-900">My Profile</h1>
+          </div>
+
+          {/* Profile Content */}
+          <div className="px-6 pb-6">
+            {/* Avatar and Info */}
+            <div className="flex items-center gap-6 mb-6">
+              {/* Avatar with Edit Overlay */}
+              <div className="relative">
+                <div className="w-28 h-28 rounded-full bg-neutral-200 overflow-hidden">
+                  {/* Placeholder avatar */}
+                  <div className="w-full h-full bg-neutral-300 flex items-center justify-center">
+                    <svg width="48" height="48" viewBox="0 0 48 48" fill="none" className="text-neutral-500">
+                      <circle cx="24" cy="18" r="8" stroke="currentColor" strokeWidth="2"/>
+                      <path d="M8 44C8 35.1634 15.1634 28 24 28C32.8366 28 40 35.1634 40 44" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    </svg>
+                  </div>
+                </div>
+                {/* Edit overlay button */}
+                <button 
+                  className="absolute bottom-1 right-1 w-8 h-8 bg-neutral-100 rounded-full flex items-center justify-center hover:bg-neutral-200 transition-colors border border-neutral-200"
+                  title="Change photo"
+                >
+                  <GalleryEdit size={16} variant="Linear" className="text-neutral-600" />
+                </button>
+              </div>
+
+              {/* Name and Role */}
+              <div>
+                <h2 className="text-2xl font-semibold text-neutral-900">{userProfile.name}</h2>
+                <span className="inline-block mt-1 px-3 py-1 bg-neutral-100 text-neutral-600 text-sm rounded-full">
+                  {userProfile.role}
+                </span>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center gap-3 mb-8">
+              <button className="inline-flex items-center gap-2 px-5 py-2.5 border border-neutral-200 rounded-lg text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors">
+                Edit Profile
+              </button>
+              <button className="inline-flex items-center gap-2 px-5 py-2.5 border border-neutral-200 rounded-lg text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors">
+                Reset Password
+              </button>
+              <button className="inline-flex items-center gap-2 px-5 py-2.5 border border-red-200 rounded-lg text-sm font-medium text-primary hover:bg-red-50 transition-colors">
+                <LogoutCurve size={18} variant="Linear" />
+                Log Out
+              </button>
+            </div>
+
+            {/* Contact Info */}
+            <div className="flex items-center gap-12">
+              <div>
+                <span className="text-sm font-medium text-neutral-900">Email</span>
+                <p className="text-sm text-neutral-500 mt-0.5">{userProfile.email}</p>
+              </div>
+              <div>
+                <span className="text-sm font-medium text-neutral-900">Phone Number</span>
+                <p className="text-sm text-neutral-500 mt-0.5">{userProfile.phone}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+  )
+}
+
+
+--------------------------------------------------------------------------------
+

@@ -2,26 +2,23 @@
 
 import { cn } from '@/lib/utils'
 
-interface Product {
+interface BestSellingProduct {
   id: string
   name: string
-  totalOrder: number
-  status: 'Stock' | 'Out'
-  price: number
+  totalOrders: number
+  stockStatus: string
+  price?: number
 }
 
-const products: Product[] = [
-  { id: '1', name: 'Bounce Sneakers Lace', totalOrder: 506, status: 'Stock', price: 999.29 },
-  { id: '2', name: 'Nike Air Jordan', totalOrder: 506, status: 'Stock', price: 721.40 },
-  { id: '3', name: 'SuperBreak Plus Bag', totalOrder: 506, status: 'Stock', price: 499.90 },
-  { id: '4', name: 'ACTIVE Puma Black', totalOrder: 506, status: 'Out', price: 249.99 },
-  { id: '5', name: 'GYM BALL', totalOrder: 506, status: 'Stock', price: 79.40 },
-]
+const getStockLabel = (status: string) => {
+  const value = status.toLowerCase()
+  if (value.includes('out')) return 'Out'
+  return 'Stock'
+}
 
-export default function BestSellingProducts() {
+export default function BestSellingProducts({ products }: { products: BestSellingProduct[] }) {
   return (
     <div className="bg-white rounded-lg border border-neutral-100 p-4 h-full">
-      {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-base font-semibold text-neutral-900">Best Selling Products</h3>
         <button className="text-neutral-400 hover:text-neutral-600 transition-colors">
@@ -33,7 +30,6 @@ export default function BestSellingProducts() {
         </button>
       </div>
 
-      {/* Table */}
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
@@ -53,39 +49,49 @@ export default function BestSellingProducts() {
             </tr>
           </thead>
           <tbody className="divide-y divide-neutral-50">
-            {products.map((product) => (
-              <tr key={product.id} className="hover:bg-neutral-50 transition-colors">
-                <td className="py-3 pr-4">
-                  <span className="text-sm font-medium text-neutral-900">
-                    {product.name}
-                  </span>
-                </td>
-                <td className="py-3 pr-4">
-                  <span className="text-sm text-neutral-600">
-                    {product.totalOrder}
-                  </span>
-                </td>
-                <td className="py-3 pr-4">
-                  <div className="flex items-center gap-1.5">
-                    <span className={cn(
-                      'w-2 h-2 rounded-full',
-                      product.status === 'Stock' ? 'bg-green-500' : 'bg-red-500'
-                    )} />
-                    <span className={cn(
-                      'text-sm font-medium',
-                      product.status === 'Stock' ? 'text-green-500' : 'text-red-500'
-                    )}>
-                      {product.status}
-                    </span>
-                  </div>
-                </td>
-                <td className="py-3 text-right">
-                  <span className="text-sm font-medium text-neutral-900">
-                    ${product.price.toFixed(2)}
-                  </span>
+            {products.length === 0 && (
+              <tr>
+                <td colSpan={4} className="py-6 text-center text-sm text-neutral-400">
+                  No data yet
                 </td>
               </tr>
-            ))}
+            )}
+            {products.map((product) => {
+              const status = getStockLabel(product.stockStatus)
+              return (
+                <tr key={product.id} className="hover:bg-neutral-50 transition-colors">
+                  <td className="py-3 pr-4">
+                    <span className="text-sm font-medium text-neutral-900">
+                      {product.name}
+                    </span>
+                  </td>
+                  <td className="py-3 pr-4">
+                    <span className="text-sm text-neutral-600">
+                      {product.totalOrders}
+                    </span>
+                  </td>
+                  <td className="py-3 pr-4">
+                    <div className="flex items-center gap-1.5">
+                      <span className={cn(
+                        'w-2 h-2 rounded-full',
+                        status === 'Stock' ? 'bg-green-500' : 'bg-red-500'
+                      )} />
+                      <span className={cn(
+                        'text-sm font-medium',
+                        status === 'Stock' ? 'text-green-500' : 'text-red-500'
+                      )}>
+                        {status}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="py-3 text-right">
+                    <span className="text-sm font-medium text-neutral-900">
+                      {product.price != null ? `${product.price.toFixed(2)} EGP` : '---'}
+                    </span>
+                  </td>
+                </tr>
+              )
+            })}
           </tbody>
         </table>
       </div>

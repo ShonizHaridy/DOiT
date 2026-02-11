@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils'
 import MobileMenu from './MobileMenu'
 import Logo from '../ui/Logo'
 import { getLocalized, type Locale } from '@/lib/i18n-utils'
-import ProductCardSimple from '@/components/products/ProductCardSimple'
+import ProductCard from '@/components/products/ProductCard'
 import { getProducts } from '@/services/products'
 import type { Category } from '@/types/category'
 import { useAuthStore, useCartStore, useUIStore, useWishlistStore } from '@/store'
@@ -298,7 +298,7 @@ export default function Header({ locale, categories }: HeaderProps) {
                       if (e.key === 'Escape') setIsSearchOpen(false)
                     }}
                     placeholder={t('searchPlaceholder')}
-                    className="flex-1 bg-transparent text-sm text-white font-outfit placeholder:text-white/30 outline-none"
+                    className="flex-1 bg-transparent text-[14.4px] text-white font-outfit placeholder:text-white/30 outline-none" // Here applied 14.4 instead of 14 because arabic sometimes break on some font sizes
                   />
                   <button
                     type="submit"
@@ -402,17 +402,19 @@ export default function Header({ locale, categories }: HeaderProps) {
               ) : searchProducts.length > 0 ? (
                 <>
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                    {searchProducts.map((product) => (
-                      <ProductCardSimple
-                        key={product.id}
-                        id={product.id}
-                        title={getLocalized(product, 'name', locale as Locale)}
-                        image={product.images[0]?.url ?? '/products/red.png'}
-                        price={`${product.finalPrice || product.basePrice} EGP`}
-                        href={`/${locale}/products/${product.id}`}
-                      />
-                    ))}
-                  </div>
+                      {searchProducts.map((product) => (
+                        <ProductCard
+                          key={product.id}
+                          id={product.id}
+                          title={getLocalized(product, 'name', locale as Locale)}
+                          image={product.images[0]?.url ?? '/products/red.png'}
+                          price={product.finalPrice || product.basePrice}
+                          currency="EGP"
+                          href={`/${locale}/products/${product.id}`}
+                          variant="minimal"
+                        />
+                      ))}
+                    </div>
                   <div className="flex items-center justify-between border-t border-neutral-200 pt-4 mt-4 text-sm text-neutral-500">
                     <span>
                       {searchTotal} {tSearch('results')}

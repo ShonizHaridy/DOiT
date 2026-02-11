@@ -11,6 +11,8 @@ export type SortBy =
   | 'date-new';
 
 export type Availability = 'in-stock' | 'low-stock' | 'out-of-stock';
+export type AdminAvailability = 'In Stock' | 'Low Stock' | 'Out of Stock';
+export type ProductStatus = 'PUBLISHED' | 'UNPUBLISHED' | 'DRAFT';
 
 // Query params for GET /api/products
 export interface ProductFilters {
@@ -35,7 +37,7 @@ export interface ProductFilters {
 export interface Product {
   id: string;
   sku: string;
-  productListId: string
+  productListId?: string;
   nameEn: string;
   nameAr: string;
   descriptionEn?: string;
@@ -48,7 +50,7 @@ export interface Product {
   vendor: string;
   gender: string;
   type: string;
-  status: string;
+  status: ProductStatus | string;
   sizeChartUrl?: string;
   images: Array<{
     id: string;
@@ -76,6 +78,8 @@ export interface Product {
     nameEn: string;
     nameAr: string;
   };
+  variants?: ProductVariant[];
+  updatedAt?: string;
 }
 
 export interface PaginatedProducts {
@@ -101,6 +105,36 @@ export interface ProductVariant {
   quantity: number;
 }
 
+export interface AdminProductListItem {
+  id: string;
+  sku: string;
+  nameEn: string;
+  nameAr: string;
+  basePrice: number;
+  discountPercentage: number;
+  vendor: string;
+  type: string;
+  status: ProductStatus;
+  totalStock: number;
+  availability: AdminAvailability;
+  viewCount: number;
+  totalOrders: number;
+  createdAt: string;
+  category?: string;
+  subCategory?: string;
+  productList?: string;
+}
+
+export interface AdminProductsResponse {
+  products: AdminProductListItem[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
 export interface CreateProductRequest {
   // English fields
   nameEn: string;
@@ -115,11 +149,11 @@ export interface CreateProductRequest {
   // Product details
   sku: string;
   basePrice: number;
-  discountPercentage?: number;
+  discountPercentage: number;
   vendor: string;
   gender: 'MEN' | 'WOMEN' | 'KIDS' | 'UNISEX';
   type: string;
-  status: 'PUBLISHED' | 'DRAFT' | 'ARCHIVED';
+  status: ProductStatus;
   
   // Category relations
   productListId: string;
@@ -127,11 +161,8 @@ export interface CreateProductRequest {
   // Optional
   sizeChartUrl?: string;
   
-  // Images (URLs or upload separately)
-  images?: Array<{
-    url: string;
-    order: number;
-  }>;
+  // Images (URLs)
+  imageUrls: string[];
   
   // Variants
   variants: ProductVariant[];
@@ -150,7 +181,13 @@ export interface UpdateProductRequest {
   vendor?: string;
   gender?: 'MEN' | 'WOMEN' | 'KIDS' | 'UNISEX';
   type?: string;
-  status?: 'PUBLISHED' | 'DRAFT' | 'ARCHIVED';
+  status?: ProductStatus;
   productListId?: string;
   sizeChartUrl?: string;
+  imageUrls?: string[];
+  variants?: ProductVariant[];
 }
+
+
+
+

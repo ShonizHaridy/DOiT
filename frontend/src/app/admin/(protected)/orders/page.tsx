@@ -1,178 +1,36 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import DataTable, { Column } from '@/components/admin/DataTable'
 import Pagination from '@/components/admin/Pagination'
 import SearchInput from '@/components/admin/SearchInput'
 import FilterButton from '@/components/admin/FilterButton'
 import ExportButton from '@/components/admin/ExportButton'
 import StatusBadge, { getStatusVariant } from '@/components/admin/StatusBadge'
+import { useAllOrders } from '@/hooks/useOrders'
+import type { AdminOrder, OrderStatus } from '@/types/order'
 
-interface Order {
-  id: string
-  orderId: string
-  customerName: string
-  customerDetail: string
-  customerAvatar: string
-  status: string
-  createdDate: string
-  items: number
-  total: string
-  phoneNumber?: string
+const statusLabel = (status: string) => {
+  const value = status.toUpperCase()
+  if (value === 'ORDER_PLACED') return 'Order Placed'
+  if (value === 'PROCESSED') return 'Processed'
+  if (value === 'SHIPPED') return 'Shipped'
+  if (value === 'DELIVERED') return 'Delivered'
+  if (value === 'CANCELLED') return 'Cancelled'
+  return status
 }
 
-// Sample data for All Orders
-const allOrders: Order[] = [
-  {
-    id: '1',
-    orderId: '#3776426',
-    customerName: 'User Name',
-    customerDetail: 'User details',
-    customerAvatar: '/avatars/user1.jpg',
-    status: 'Completed',
-    createdDate: '22/11/2025',
-    items: 2,
-    total: '2500 EGP'
-  },
-  {
-    id: '2',
-    orderId: '#3776426',
-    customerName: 'User Name',
-    customerDetail: 'User details',
-    customerAvatar: '/avatars/user2.jpg',
-    status: 'Shipped',
-    createdDate: '22/11/2025',
-    items: 4,
-    total: '2500 EGP'
-  },
-  {
-    id: '3',
-    orderId: '#3776426',
-    customerName: 'User Name',
-    customerDetail: 'User details',
-    customerAvatar: '/avatars/user3.jpg',
-    status: 'In progress',
-    createdDate: '22/11/2025',
-    items: 1,
-    total: '2500 EGP'
-  },
-  {
-    id: '4',
-    orderId: '#3776426',
-    customerName: 'User Name',
-    customerDetail: 'User details',
-    customerAvatar: '/avatars/user4.jpg',
-    status: 'In progress',
-    createdDate: '22/11/2025',
-    items: 4,
-    total: '2500 EGP'
-  },
-  {
-    id: '5',
-    orderId: '#3776426',
-    customerName: 'User Name',
-    customerDetail: 'User details',
-    customerAvatar: '/avatars/user5.jpg',
-    status: 'Canceled',
-    createdDate: '22/11/2025',
-    items: 2,
-    total: '2500 EGP'
-  },
-  {
-    id: '6',
-    orderId: '#3776426',
-    customerName: 'User Name',
-    customerDetail: 'User details',
-    customerAvatar: '/avatars/user6.jpg',
-    status: 'Completed',
-    createdDate: '22/11/2025',
-    items: 3,
-    total: '2500 EGP'
-  },
-]
+const formatDate = (value?: string) => {
+  if (!value) return '---'
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? '---' : date.toLocaleDateString()
+}
 
-// Sample data for Custom Made Orders
-const customOrders: Order[] = [
-  {
-    id: '1',
-    orderId: '#3776426',
-    customerName: 'User Name',
-    customerDetail: 'User details',
-    customerAvatar: '/avatars/user1.jpg',
-    status: 'Completed',
-    phoneNumber: '01228769804',
-    createdDate: '22/11/2025',
-    items: 0,
-    total: '2500 EGP'
-  },
-  {
-    id: '2',
-    orderId: '#3776426',
-    customerName: 'User Name',
-    customerDetail: 'User details',
-    customerAvatar: '/avatars/user2.jpg',
-    status: 'Shipped',
-    phoneNumber: '01228769804',
-    createdDate: '22/11/2025',
-    items: 0,
-    total: '2500 EGP'
-  },
-  {
-    id: '3',
-    orderId: '#3776426',
-    customerName: 'User Name',
-    customerDetail: 'User details',
-    customerAvatar: '/avatars/user3.jpg',
-    status: 'New',
-    phoneNumber: '01228769804',
-    createdDate: '22/11/2025',
-    items: 0,
-    total: 'NA'
-  },
-  {
-    id: '4',
-    orderId: '#3776426',
-    customerName: 'User Name',
-    customerDetail: 'User details',
-    customerAvatar: '/avatars/user4.jpg',
-    status: 'In progress',
-    phoneNumber: '01228769804',
-    createdDate: '22/11/2025',
-    items: 0,
-    total: '2500 EGP'
-  },
-  {
-    id: '5',
-    orderId: '#3776426',
-    customerName: 'User Name',
-    customerDetail: 'User details',
-    customerAvatar: '/avatars/user5.jpg',
-    status: 'In progress',
-    phoneNumber: '01228769804',
-    createdDate: '22/11/2025',
-    items: 0,
-    total: '2500 EGP'
-  },
-  {
-    id: '6',
-    orderId: '#3776426',
-    customerName: 'User Name',
-    customerDetail: 'User details',
-    customerAvatar: '/avatars/user6.jpg',
-    status: 'Completed',
-    phoneNumber: '01228769804',
-    createdDate: '22/11/2025',
-    items: 0,
-    total: '2500 EGP'
-  },
-]
-
-// Customer cell component
 function CustomerCell({ name, detail }: { name: string; detail: string }) {
   return (
     <div className="flex items-center gap-3">
       <div className="w-10 h-10 bg-neutral-200 rounded-full overflow-hidden flex-shrink-0">
-        {/* Placeholder avatar */}
         <div className="w-full h-full bg-neutral-300 flex items-center justify-center">
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="text-neutral-500">
             <circle cx="10" cy="8" r="3" stroke="currentColor" strokeWidth="1.5"/>
@@ -188,10 +46,9 @@ function CustomerCell({ name, detail }: { name: string; detail: string }) {
   )
 }
 
-// Show link component
 function ShowLink({ onClick }: { onClick?: () => void }) {
   return (
-    <button 
+    <button
       onClick={onClick}
       className="text-sm text-primary hover:text-red-700 font-medium"
     >
@@ -201,179 +58,136 @@ function ShowLink({ onClick }: { onClick?: () => void }) {
 }
 
 export default function OrdersPage() {
+  const router = useRouter()
   const [allOrdersPage, setAllOrdersPage] = useState(1)
-  const [customOrdersPage, setCustomOrdersPage] = useState(1)
   const [allOrdersSearch, setAllOrdersSearch] = useState('')
-  const [customOrdersSearch, setCustomOrdersSearch] = useState('')
+  const pageSize = 10
 
-  // Columns for All Orders table
-  const allOrdersColumns: Column<Order>[] = [
+  const { data, isLoading, isError } = useAllOrders({
+    page: allOrdersPage,
+    limit: pageSize,
+    search: allOrdersSearch || undefined,
+  })
+
+  const allOrders = data?.orders ?? []
+  const pagination = data?.pagination
+
+  const allOrdersColumns: Column<AdminOrder>[] = [
     {
-      key: 'orderId',
+      key: 'orderNumber',
       header: 'Order ID',
-      width: 'w-[100px]',
+      width: 'w-[120px]',
     },
     {
       key: 'customer',
       header: 'Customer',
       width: 'min-w-[180px]',
       render: (order) => (
-        <CustomerCell name={order.customerName} detail={order.customerDetail} />
+        <CustomerCell
+          name={order.customer?.fullName ?? '---'}
+          detail={order.customer?.email ?? '---'}
+        />
       )
     },
     {
       key: 'status',
       header: 'Status',
       width: 'w-[120px]',
-      render: (order) => (
-        <StatusBadge 
-          label={order.status} 
-          variant={getStatusVariant(order.status)}
-        />
-      )
+      render: (order) => {
+        const label = statusLabel(order.status)
+        return (
+          <StatusBadge
+            label={label}
+            variant={getStatusVariant(label)}
+          />
+        )
+      }
     },
     {
-      key: 'createdDate',
+      key: 'createdAt',
       header: 'Created',
       width: 'w-[110px]',
+      render: (order) => formatDate(order.createdAt),
     },
     {
-      key: 'items',
+      key: 'itemsCount',
       header: 'Items',
       width: 'w-[80px]',
+      render: (order) => order.itemsCount ?? order.items?.length ?? 0,
     },
     {
       key: 'total',
       header: 'Total',
-      width: 'w-[100px]',
-    },
-    {
-      key: 'details',
-      header: 'Details',
-      width: 'w-[80px]',
-      render: () => <ShowLink onClick={() => console.log('Show details')} />
-    }
-  ]
-
-  // Columns for Custom Made Orders table
-  const customOrdersColumns: Column<Order>[] = [
-    {
-      key: 'orderId',
-      header: 'Order ID',
-      width: 'w-[100px]',
-    },
-    {
-      key: 'customer',
-      header: 'Customer',
-      width: 'min-w-[180px]',
-      render: (order) => (
-        <CustomerCell name={order.customerName} detail={order.customerDetail} />
-      )
-    },
-    {
-      key: 'status',
-      header: 'Status',
       width: 'w-[120px]',
-      render: (order) => (
-        <StatusBadge 
-          label={order.status} 
-          variant={getStatusVariant(order.status)}
-        />
-      )
-    },
-    {
-      key: 'phoneNumber',
-      header: 'Phone Number',
-      width: 'w-[130px]',
-    },
-    {
-      key: 'createdDate',
-      header: 'Created',
-      width: 'w-[110px]',
-    },
-    {
-      key: 'total',
-      header: 'Total',
-      width: 'w-[100px]',
+      render: (order) => `${order.total.toLocaleString()} ${order.currency ?? 'EGP'}`,
     },
     {
       key: 'details',
       header: 'Details',
       width: 'w-[80px]',
-      render: () => <ShowLink onClick={() => console.log('Show details')} />
+      render: (order) => <ShowLink onClick={() => router.push(`/admin/orders/${order.id}`)} />
     }
   ]
 
   return (
       <div className="p-6 space-y-8">
-        {/* All Orders Section */}
         <div className="bg-white rounded-lg">
-          {/* Title and Actions */}
           <div className="flex items-center justify-between p-6 pb-4">
             <h1 className="text-2xl font-semibold text-neutral-900">All Orders</h1>
             <div className="flex items-center gap-3">
-              <SearchInput 
-                placeholder="Search" 
+              <SearchInput
+                placeholder="Search"
                 value={allOrdersSearch}
                 onChange={setAllOrdersSearch}
                 className="w-56"
               />
-              <FilterButton onClick={() => console.log('Filter')} />
-              <ExportButton onClick={() => console.log('Export')} />
+              <FilterButton onClick={() => undefined} />
+              <ExportButton onClick={() => undefined} />
             </div>
           </div>
 
-          {/* Table */}
           <DataTable
             columns={allOrdersColumns}
             data={allOrders}
-            keyExtractor={(order, index) => `${order.id}-${index}`}
+            keyExtractor={(order) => order.id}
+            emptyMessage={isLoading ? 'Loading orders...' : isError ? 'Failed to load orders' : 'No orders found'}
           />
 
-          {/* Pagination */}
           <div className="p-6 pt-4">
             <Pagination
-              currentPage={allOrdersPage}
-              totalPages={10}
-              totalItems={99}
-              itemsPerPage={10}
+              currentPage={pagination?.page ?? allOrdersPage}
+              totalPages={pagination?.totalPages ?? 1}
+              totalItems={pagination?.total ?? 0}
+              itemsPerPage={pagination?.limit ?? pageSize}
               onPageChange={setAllOrdersPage}
             />
           </div>
         </div>
 
-        {/* Custom Made Orders Section */}
         <div className="bg-white rounded-lg">
-          {/* Title and Actions */}
           <div className="flex items-center justify-between p-6 pb-4">
             <h1 className="text-2xl font-semibold text-neutral-900">Custom Made Orders</h1>
             <div className="flex items-center gap-3">
-              <SearchInput 
-                placeholder="Search" 
-                value={customOrdersSearch}
-                onChange={setCustomOrdersSearch}
-                className="w-56"
-              />
-              <FilterButton onClick={() => console.log('Filter')} />
-              <ExportButton onClick={() => console.log('Export')} />
+              <SearchInput placeholder="Search" value="" onChange={() => undefined} className="w-56" />
+              <FilterButton onClick={() => undefined} />
+              <ExportButton onClick={() => undefined} />
             </div>
           </div>
 
-          {/* Table */}
           <DataTable
-            columns={customOrdersColumns}
-            data={customOrders}
-            keyExtractor={(order, index) => `custom-${order.id}-${index}`}
+            columns={allOrdersColumns}
+            data={[]}
+            keyExtractor={(order) => order.id}
+            emptyMessage="Custom orders are not available yet"
           />
 
-          {/* Pagination */}
           <div className="p-6 pt-4">
             <Pagination
-              currentPage={customOrdersPage}
-              totalPages={10}
-              totalItems={99}
-              itemsPerPage={10}
-              onPageChange={setCustomOrdersPage}
+              currentPage={1}
+              totalPages={1}
+              totalItems={0}
+              itemsPerPage={pageSize}
+              onPageChange={() => undefined}
             />
           </div>
         </div>

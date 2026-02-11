@@ -31,6 +31,8 @@ export default function MobileMenu({ isOpen, onClose, locale, categories }: Mobi
   const [isPending, startTransition] = useTransition()
   const [accountOpen, setAccountOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null)
+  const [openSubCategoryId, setOpenSubCategoryId] = useState<string | null>(null)
   const openSignIn = useUIStore((state) => state.openSignIn)
   const accessToken = useAuthStore((state) => state.accessToken)
   const user = useAuthStore((state) => state.user)
@@ -69,6 +71,10 @@ export default function MobileMenu({ isOpen, onClose, locale, categories }: Mobi
     if (!isOpen && accountOpen) {
       setAccountOpen(false)
     }
+    if (!isOpen) {
+      setActiveCategoryId(null)
+      setOpenSubCategoryId(null)
+    }
   }, [isOpen, accountOpen])
 
   const handleAccountToggle = () => {
@@ -86,6 +92,15 @@ export default function MobileMenu({ isOpen, onClose, locale, categories }: Mobi
     logout()
   }
 
+  const handleCategoryToggle = (categoryId: string) => {
+    setActiveCategoryId((prev) => (prev === categoryId ? null : categoryId))
+    setOpenSubCategoryId(null)
+  }
+
+  const handleSubCategoryToggle = (subCategoryId: string) => {
+    setOpenSubCategoryId((prev) => (prev === subCategoryId ? null : subCategoryId))
+  }
+
   const handleSearchSubmit = (event?: React.FormEvent) => {
     event?.preventDefault()
     const query = searchQuery.trim()
@@ -93,6 +108,11 @@ export default function MobileMenu({ isOpen, onClose, locale, categories }: Mobi
     onClose()
     router.push(`/search?q=${encodeURIComponent(query)}`)
   }
+
+  const activeCategory = categories.find((category) => category.id === activeCategoryId) ?? null
+  const activeCategorySlug = activeCategory
+    ? getLocalized(activeCategory, 'name', locale as Locale).toLowerCase()
+    : ''
 
   return (
     <>
@@ -171,36 +191,135 @@ export default function MobileMenu({ isOpen, onClose, locale, categories }: Mobi
 
         {/* Navigation Items */}
         <div className="flex flex-col gap-4 px-5 pb-6">
-          {categories.map((category) => {
-            const categoryName = getLocalized(category, 'name', locale as Locale)
-            const categorySlug = categoryName.toLowerCase()
-
-            return (
-              <Link
-                key={category.id}
-                href={`/${categorySlug}`}
-                className="flex items-center justify-between py-3 group"
-                onClick={onClose}
+          {activeCategory ? (
+            <>
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveCategoryId(null)
+                  setOpenSubCategoryId(null)
+                }}
+                className={cn(
+                  'flex items-center gap-2 text-sm font-medium text-neutral-500 py-2',
+                  isRTL && 'flex-row-reverse'
+                )}
               >
-                <span className="text-base font-medium text-primary uppercase tracking-wide">
-                  {categoryName}
-                </span>
-                <svg 
-                  width="16" 
-                  height="16" 
-                  viewBox="0 0 16 16" 
-                  fill="none" 
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  fill="none"
                   xmlns="http://www.w3.org/2000/svg"
-                  className={cn(
-                    'transition-transform group-hover:translate-x-1',
-                    isRTL && 'rotate-180'
-                  )}
+                  className={cn('transition-transform', !isRTL && 'rotate-180')}
                 >
                   <path d="M10.1331 6.99328L8.81979 5.67995L6.67979 3.53995C6.22646 3.09328 5.45312 3.41328 5.45312 4.05328V8.20662V11.9466C5.45312 12.5866 6.22646 12.9066 6.67979 12.4533L10.1331 8.99995C10.6865 8.45328 10.6865 7.54662 10.1331 6.99328Z" fill="#1A1A1A"/>
                 </svg>
-              </Link>
-            )
-          })}
+                <span>{t('back')}</span>
+              </button>
+
+              <div className="h-px bg-neutral-100" />
+
+              <div className="flex flex-col gap-2 pt-2">
+                {(activeCategory.subCategories ?? []).map((subCategory) => {
+                  const subCategoryName = getLocalized(subCategory, 'name', locale as Locale)
+                  const subCategorySlug = subCategoryName.toLowerCase()
+                  const hasProductLists = (subCategory.productLists?.length ?? 0) > 0
+                  const isSubOpen = openSubCategoryId === subCategory.id
+
+                  return (
+                    <div key={subCategory.id} className="flex flex-col gap-2">
+                      <div className="flex items-center justify-between py-2">
+                        <Link
+                          href={`/${activeCategorySlug}?filters=${subCategorySlug}`}
+                          className="flex-1 text-base font-semibold text-primary uppercase tracking-wide"
+                          onClick={onClose}
+                        >
+                          {subCategoryName}
+                        </Link>
+                        {hasProductLists && (
+                          <button
+                            type="button"
+                            onClick={() => handleSubCategoryToggle(subCategory.id)}
+                            aria-label={`${subCategoryName} product lists`}
+                            aria-expanded={isSubOpen}
+                            className="flex items-center justify-center w-9 h-9 rounded-full bg-neutral-100 border border-neutral-200 text-primary hover:bg-neutral-200 transition-colors shrink-0"
+                          >
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 16 16"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                              className={cn('transition-transform', isSubOpen ? 'rotate-90' : isRTL && 'rotate-180')}
+                            >
+                              <path d="M10.1331 6.99328L8.81979 5.67995L6.67979 3.53995C6.22646 3.09328 5.45312 3.41328 5.45312 4.05328V8.20662V11.9466C5.45312 12.5866 6.22646 12.9066 6.67979 12.4533L10.1331 8.99995C10.6865 8.45328 10.6865 7.54662 10.1331 6.99328Z" fill="#1A1A1A"/>
+                            </svg>
+                          </button>
+                        )}
+                      </div>
+                      {hasProductLists && isSubOpen && (
+                        <div className={cn('flex flex-col gap-2 pb-2 text-sm text-neutral-600', isRTL ? 'pr-4' : 'pl-4')}>
+                          {subCategory.productLists?.map((productList) => {
+                            const productListName = getLocalized(productList, 'name', locale as Locale)
+                            const productListSlug = productListName.toLowerCase()
+
+                            return (
+                              <Link
+                                key={productList.id}
+                                href={`/${activeCategorySlug}?filters=${subCategorySlug}.${productListSlug}`}
+                                className="uppercase tracking-wide hover:text-secondary transition-colors"
+                                onClick={onClose}
+                              >
+                                {productListName}
+                              </Link>
+                            )
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </>
+          ) : (
+            categories.map((category) => {
+              const categoryName = getLocalized(category, 'name', locale as Locale)
+              const categorySlug = categoryName.toLowerCase()
+              const hasSubCategories = (category.subCategories?.length ?? 0) > 0
+
+              return (
+                <div key={category.id} className="flex items-center justify-between py-2">
+                  <Link
+                    href={`/${categorySlug}`}
+                    className="flex-1 text-base font-medium text-primary uppercase tracking-wide"
+                    onClick={onClose}
+                  >
+                    {categoryName}
+                  </Link>
+                  {hasSubCategories && (
+                    <button
+                      type="button"
+                      onClick={() => handleCategoryToggle(category.id)}
+                      aria-label={`${categoryName} subcategories`}
+                      aria-expanded={activeCategoryId === category.id}
+                      className="flex items-center justify-center w-9 h-9 rounded-full bg-neutral-100 border border-neutral-200 text-primary hover:bg-neutral-200 transition-colors shrink-0"
+                    >
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 16 16"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        className={cn('transition-transform', isRTL && 'rotate-180')}
+                      >
+                        <path d="M10.1331 6.99328L8.81979 5.67995L6.67979 3.53995C6.22646 3.09328 5.45312 3.41328 5.45312 4.05328V8.20662V11.9466C5.45312 12.5866 6.22646 12.9066 6.67979 12.4533L10.1331 8.99995C10.6865 8.45328 10.6865 7.54662 10.1331 6.99328Z" fill="#1A1A1A"/>
+                      </svg>
+                    </button>
+                  )}
+                </div>
+              )
+            })
+          )}
         </div>
 
         {/* Divider */}

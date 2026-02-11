@@ -1,83 +1,57 @@
 'use client'
 
-import { useForm, useFieldArray, Controller } from 'react-hook-form'
+import { useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { useForm, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { FormInput, FormTextarea, FormSelect, ImageUpload, FormPageHeader, UploadedImage } from '@/components/admin/forms'
 import { productSchema, ProductFormData } from '@/lib/schemas/admin'
 import { Add, Trash } from 'iconsax-reactjs'
-import { useState } from 'react'
+import { useCreateProduct } from '@/hooks/useProducts'
+import { useCategories, useFilterOptions } from '@/hooks/useCategories'
+import { uploadProductImage, uploadProductImages } from '@/services/upload'
 
-const statusOptions = [
-  { value: 'published', label: 'Published' },
-  { value: 'unpublished', label: 'Unpublished' },
-  { value: 'draft', label: 'Draft' }
-]
+const parseNumber = (value?: string) => {
+  if (!value) return undefined
+  const parsed = Number(value.replace(/[^\d.]/g, ''))
+  return Number.isNaN(parsed) ? undefined : parsed
+}
 
-const vendorOptions = [
-  { value: 'bounce', label: 'Bounce' },
-  { value: 'nike', label: 'Nike' },
-  { value: 'adidas', label: 'Adidas' }
-]
-
-const genderOptions = [
-  { value: 'men', label: 'Men' },
-  { value: 'women', label: 'Women' },
-  { value: 'unisex', label: 'Unisex' },
-  { value: 'kids', label: 'Kids' }
-]
-
-const categoryOptions = [
-  { value: 'men', label: 'Men' },
-  { value: 'women', label: 'Women' },
-  { value: 'kids', label: 'Kids' },
-  { value: 'accessories', label: 'Accessories' },
-  { value: 'sports', label: 'Sports' }
-]
-
-const subCategoryOptions = [
-  { value: 'footwear', label: 'Footwear' },
-  { value: 'clothing', label: 'Clothing' },
-  { value: 'accessories', label: 'Accessories' }
-]
-
-const productListOptions = [
-  { value: 'running', label: 'Running' },
-  { value: 'training', label: 'Training' },
-  { value: 'lifestyle', label: 'Lifestyle' }
-]
-
-const typeOptions = [
-  { value: 'running-shoes', label: 'Running Shoes' },
-  { value: 'sneakers', label: 'Sneakers' },
-  { value: 'boots', label: 'Boots' }
-]
-
-const colorOptions = [
-  { value: 'black', label: 'Black' },
-  { value: 'white', label: 'White' },
-  { value: 'grey', label: 'Grey' },
-  { value: 'blue', label: 'Blue' },
-  { value: 'red', label: 'Red' }
-]
-
-const sizeOptions = [
-  { value: '40', label: '40' },
-  { value: '41', label: '41' },
-  { value: '42', label: '42' },
-  { value: '43', label: '43' },
-  { value: '44', label: '44' },
-  { value: '45', label: '45' }
-]
+const parseDetails = (value?: string) => {
+  if (!value) return undefined
+  return value
+    .split('\n')
+    .map((line) => line.replace(/^[\u2022\-*]+\s?/, '').trim())
+    .filter(Boolean)
+}
 
 export default function AddProductPage() {
+  const router = useRouter()
   const [mediaImages, setMediaImages] = useState<UploadedImage[]>([])
   const [sizeChartImages, setSizeChartImages] = useState<UploadedImage[]>([])
+
+  const { mutateAsync, isPending } = useCreateProduct()
+  const { data: categories } = useCategories(true)
+  const { data: filterOptions } = useFilterOptions()
+
+  const statusOptions = [
+    { value: 'PUBLISHED', label: 'Published' },
+    { value: 'UNPUBLISHED', label: 'Unpublished' },
+    { value: 'DRAFT', label: 'Draft' },
+  ]
+
+  const vendorOptions = (filterOptions?.brands ?? []).map((brand) => ({ value: brand, label: brand }))
+  const genderOptions = (filterOptions?.genders ?? []).map((gender) => ({ value: gender, label: gender }))
+  const typeOptions = (filterOptions?.types ?? []).map((type) => ({ value: type, label: type }))
+  const colorOptions = (filterOptions?.colors ?? []).map((color) => ({ value: color, label: color }))
+  const sizeOptions = (filterOptions?.sizes ?? []).map((size) => ({ value: size, label: size }))
 
   const {
     register,
     control,
     handleSubmit,
-    formState: { errors, isSubmitting }
+    watch,
+    formState: { errors }
   } = useForm<ProductFormData>({
     resolver: zodResolver(productSchema),
     defaultValues: {
@@ -89,7 +63,7 @@ export default function AddProductPage() {
       detailsAr: '',
       sku: '',
       quantity: '',
-      status: 'published',
+      status: 'PUBLISHED',
       basePrice: '',
       discountPercentage: '',
       vendor: '',
@@ -102,14 +76,65 @@ export default function AddProductPage() {
     }
   })
 
+  const selectedCategory = watch('category')
+  const selectedSubCategory = watch('subCategory')
+
+  const categoryOptions = useMemo(() => (
+    categories?.map((category) => ({ value: category.id, label: category.nameEn })) ?? []
+  ), [categories])
+
+  const subCategoryOptions = useMemo(() => {
+    const category = categories?.find((item) => item.id === selectedCategory)
+    return category?.subCategories?.map((sub) => ({ value: sub.id, label: sub.nameEn })) ?? []
+  }, [categories, selectedCategory])
+
+  const productListOptions = useMemo(() => {
+    const category = categories?.find((item) => item.id === selectedCategory)
+    const subCategory = category?.subCategories?.find((sub) => sub.id === selectedSubCategory)
+    return subCategory?.productLists?.map((list) => ({ value: list.id, label: list.nameEn })) ?? []
+  }, [categories, selectedCategory, selectedSubCategory])
+
   const { fields, append, remove } = useFieldArray({
     control,
     name: 'variants'
   })
 
   const onSubmit = async (data: ProductFormData) => {
-    console.log('Submitting product:', { ...data, mediaImages, sizeChartImages })
-    // API call here
+    const newMediaFiles = mediaImages.filter((img) => img.file).map((img) => img.file!) 
+    const newMediaUrls = newMediaFiles.length ? await uploadProductImages(newMediaFiles) : []
+    const existingMediaUrls = mediaImages.filter((img) => !img.file).map((img) => img.url)
+    const allMediaUrls = [...existingMediaUrls, ...newMediaUrls]
+
+    let sizeChartUrl = sizeChartImages[0]?.url
+    if (sizeChartImages[0]?.file) {
+      sizeChartUrl = await uploadProductImage(sizeChartImages[0].file)
+    }
+
+    await mutateAsync({
+      nameEn: data.nameEn,
+      descriptionEn: data.descriptionEn,
+      detailsEn: parseDetails(data.detailsEn),
+      nameAr: data.nameAr,
+      descriptionAr: data.descriptionAr,
+      detailsAr: parseDetails(data.detailsAr),
+      sku: data.sku,
+      basePrice: parseNumber(data.basePrice) ?? 0,
+      discountPercentage: parseNumber(data.discountPercentage) ?? 0,
+      vendor: data.vendor,
+      gender: data.gender as 'MEN' | 'WOMEN' | 'KIDS' | 'UNISEX',
+      type: data.type,
+      status: data.status as 'PUBLISHED' | 'UNPUBLISHED' | 'DRAFT',
+      productListId: data.productList,
+      sizeChartUrl: sizeChartUrl,
+      imageUrls: allMediaUrls,
+      variants: data.variants.map((variant) => ({
+        color: variant.color,
+        size: variant.size,
+        quantity: parseNumber(variant.quantity) ?? 0,
+      })),
+    })
+
+    router.push('/admin/products')
   }
 
   return (
@@ -117,26 +142,24 @@ export default function AddProductPage() {
         <FormPageHeader
           title="Add Product"
           backHref="/admin/products"
-          isSubmitting={isSubmitting}
+          isSubmitting={isPending}
         />
 
         <div className="bg-white rounded-lg p-6">
-          {/* Bilingual Content Section */}
           <div className="grid grid-cols-2 gap-8 pb-6 border-b border-neutral-100">
-            {/* English Column */}
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-sm text-neutral-600 mb-4">
-                <span className="text-base">🇺🇸</span>
+                <span className="text-base">EN</span>
                 <span>English</span>
               </div>
-              
+
               <FormInput
                 label="Product Name"
                 placeholder="Enter product name"
                 error={errors.nameEn}
                 {...register('nameEn')}
               />
-              
+
               <FormTextarea
                 label="Description"
                 placeholder="Enter product description"
@@ -144,23 +167,22 @@ export default function AddProductPage() {
                 error={errors.descriptionEn}
                 {...register('descriptionEn')}
               />
-              
+
               <FormTextarea
                 label="Details"
-                placeholder="• Detail 1&#10;• Detail 2&#10;• Detail 3"
+                placeholder="• Detail 1"
                 rows={6}
                 error={errors.detailsEn}
                 {...register('detailsEn')}
               />
             </div>
 
-            {/* Arabic Column */}
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-sm text-neutral-600 mb-4 justify-end">
-                <span>عربي</span>
-                <span className="text-base">🇪🇬</span>
+                <span>Arabic</span>
+                <span className="text-base">AR</span>
               </div>
-              
+
               <FormInput
                 label="اسم المنتج"
                 placeholder="أدخل اسم المنتج"
@@ -169,7 +191,7 @@ export default function AddProductPage() {
                 error={errors.nameAr}
                 {...register('nameAr')}
               />
-              
+
               <FormTextarea
                 label="الوصف"
                 placeholder="أدخل وصف المنتج"
@@ -179,10 +201,10 @@ export default function AddProductPage() {
                 error={errors.descriptionAr}
                 {...register('descriptionAr')}
               />
-              
+
               <FormTextarea
                 label="التفاصيل"
-                placeholder="• تفصيل 1&#10;• تفصيل 2&#10;• تفصيل 3"
+                placeholder="• تفاصيل 1"
                 rows={6}
                 dir="rtl"
                 textareaClassName="text-right"
@@ -192,11 +214,8 @@ export default function AddProductPage() {
             </div>
           </div>
 
-          {/* Media and Pricing Section */}
           <div className="grid grid-cols-3 gap-8 py-6">
-            {/* Left: Media + SKU/Quantity/Status + Variants */}
             <div className="col-span-2 space-y-6">
-              {/* Media Upload */}
               <ImageUpload
                 label="Media"
                 value={mediaImages}
@@ -204,7 +223,6 @@ export default function AddProductPage() {
                 maxImages={5}
               />
 
-              {/* SKU, Quantity, Status */}
               <div className="grid grid-cols-3 gap-4">
                 <FormInput
                   label="SKU"
@@ -227,7 +245,6 @@ export default function AddProductPage() {
                 />
               </div>
 
-              {/* Variants */}
               <div className="space-y-4">
                 {fields.map((field, index) => (
                   <div key={field.id} className="flex items-end gap-4">
@@ -281,7 +298,6 @@ export default function AddProductPage() {
               </div>
             </div>
 
-            {/* Right: Pricing & Categories */}
             <div className="space-y-4">
               <FormInput
                 label="Base Price"
@@ -338,7 +354,6 @@ export default function AddProductPage() {
                 {...register('type')}
               />
 
-              {/* Size Chart */}
               <ImageUpload
                 label="Size chart"
                 value={sizeChartImages}
@@ -352,3 +367,4 @@ export default function AddProductPage() {
       </form>
   )
 }
+

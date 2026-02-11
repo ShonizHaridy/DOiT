@@ -1,7 +1,7 @@
 // types/content.types.ts
 
 
-export interface HeroSectionProduct {
+export interface HeroSection {
   id: string
   headlineEn: string
   headlineAr: string
@@ -12,9 +12,14 @@ export interface HeroSectionProduct {
   variantImages: string[]
   ctaTextEn: string
   ctaTextAr: string
+  ctaLink?: string
   order: number
   status: boolean
+  createdAt?: string
+  updatedAt?: string
 }
+
+export type HeroSectionProduct = HeroSection
 
 
 export interface Vendor {
@@ -36,7 +41,7 @@ export interface Banner {
 }
 
 export interface HomeContent {
-  heroSection: HeroSectionProduct
+  heroSection: HeroSection
   vendors: Vendor[]
   banners: Banner[]
 }
@@ -49,8 +54,11 @@ export interface PopupOffer {
   subHeadlineAr: string;
   amount: number;
   voucherCode: string;
-  targetedUser: string;
+  targetedUser: 'first_time_customer' | 'all' | 'returning';
   imageUrl?: string;
+  startDate?: string;
+  endDate?: string;
+  status?: boolean;
 }
 
 // ... existing types
@@ -128,10 +136,10 @@ export interface CreatePopupOfferRequest {
   subHeadlineAr: string;
   amount: number;
   voucherCode: string;
-  targetedUser: 'ALL' | 'NEW' | 'EXISTING';
+  targetedUser: 'first_time_customer' | 'all' | 'returning';
   imageUrl?: string;
-  startDate: Date;
-  endDate: Date;
+  startDate: string;
+  endDate: string;
   status?: boolean;
 }
 
@@ -142,9 +150,17 @@ export interface UpdatePopupOfferRequest {
   subHeadlineAr?: string;
   amount?: number;
   voucherCode?: string;
-  targetedUser?: 'ALL' | 'NEW' | 'EXISTING';
+  targetedUser?: 'first_time_customer' | 'all' | 'returning';
   imageUrl?: string;
-  startDate?: Date;
-  endDate?: Date;
+  startDate?: string;
+  endDate?: string;
   status?: boolean;
+}
+
+export interface FeaturedProductsConfig {
+  id?: string;
+  autoChoose: boolean;
+  selectedProducts: string[];
+  createdAt?: string;
+  updatedAt?: string;
 }

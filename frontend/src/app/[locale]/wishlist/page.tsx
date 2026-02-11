@@ -1,10 +1,11 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-import WishlistProductCard from '@/components/products/WishlistProductCard'
+import ProductCard from '@/components/products/ProductCard'
 import { useWishlist } from '@/hooks/useWishlist'
 import { useAuthStore, useUIStore } from '@/store'
 import PageTitleBanner from '@/components/layout/PageTitleBanner'
+import { getLocalized, type Locale } from '@/lib/i18n-utils'
 // import RedBlockText from '@/components/layout/RedBlockText'
 
 interface WishlistPageProps {
@@ -53,9 +54,27 @@ export default function WishlistPage({ params }: WishlistPageProps) {
           </div>
         ) : (
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
-            {wishlistItems.map((item) => (
-              <WishlistProductCard key={item.id} item={item} locale={locale} />
-            ))}
+            {wishlistItems.map((item) => {
+              const product = item.product
+              const price =
+                product.discountPercentage > 0 ? product.finalPrice : product.basePrice
+              const originalPrice =
+                product.discountPercentage > 0 ? product.basePrice : undefined
+
+              return (
+                <ProductCard
+                  key={item.id}
+                  id={product.id}
+                  title={getLocalized(product, 'name', locale as Locale)}
+                  image={product.images[0] ?? '/placeholder-product.png'}
+                  price={price}
+                  originalPrice={originalPrice}
+                  currency="EGP"
+                  href={`/${locale}/products/${product.id}`}
+                  variant="simple"
+                />
+              )
+            })}
           </div>
         )}
       </div>

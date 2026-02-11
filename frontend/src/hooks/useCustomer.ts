@@ -91,7 +91,7 @@ export const useAllCustomers = (params?: {
   page?: number;
   limit?: number;
   search?: string;
-  status?: 'ACTIVE' | 'INACTIVE' | 'BLOCKED';
+  status?: 'all' | 'active' | 'blocked';
 }) => {
   return useQuery({
     queryKey: ['customers', 'all', params],
@@ -111,7 +111,7 @@ export const useUpdateCustomerStatus = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, status }: { id: string; status: 'ACTIVE' | 'INACTIVE' | 'BLOCKED' }) =>
+    mutationFn: ({ id, status }: { id: string; status: 'ACTIVE' | 'BLOCKED' }) =>
       customerService.updateCustomerStatus(id, status),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['customers'] });
@@ -123,5 +123,13 @@ export const useCustomerStatistics = () => {
   return useQuery({
     queryKey: ['customers', 'statistics'],
     queryFn: () => customerService.getCustomerStatistics(),
+  });
+};
+
+export const useCustomerOrders = (id: string, params?: { page?: number; limit?: number }) => {
+  return useQuery({
+    queryKey: ['customers', id, 'orders', params],
+    queryFn: () => customerService.getCustomerOrders(id, params),
+    enabled: !!id,
   });
 };

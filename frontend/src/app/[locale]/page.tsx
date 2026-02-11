@@ -4,8 +4,8 @@ import Link from 'next/link'
 import HeroSection from '@/components/home/HeroSection'
 import BrandLogos from '@/components/home/BrandLogos'
 import CustomMadeForm from '@/components/home/CustomMadeForm'
-import ProductCard, { ProductCardProps } from '@/components/products/ProductCard'
-import { FEATURED_PRODUCTS, STYLE_CATEGORIES } from '@/data/products'
+import ProductCard from '@/components/products/ProductCard'
+import { STYLE_CATEGORIES } from '@/data/products'
 import RotatingBanner from '@/components/home/RotatingBanner'
 import { RedBlockText } from '@/components/layout/RedBlockText'
 import GrowingDotsBackground from '@/components/ui/GrowingDotsBackground'
@@ -22,7 +22,6 @@ interface HomePageProps {
 export default async function HomePage({ params }: HomePageProps) {
   const { locale } = await params
   const t = await getTranslations('home')
-  const tProduct = await getTranslations('product')
 
   // This executes both requests in parallel
   const [homeContent, featuredProducts] = await Promise.all([
@@ -53,18 +52,7 @@ export default async function HomePage({ params }: HomePageProps) {
   const selectRange = getHighlightRange(selectTitle, t('style'))
   const customTitle = joinTitle(t('custom'), t('made'))
   const customRange = getHighlightRange(customTitle, t('custom'))
-  const productCardLabels = {
-    colors: tProduct('colors'),
-    sizes: tProduct('sizes'),
-    gender: tProduct('gender'),
-    price: tProduct('price'),
-    genderValues: {
-      MEN: tProduct('genderValues.men'),
-      WOMEN: tProduct('genderValues.women'),
-      KIDS: tProduct('genderValues.kids'),
-      UNISEX: tProduct('genderValues.unisex'),
-    },
-  }
+ 
 
   return (
     <div className="w-full bg-white">
@@ -120,21 +108,21 @@ export default async function HomePage({ params }: HomePageProps) {
         {/* Products Grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 lg:gap-18 md:gap-5 z-(--z-content)">
           {featuredProducts.map((product) => (
-            <ProductCard
-              key={product.id}
-              id={product.id}
-              title={getLocalized(product, 'name', locale)}
-              image={product.images[0].url}
-              price={product.basePrice} // Check later as this needs to be managed when there is a discount
-              currency={"EGP"}
-              href={`/${locale}/products/${product.id}`}
-              colors={product.colors}
-              sizes={product.sizes}
-              gender={product.gender}
-              labels={productCardLabels}
-            />
-          ))}
-        </div>
+              <ProductCard
+                key={product.id}
+                id={product.id}
+                title={getLocalized(product, 'name', locale)}
+                image={product.images[0].url}
+                price={product.basePrice} // Check later as this needs to be managed when there is a discount
+                currency={"EGP"}
+                href={`/${locale}/products/${product.id}`}
+                colors={product.colors}
+                sizes={product.sizes}
+                gender={product.gender}
+                quickAddProduct={product}
+              />
+            ))}
+          </div>
       </section>
 
       {/* Select Your Style */}

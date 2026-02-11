@@ -3,6 +3,7 @@
     "menu": "Menu",
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
+    "back": "Back",
     "search": "Search",
     "searchPlaceholder": "Search Product Here",
     "account": "Account",
@@ -28,7 +29,11 @@
     "codeSubtitle": "We sent a 6-digit code to your email.",
     "codePlaceholder": "------",
     "submit": "Submit",
-    "backToEmail": "Back to email"
+    "backToEmail": "Back to email",
+    "sendingCode": "Sending code...",
+    "verifyingCode": "Verifying code...",
+    "signInSuccess": "Signed in successfully",
+    "redirecting": "Redirecting to your profile..."
   },
   "footer": {
     "categories": "Categories",

@@ -1,146 +1,226 @@
 'use client'
 
+import { useEffect, useMemo, useState } from 'react'
+import { useParams, useRouter } from 'next/navigation'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { FormInput, FormTextarea, FormSelect, ImageUpload, FormPageHeader, UploadedImage } from '@/components/admin/forms'
 import { productSchema, ProductFormData } from '@/lib/schemas/admin'
 import { Add, Trash } from 'iconsax-reactjs'
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useAdminProduct, useUpdateProduct, useDeleteProduct } from '@/hooks/useProducts'
+import { useCategories, useFilterOptions } from '@/hooks/useCategories'
+import { uploadProductImage, uploadProductImages } from '@/services/upload'
 
-// Sample pre-filled data for editing
-const sampleProductData: ProductFormData = {
-  nameEn: 'BOUNCE SPORT RUNNING LACE SHOES',
-  descriptionEn: 'Designed the follow the contour of your foot. Cushioned to feel comfortable during every activity. Made with a layered mesh upper and a Bounce midsole that feels springy and light.',
-  detailsEn: '• Regular fit.\n• Sandwich mesh upper.\n• Textile lining.\n• Upper contains a minimum of 50% recycled content.\n• Lace closure.\n• Bounce midsole.\n• No-marking rubber outsole.',
-  nameAr: 'حذاء الجري الرياضي برباط BOUNCE',
-  descriptionAr: 'مصمم ليتبع شكل قدمك. مبطن ليمنحك شعورًا بالراحة أثناء كل نشاط. مصنوع من جزء علوي شبكي متعدد الطبقات ونعل أوسط Bounce يمنح إحساسًا بالخفة والمرونة.',
-  detailsAr: '• مقاس عادي.\n• جزء علوي من شبكة ساندويتش.\n• بطانة نسيجية.\n• يحتوي الجزء العلوي على ما لا يقل عن 50% من مواد مُعاد تدويرها.\n• إغلاق برباط.\n• نعل أوسط Bounce.\n• نعل خارجي مطاطي لا يترك آثارًا.',
-  sku: '364UOw2',
-  quantity: '124',
-  status: 'published',
-  basePrice: '1,630 EGP',
-  discountPercentage: '20%',
-  vendor: 'bounce',
-  gender: 'unisex',
-  category: 'men',
-  subCategory: 'footwear',
-  productList: 'running',
-  type: 'running-shoes',
-  variants: [
-    { id: '1', color: 'black', size: '42', quantity: '12' },
-    { id: '2', color: 'black', size: '43', quantity: '10' },
-    { id: '3', color: 'black', size: '44', quantity: '3' },
-    { id: '4', color: 'grey', size: '42', quantity: '8' },
-    { id: '5', color: 'grey', size: '43', quantity: '8' },
-    { id: '6', color: 'grey', size: '44', quantity: '4' },
-    { id: '7', color: 'blue', size: '42', quantity: '2' },
-  ]
+const parseNumber = (value?: string) => {
+  if (!value) return undefined
+  const parsed = Number(value.replace(/[^\d.]/g, ''))
+  return Number.isNaN(parsed) ? undefined : parsed
 }
 
-const sampleMediaImages: UploadedImage[] = [
-  { id: '1', url: '/products/shoe-1.jpg', name: 'shoe-1.jpg' },
-  { id: '2', url: '/products/shoe-2.jpg', name: 'shoe-2.jpg' },
-  { id: '3', url: '/products/shoe-3.jpg', name: 'shoe-3.jpg' },
-  { id: '4', url: '/products/shoe-4.jpg', name: 'shoe-4.jpg' },
-]
-
-const sampleSizeChart: UploadedImage[] = [
-  { id: '1', url: '/products/size-chart.jpg', name: 'size-chart.jpg' },
-]
-
-const statusOptions = [
-  { value: 'published', label: 'Published' },
-  { value: 'unpublished', label: 'Unpublished' },
-  { value: 'draft', label: 'Draft' }
-]
-
-const vendorOptions = [
-  { value: 'bounce', label: 'Bounce' },
-  { value: 'nike', label: 'Nike' },
-  { value: 'adidas', label: 'Adidas' }
-]
-
-const genderOptions = [
-  { value: 'men', label: 'Men' },
-  { value: 'women', label: 'Women' },
-  { value: 'unisex', label: 'Unisex' },
-  { value: 'kids', label: 'Kids' }
-]
-
-const categoryOptions = [
-  { value: 'men', label: 'Men' },
-  { value: 'women', label: 'Women' },
-  { value: 'kids', label: 'Kids' },
-  { value: 'accessories', label: 'Accessories' },
-  { value: 'sports', label: 'Sports' }
-]
-
-const subCategoryOptions = [
-  { value: 'footwear', label: 'footwear' },
-  { value: 'clothing', label: 'clothing' },
-  { value: 'accessories', label: 'accessories' }
-]
-
-const productListOptions = [
-  { value: 'running', label: 'Running' },
-  { value: 'training', label: 'Training' },
-  { value: 'lifestyle', label: 'Lifestyle' }
-]
-
-const typeOptions = [
-  { value: 'running-shoes', label: 'Running Shoes' },
-  { value: 'sneakers', label: 'Sneakers' },
-  { value: 'boots', label: 'Boots' }
-]
-
-const colorOptions = [
-  { value: 'black', label: 'Black' },
-  { value: 'white', label: 'White' },
-  { value: 'grey', label: 'Grey' },
-  { value: 'blue', label: 'Blue' },
-  { value: 'red', label: 'Red' }
-]
-
-const sizeOptions = [
-  { value: '40', label: '40' },
-  { value: '41', label: '41' },
-  { value: '42', label: '42' },
-  { value: '43', label: '43' },
-  { value: '44', label: '44' },
-  { value: '45', label: '45' }
-]
+const parseDetails = (value?: string) => {
+  if (!value) return undefined
+  return value
+    .split('\n')
+    .map((line) => line.replace(/^[\u2022\-*]+\s?/, '').trim())
+    .filter(Boolean)
+}
 
 export default function EditProductPage() {
   const router = useRouter()
-  const [mediaImages, setMediaImages] = useState<UploadedImage[]>(sampleMediaImages)
-  const [sizeChartImages, setSizeChartImages] = useState<UploadedImage[]>(sampleSizeChart)
+  const params = useParams()
+  const productId = params?.id as string
+
+  const { data: product, isLoading } = useAdminProduct(productId)
+  const { mutateAsync: updateProduct, isPending } = useUpdateProduct()
+  const { mutateAsync: deleteProduct } = useDeleteProduct()
+  const { data: categories } = useCategories(true)
+  const { data: filterOptions } = useFilterOptions()
+
+  const [mediaImages, setMediaImages] = useState<UploadedImage[]>([])
+  const [sizeChartImages, setSizeChartImages] = useState<UploadedImage[]>([])
+
+  const statusOptions = [
+    { value: 'PUBLISHED', label: 'Published' },
+    { value: 'UNPUBLISHED', label: 'Unpublished' },
+    { value: 'DRAFT', label: 'Draft' },
+  ]
+
+  const vendorOptions = (filterOptions?.brands ?? []).map((brand) => ({ value: brand, label: brand }))
+  const genderOptions = (filterOptions?.genders ?? []).map((gender) => ({ value: gender, label: gender }))
+  const typeOptions = (filterOptions?.types ?? []).map((type) => ({ value: type, label: type }))
+  const colorOptions = (filterOptions?.colors ?? []).map((color) => ({ value: color, label: color }))
+  const sizeOptions = (filterOptions?.sizes ?? []).map((size) => ({ value: size, label: size }))
 
   const {
     register,
     control,
     handleSubmit,
-    formState: { errors, isSubmitting }
+    watch,
+    reset,
+    formState: { errors }
   } = useForm<ProductFormData>({
     resolver: zodResolver(productSchema),
-    defaultValues: sampleProductData
+    defaultValues: {
+      nameEn: '',
+      descriptionEn: '',
+      detailsEn: '',
+      nameAr: '',
+      descriptionAr: '',
+      detailsAr: '',
+      sku: '',
+      quantity: '',
+      status: 'PUBLISHED',
+      basePrice: '',
+      discountPercentage: '',
+      vendor: '',
+      gender: '',
+      category: '',
+      subCategory: '',
+      productList: '',
+      type: '',
+      variants: [{ id: '1', color: '', size: '', quantity: '' }]
+    }
   })
+
+  const selectedCategory = watch('category')
+  const selectedSubCategory = watch('subCategory')
+
+  const categoryOptions = useMemo(() => (
+    categories?.map((category) => ({ value: category.id, label: category.nameEn })) ?? []
+  ), [categories])
+
+  const subCategoryOptions = useMemo(() => {
+    const category = categories?.find((item) => item.id === selectedCategory)
+    return category?.subCategories?.map((sub) => ({ value: sub.id, label: sub.nameEn })) ?? []
+  }, [categories, selectedCategory])
+
+  const productListOptions = useMemo(() => {
+    const category = categories?.find((item) => item.id === selectedCategory)
+    const subCategory = category?.subCategories?.find((sub) => sub.id === selectedSubCategory)
+    return subCategory?.productLists?.map((list) => ({ value: list.id, label: list.nameEn })) ?? []
+  }, [categories, selectedCategory, selectedSubCategory])
 
   const { fields, append, remove } = useFieldArray({
     control,
     name: 'variants'
   })
 
+  useEffect(() => {
+    if (!product) return
+
+    const categoryMatch = categories?.find((category) =>
+      category.subCategories?.some((sub) =>
+        sub.productLists?.some((list) => list.id === product.productListId)
+      )
+    )
+
+    const subCategoryMatch = categoryMatch?.subCategories?.find((sub) =>
+      sub.productLists?.some((list) => list.id === product.productListId)
+    )
+
+    reset({
+      nameEn: product.nameEn,
+      descriptionEn: product.descriptionEn ?? '',
+      detailsEn: (product.detailsEn ?? []).join('\n'),
+      nameAr: product.nameAr,
+      descriptionAr: product.descriptionAr ?? '',
+      detailsAr: (product.detailsAr ?? []).join('\n'),
+      sku: product.sku,
+      quantity: product.totalStock?.toString() ?? '',
+      status: product.status as 'PUBLISHED' | 'UNPUBLISHED' | 'DRAFT',
+      basePrice: product.basePrice.toString(),
+      discountPercentage: product.discountPercentage?.toString() ?? '',
+      vendor: product.vendor,
+      gender: product.gender,
+      category: categoryMatch?.id ?? '',
+      subCategory: subCategoryMatch?.id ?? '',
+      productList: product.productListId ?? '',
+      type: product.type,
+      variants: (product.variants ?? []).map((variant) => ({
+        id: variant.id ?? `${variant.color}-${variant.size}`,
+        color: variant.color,
+        size: variant.size,
+        quantity: variant.quantity.toString(),
+      })),
+    })
+
+    setMediaImages(
+      (product.images ?? []).map((image) => ({
+        id: image.id,
+        url: image.url,
+        name: image.url.split('/').pop() ?? 'image',
+      }))
+    )
+
+    if (product.sizeChartUrl) {
+      setSizeChartImages([
+        {
+          id: 'size-chart',
+          url: product.sizeChartUrl,
+          name: product.sizeChartUrl.split('/').pop() ?? 'size-chart',
+        },
+      ])
+    }
+  }, [product, categories, reset])
+
   const onSubmit = async (data: ProductFormData) => {
-    console.log('Updating product:', { ...data, mediaImages, sizeChartImages })
-    // API call here
+    if (!product) return
+
+    const newMediaFiles = mediaImages.filter((img) => img.file).map((img) => img.file!)
+    const newMediaUrls = newMediaFiles.length ? await uploadProductImages(newMediaFiles) : []
+    const existingMediaUrls = mediaImages.filter((img) => !img.file).map((img) => img.url)
+    const allMediaUrls = [...existingMediaUrls, ...newMediaUrls]
+
+    let sizeChartUrl = sizeChartImages[0]?.url
+    if (sizeChartImages[0]?.file) {
+      sizeChartUrl = await uploadProductImage(sizeChartImages[0].file)
+    }
+
+    await updateProduct({
+      id: product.id,
+      data: {
+        nameEn: data.nameEn,
+        descriptionEn: data.descriptionEn,
+        detailsEn: parseDetails(data.detailsEn),
+        nameAr: data.nameAr,
+        descriptionAr: data.descriptionAr,
+        detailsAr: parseDetails(data.detailsAr),
+        basePrice: parseNumber(data.basePrice) ?? product.basePrice,
+        discountPercentage: parseNumber(data.discountPercentage),
+        vendor: data.vendor,
+        gender: data.gender as 'MEN' | 'WOMEN' | 'KIDS' | 'UNISEX',
+        type: data.type,
+        status: data.status as 'PUBLISHED' | 'UNPUBLISHED' | 'DRAFT',
+        productListId: data.productList,
+        sizeChartUrl: sizeChartUrl,
+        imageUrls: allMediaUrls,
+        variants: data.variants.map((variant) => ({
+          color: variant.color,
+          size: variant.size,
+          quantity: parseNumber(variant.quantity) ?? 0,
+        })),
+      }
+    })
+
+    router.push('/admin/products')
   }
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
+    if (!product) return
     if (confirm('Are you sure you want to delete this product?')) {
-      console.log('Deleting product')
+      await deleteProduct(product.id)
       router.push('/admin/products')
     }
+  }
+
+  if (isLoading || !product) {
+    return (
+      <div className="p-6">
+        <div className="bg-white rounded-lg p-6 text-sm text-neutral-500">
+          Loading product...
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -150,26 +230,24 @@ export default function EditProductPage() {
           backHref="/admin/products"
           showDelete
           onDelete={handleDelete}
-          isSubmitting={isSubmitting}
+          isSubmitting={isPending}
         />
 
         <div className="bg-white rounded-lg p-6">
-          {/* Bilingual Content Section */}
           <div className="grid grid-cols-2 gap-8 pb-6 border-b border-neutral-100">
-            {/* English Column */}
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-sm text-neutral-600 mb-4">
-                <span className="text-base">🇺🇸</span>
+                <span className="text-base">EN</span>
                 <span>English</span>
               </div>
-              
+
               <FormInput
                 label="Product Name"
                 placeholder="Enter product name"
                 error={errors.nameEn}
                 {...register('nameEn')}
               />
-              
+
               <FormTextarea
                 label="Description"
                 placeholder="Enter product description"
@@ -177,23 +255,22 @@ export default function EditProductPage() {
                 error={errors.descriptionEn}
                 {...register('descriptionEn')}
               />
-              
+
               <FormTextarea
                 label="Details"
-                placeholder="• Detail 1&#10;• Detail 2&#10;• Detail 3"
+                placeholder="• Detail 1"
                 rows={6}
                 error={errors.detailsEn}
                 {...register('detailsEn')}
               />
             </div>
 
-            {/* Arabic Column */}
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-sm text-neutral-600 mb-4 justify-end">
-                <span>عربي</span>
-                <span className="text-base">🇪🇬</span>
+                <span>Arabic</span>
+                <span className="text-base">AR</span>
               </div>
-              
+
               <FormInput
                 label="اسم المنتج"
                 placeholder="أدخل اسم المنتج"
@@ -202,7 +279,7 @@ export default function EditProductPage() {
                 error={errors.nameAr}
                 {...register('nameAr')}
               />
-              
+
               <FormTextarea
                 label="الوصف"
                 placeholder="أدخل وصف المنتج"
@@ -212,10 +289,10 @@ export default function EditProductPage() {
                 error={errors.descriptionAr}
                 {...register('descriptionAr')}
               />
-              
+
               <FormTextarea
                 label="التفاصيل"
-                placeholder="• تفصيل 1&#10;• تفصيل 2&#10;• تفصيل 3"
+                placeholder="• تفاصيل 1"
                 rows={6}
                 dir="rtl"
                 textareaClassName="text-right"
@@ -225,11 +302,8 @@ export default function EditProductPage() {
             </div>
           </div>
 
-          {/* Media and Pricing Section */}
           <div className="grid grid-cols-3 gap-8 py-6">
-            {/* Left: Media + SKU/Quantity/Status + Variants */}
             <div className="col-span-2 space-y-6">
-              {/* Media Upload */}
               <ImageUpload
                 label="Media"
                 value={mediaImages}
@@ -237,7 +311,6 @@ export default function EditProductPage() {
                 maxImages={5}
               />
 
-              {/* SKU, Quantity, Status */}
               <div className="grid grid-cols-3 gap-4">
                 <FormInput
                   label="SKU"
@@ -260,7 +333,6 @@ export default function EditProductPage() {
                 />
               </div>
 
-              {/* Variants */}
               <div className="space-y-4">
                 {fields.map((field, index) => (
                   <div key={field.id} className="flex items-end gap-4">
@@ -314,7 +386,6 @@ export default function EditProductPage() {
               </div>
             </div>
 
-            {/* Right: Pricing & Categories */}
             <div className="space-y-4">
               <FormInput
                 label="Base Price"
@@ -371,7 +442,6 @@ export default function EditProductPage() {
                 {...register('type')}
               />
 
-              {/* Size Chart */}
               <ImageUpload
                 label="Size chart"
                 value={sizeChartImages}
@@ -385,3 +455,4 @@ export default function EditProductPage() {
       </form>
   )
 }
+

@@ -46,14 +46,20 @@ export interface CustomerProfile {
 
 export interface CustomerListItem {
   id: string;
-  email: string;
   fullName: string;
+  email: string;
   phoneNumber?: string;
-  status: 'ACTIVE' | 'INACTIVE' | 'BLOCKED';
+  avatarUrl?: string | null;
+  status: 'ACTIVE' | 'BLOCKED';
   totalOrders: number;
   totalSpending: number;
-  lastLogin?: Date;
-  createdAt: Date;
+  lastLogin?: string;
+  createdAt: string;
+  addresses?: Array<{
+    id: string;
+    label: string;
+    fullAddress: string;
+  }>;
 }
 
 export interface PaginatedCustomers {
@@ -63,6 +69,11 @@ export interface PaginatedCustomers {
     limit: number;
     total: number;
     totalPages: number;
+  };
+  stats?: {
+    totalCustomers: number;
+    activeCustomers: number;
+    blockedCustomers: number;
   };
 }
 

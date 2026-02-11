@@ -1,18 +1,14 @@
 import { apiClient } from '@/lib/axios-client';
 import type {
   Offer,
-  PaginatedOffers,
   CreateOfferRequest,
   UpdateOfferRequest,
 } from '@/types/offer';
 
 export const getOffers = async (params?: {
-  page?: number;
-  limit?: number;
-  status?: boolean;
-  type?: 'PERCENTAGE' | 'FIXED_AMOUNT';
-}): Promise<PaginatedOffers> => {
-  const { data } = await apiClient.get<PaginatedOffers>('/admin/offers', {
+  status?: 'all' | 'active' | 'expired' | 'inactive';
+}): Promise<Offer[]> => {
+  const { data } = await apiClient.get<Offer[]>('/admin/offers', {
     params,
   });
   return data;
@@ -41,8 +37,6 @@ export const deleteOffer = async (id: string): Promise<void> => {
 };
 
 export const toggleOfferStatus = async (id: string, status: boolean): Promise<Offer> => {
-  const response = await apiClient.patch<Offer>(`/admin/offers/${id}/status`, {
-    status,
-  });
+  const response = await apiClient.put<Offer>(`/admin/offers/${id}`, { status });
   return response.data;
 };

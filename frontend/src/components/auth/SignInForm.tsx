@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { Sms } from 'iconsax-reactjs'
+import { Sms, TickCircle } from 'iconsax-reactjs'
 import Logo from '@/components/ui/Logo'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
@@ -18,10 +18,25 @@ export default function SignInForm({ onSuccess }: SignInFormProps) {
   const [email, setEmail] = useState('')
   const [code, setCode] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
+  const [isSuccess, setIsSuccess] = useState(false)
+  const successTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const sendOtp = useSendOtp()
   const verifyOtp = useVerifyOtp()
 
   const isLoading = step === 'email' ? sendOtp.isPending : verifyOtp.isPending
+  const statusMessage = isLoading
+    ? step === 'email'
+      ? t('sendingCode')
+      : t('verifyingCode')
+    : ''
+
+  useEffect(() => {
+    return () => {
+      if (successTimeoutRef.current) {
+        clearTimeout(successTimeoutRef.current)
+      }
+    }
+  }, [])
 
   const getErrorMessage = (error: unknown) => {
     const message =
@@ -33,6 +48,7 @@ export default function SignInForm({ onSuccess }: SignInFormProps) {
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setErrorMessage('')
+    setIsSuccess(false)
     try {
       await sendOtp.mutateAsync({ email })
       setStep('code')
@@ -44,6 +60,7 @@ export default function SignInForm({ onSuccess }: SignInFormProps) {
   const handleCodeSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setErrorMessage('')
+    setIsSuccess(false)
     if (!email) {
       setErrorMessage('Please enter your email.')
       setStep('email')
@@ -51,7 +68,10 @@ export default function SignInForm({ onSuccess }: SignInFormProps) {
     }
     try {
       await verifyOtp.mutateAsync({ email, code })
-      onSuccess?.()
+      setIsSuccess(true)
+      successTimeoutRef.current = setTimeout(() => {
+        onSuccess?.()
+      }, 900)
     } catch (error) {
       setErrorMessage(getErrorMessage(error))
     }
@@ -84,10 +104,32 @@ export default function SignInForm({ onSuccess }: SignInFormProps) {
           {errorMessage && (
             <p className="text-sm text-red-500">{errorMessage}</p>
           )}
+          {statusMessage && (
+            <p className="text-sm text-text-body">{statusMessage}</p>
+          )}
           <Button type="submit" isLoading={isLoading} fullWidth className="py-4 font-medium text-xl">
             {t('continue')}
           </Button>
         </form>
+      </div>
+    )
+  }
+
+  if (isSuccess) {
+    return (
+      <div className="w-full max-w-[565px] bg-white rounded-2xl p-8 lg:p-12 shadow-form">
+        <div className="flex justify-center mb-8">
+          <Logo size="xl" href="/" />
+        </div>
+        <div className="flex flex-col items-center gap-3 text-center">
+          <TickCircle size={48} variant="Bold" className="text-green-500" />
+          <h2 className="font-rubik font-semibold text-2xl text-sign-title">
+            {t('signInSuccess')}
+          </h2>
+          <p className="font-rubik text-base text-text-body">
+            {t('redirecting')}
+          </p>
+        </div>
       </div>
     )
   }
@@ -116,6 +158,9 @@ export default function SignInForm({ onSuccess }: SignInFormProps) {
         />
         {errorMessage && (
           <p className="text-sm text-red-500">{errorMessage}</p>
+        )}
+        {statusMessage && (
+          <p className="text-sm text-text-body">{statusMessage}</p>
         )}
         <Button type="submit" isLoading={isLoading} fullWidth className="py-4 font-medium text-xl">
           {t('submit')}

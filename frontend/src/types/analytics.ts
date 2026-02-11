@@ -1,71 +1,68 @@
-export interface DashboardStats {
-  // Revenue stats
-  totalRevenue: number;
-  revenueGrowth: number; // percentage
-  
-  // Order stats
-  totalOrders: number;
-  ordersGrowth: number;
-  pendingOrders: number;
-  
-  // Customer stats
-  totalCustomers: number;
-  customersGrowth: number;
-  activeCustomers: number;
-  
-  // Product stats
+export interface DashboardOverviewMetrics {
   totalProducts: number;
-  lowStockProducts: number;
-  outOfStockProducts: number;
-  
-  // Period comparison
-  comparisonPeriod: 'day' | 'week' | 'month' | 'year';
-}
-
-export interface SalesDataPoint {
-  date: string;
-  sales: number;
-  orders: number;
-}
-
-export interface SalesChart {
-  period: 'week' | 'month' | 'year';
-  data: SalesDataPoint[];
-  totalSales: number;
-  totalOrders: number;
-  averageOrderValue: number;
-}
-
-export interface TopProduct {
-  id: string;
-  nameEn: string;
-  nameAr: string;
-  sku: string;
-  vendor: string;
-  totalSold: number;
-  revenue: number;
-  imageUrl: string;
-}
-
-export interface TopProducts {
-  products: TopProduct[];
-  period: {
-    dateFrom?: string;
-    dateTo?: string;
+  activeOrders: number;
+  totalCustomers: number;
+  totalEarnings: number;
+  previousPeriodComparison: {
+    products: number;
+    orders: number;
+    customers: number;
+    earnings: number;
   };
 }
 
-export interface RecentOrderItem {
-  id: string;
-  orderNumber: string;
-  customerName: string;
-  customerEmail: string;
-  total: number;
-  status: string;
-  createdAt: Date;
+export interface DashboardOverviewCharts {
+  totalOrdersSeries: Array<{
+    date: string;
+    count: number;
+  }>;
+  totalProfitSeries: Array<{
+    date: string;
+    profit: number;
+  }>;
+  discountedAmountSeries: Array<{
+    date: string;
+    discount: number;
+  }>;
 }
 
-export interface RecentOrders {
-  orders: RecentOrderItem[];
-  limit: number;
+export interface DashboardOverview {
+  metrics: DashboardOverviewMetrics;
+  charts: DashboardOverviewCharts;
+  topSellingCategories: Array<{
+    name: string;
+    value: number;
+    percentage: number;
+  }>;
+  bestSellingProducts: Array<{
+    id: string;
+    name: string;
+    sku: string;
+    totalOrders: number;
+    stockStatus: string;
+    image: string;
+  }>;
+}
+
+export interface DashboardRecentActivity {
+  recentOrders: Array<{
+    id: string;
+    orderNumber: string;
+    customerName: string;
+    total: number;
+    status: string;
+    createdAt: string;
+  }>;
+  recentCustomers: Array<{
+    id: string;
+    fullName: string;
+    email: string;
+    createdAt: string;
+  }>;
+  lowStockProducts: Array<{
+    id: string;
+    name: string;
+    sku: string;
+    totalStock: number;
+  }>;
 }

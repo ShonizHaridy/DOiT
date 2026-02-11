@@ -44,6 +44,7 @@ export default function FavoriteButton({
       disabled={isPending}
       className={cn(
         'flex items-center justify-center transition-colors',
+        isFavorite ? 'text-[#FE0503]' : 'text-[#888787] hover:text-[#A8A8A8]',
         isPending && 'opacity-60 cursor-not-allowed',
         className
       )}
@@ -51,7 +52,7 @@ export default function FavoriteButton({
     >
       <Heart
         size={size}
-        color={isFavorite ? '#FE0503' : '#888787'}
+        color="currentColor"
         variant={isFavorite ? 'Bold' : 'Linear'}
       />
     </button>

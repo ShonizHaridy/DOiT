@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 import DataTable, { Column } from '@/components/admin/DataTable'
 import Pagination from '@/components/admin/Pagination'
 import SearchInput from '@/components/admin/SearchInput'
@@ -9,101 +9,31 @@ import FilterButton from '@/components/admin/FilterButton'
 import AddButton from '@/components/admin/AddButton'
 import StatusBadge, { getStatusVariant } from '@/components/admin/StatusBadge'
 import ActionButtons from '@/components/admin/ActionButtons'
+import { useAdminProducts } from '@/hooks/useProducts'
+import type { AdminProductListItem, ProductStatus } from '@/types/product'
 
-interface Product {
-  id: string
-  name: string
-  sku: string
-  image: string
-  price: number
-  currency: string
-  availability: string
-  status: string
-  totalOrders: number
-  category: string
+const formatStatus = (status: ProductStatus) => {
+  if (status === 'PUBLISHED') return 'Published'
+  if (status === 'UNPUBLISHED') return 'Unpublished'
+  return 'Draft'
 }
 
-// Sample data
-const sampleProducts: Product[] = [
-  {
-    id: '1',
-    name: 'Product Name',
-    sku: 'SKU: 5840383',
-    image: '/products/jacket.jpg',
-    price: 1200,
-    currency: 'EGP',
-    availability: 'In stock',
-    status: 'Published',
-    totalOrders: 120,
-    category: 'Men'
-  },
-  {
-    id: '2',
-    name: 'Product Name',
-    sku: 'SKU: 5840383',
-    image: '/products/suit.jpg',
-    price: 1200,
-    currency: 'EGP',
-    availability: 'In stock',
-    status: 'Published',
-    totalOrders: 213,
-    category: 'Women'
-  },
-  {
-    id: '3',
-    name: 'Product Name',
-    sku: 'SKU: 5840383',
-    image: '/products/pants.jpg',
-    price: 1200,
-    currency: 'EGP',
-    availability: 'Out of stock',
-    status: 'Unpublished',
-    totalOrders: 310,
-    category: 'Kids'
-  },
-  {
-    id: '4',
-    name: 'Product Name',
-    sku: 'SKU: 5840383',
-    image: '/products/dress.jpg',
-    price: 1200,
-    currency: 'EGP',
-    availability: 'In stock',
-    status: 'Published',
-    totalOrders: 90,
-    category: 'Accessories'
-  },
-  {
-    id: '5',
-    name: 'Product Name',
-    sku: 'SKU: 5840383',
-    image: '/products/watch.jpg',
-    price: 1200,
-    currency: 'EGP',
-    availability: 'Low stock',
-    status: 'Published',
-    totalOrders: 801,
-    category: 'Sports'
-  },
-  {
-    id: '6',
-    name: 'Product Name',
-    sku: 'SKU: 5840383',
-    image: '/products/shoes.jpg',
-    price: 1200,
-    currency: 'EGP',
-    availability: 'In stock',
-    status: 'Published',
-    totalOrders: 450,
-    category: 'Women'
-  },
-]
-
 export default function ProductsPage() {
+  const router = useRouter()
   const [currentPage, setCurrentPage] = useState(1)
   const [searchQuery, setSearchQuery] = useState('')
+  const pageSize = 10
 
-  const columns: Column<Product>[] = [
+  const { data, isLoading, isError } = useAdminProducts({
+    page: currentPage,
+    limit: pageSize,
+    search: searchQuery || undefined,
+  })
+
+  const products = data?.products ?? []
+  const pagination = data?.pagination
+
+  const columns: Column<AdminProductListItem>[] = [
     {
       key: 'name',
       header: 'Name',
@@ -111,7 +41,6 @@ export default function ProductsPage() {
       render: (product) => (
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 bg-neutral-100 rounded-lg overflow-hidden flex-shrink-0">
-            {/* Placeholder for image */}
             <div className="w-full h-full bg-neutral-200 flex items-center justify-center">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-neutral-400">
                 <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5"/>
@@ -121,8 +50,8 @@ export default function ProductsPage() {
             </div>
           </div>
           <div>
-            <p className="font-medium text-neutral-900">{product.name}</p>
-            <p className="text-xs text-neutral-400">{product.sku}</p>
+            <p className="font-medium text-neutral-900">{product.nameEn}</p>
+            <p className="text-xs text-neutral-400">SKU: {product.sku}</p>
           </div>
         </div>
       )
@@ -132,7 +61,7 @@ export default function ProductsPage() {
       header: 'Price',
       width: 'w-[120px]',
       render: (product) => (
-        <span>{product.price} {product.currency}</span>
+        <span>{product.basePrice.toLocaleString()} EGP</span>
       )
     },
     {
@@ -140,8 +69,8 @@ export default function ProductsPage() {
       header: 'Availability',
       width: 'w-[130px]',
       render: (product) => (
-        <StatusBadge 
-          label={product.availability} 
+        <StatusBadge
+          label={product.availability}
           variant={getStatusVariant(product.availability)}
         />
       )
@@ -151,9 +80,9 @@ export default function ProductsPage() {
       header: 'Status',
       width: 'w-[120px]',
       render: (product) => (
-        <StatusBadge 
-          label={product.status} 
-          variant={getStatusVariant(product.status)}
+        <StatusBadge
+          label={formatStatus(product.status)}
+          variant={getStatusVariant(formatStatus(product.status))}
         />
       )
     },
@@ -171,10 +100,10 @@ export default function ProductsPage() {
       key: 'actions',
       header: '',
       width: 'w-[80px]',
-      render: () => (
-        <ActionButtons 
-          onEdit={() => console.log('Edit')}
-          onView={() => console.log('View')}
+      render: (product) => (
+        <ActionButtons
+          onEdit={() => router.push(`/admin/products/${product.id}/edit`)}
+          onView={() => router.push(`/admin/products/${product.id}/edit`)}
         />
       )
     }
@@ -182,41 +111,37 @@ export default function ProductsPage() {
 
   return (
       <div className="p-6">
-        {/* Header */}
         <div className="flex items-center justify-end mb-6">
           <AddButton label="Add Product" href="/admin/products/add" />
         </div>
 
-        {/* Content Card */}
         <div className="bg-white rounded-lg">
-          {/* Title and Search */}
           <div className="flex items-center justify-between p-6 pb-4">
             <h1 className="text-2xl font-semibold text-neutral-900">All Products</h1>
             <div className="flex items-center gap-3">
-              <SearchInput 
-                placeholder="Search" 
+              <SearchInput
+                placeholder="Search"
                 value={searchQuery}
                 onChange={setSearchQuery}
                 className="w-64"
               />
-              <FilterButton onClick={() => console.log('Filter')} />
+              <FilterButton onClick={() => undefined} />
             </div>
           </div>
 
-          {/* Table */}
           <DataTable
             columns={columns}
-            data={sampleProducts}
+            data={products}
             keyExtractor={(product) => product.id}
+            emptyMessage={isLoading ? 'Loading products...' : isError ? 'Failed to load products' : 'No products found'}
           />
 
-          {/* Pagination */}
           <div className="p-6 pt-4">
             <Pagination
-              currentPage={currentPage}
-              totalPages={10}
-              totalItems={99}
-              itemsPerPage={10}
+              currentPage={pagination?.page ?? currentPage}
+              totalPages={pagination?.totalPages ?? 1}
+              totalItems={pagination?.total ?? 0}
+              itemsPerPage={pagination?.limit ?? pageSize}
               onPageChange={setCurrentPage}
             />
           </div>

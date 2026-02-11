@@ -3,6 +3,7 @@
     "menu": "القائمة",
     "openMenu": "فتح القائمة",
     "closeMenu": "إغلاق القائمة",
+    "back": "رجوع",
     "search": "بحث",
     "searchPlaceholder": "ابحث عن المنتج هنا",
     "account": "الحساب",
@@ -26,10 +27,14 @@
     "continue": "متابعة",
     "enterCode": "أدخل رمز التحقق",
     "codeSubtitle": "أرسلنا رمزًا من 6 أرقام إلى بريدك الإلكتروني.",
-    "codePlaceholder": "رمز التحقق",
-    "submit": "إرسال",
-    "backToEmail": "العودة إلى البريد الإلكتروني"
-  },
+      "codePlaceholder": "رمز التحقق",
+      "submit": "إرسال",
+      "backToEmail": "العودة إلى البريد الإلكتروني",
+      "sendingCode": "جاري إرسال الرمز...",
+      "verifyingCode": "جاري التحقق من الرمز...",
+      "signInSuccess": "تم تسجيل الدخول بنجاح",
+      "redirecting": "جاري تحويلك إلى ملفك الشخصي..."
+    },
   "footer": {
     "categories": "الفئات",
     "services": "الخدمات",

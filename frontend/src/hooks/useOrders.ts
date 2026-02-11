@@ -75,12 +75,20 @@ export const useAllOrders = (params?: {
   });
 };
 
+export const useAdminOrder = (id: string) => {
+  return useQuery({
+    queryKey: ['orders', 'admin', id],
+    queryFn: () => ordersService.getAdminOrder(id),
+    enabled: !!id,
+  });
+};
+
 export const useUpdateOrderStatus = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ orderId, status, notes }: { orderId: string; status: OrderStatus; notes?: string }) =>
-      ordersService.updateOrderStatus(orderId, status, notes),
+    mutationFn: ({ orderId, status, notes, trackingNumber }: { orderId: string; status: OrderStatus; notes?: string; trackingNumber?: string }) =>
+      ordersService.updateOrderStatus(orderId, status, notes, trackingNumber),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
     },
