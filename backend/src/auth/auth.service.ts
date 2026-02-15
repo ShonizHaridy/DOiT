@@ -4,6 +4,7 @@ import {
   BadRequestException,
   NotFoundException,
   InternalServerErrorException,
+  Logger,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -21,6 +22,8 @@ import {
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
@@ -38,7 +41,6 @@ export class AuthService {
     let customer = await this.prisma.customer.findUnique({
       where: { email },
     });
-
     if (!customer) {
       // Auto-create customer on first sign-in
       customer = await this.prisma.customer.create({
@@ -118,6 +120,8 @@ export class AuthService {
       throw new UnauthorizedException('Invalid or expired OTP code');
     }
 
+    const isFirstLogin = !customer.lastLogin;
+
     // Mark OTP as verified
     await this.prisma.oTPCode.update({
       where: { id: otpRecord.id },
@@ -129,6 +133,21 @@ export class AuthService {
       where: { id: customer.id },
       data: { lastLogin: new Date() },
     });
+
+    if (isFirstLogin) {
+      try {
+        await this.emailService.sendAdminAlert(
+          'New customer first login',
+          `Customer: ${customer.fullName} (${customer.email})\nCustomer ID: ${customer.id}`,
+        );
+      } catch (error) {
+        if (process.env.NODE_ENV === 'development') {
+          this.logger.warn(
+            `Failed to send admin first-login email: ${(error as Error).message}`,
+          );
+        }
+      }
+    }
 
     // Generate JWT token
     const payload = {

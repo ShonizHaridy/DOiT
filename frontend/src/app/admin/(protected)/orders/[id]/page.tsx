@@ -9,11 +9,11 @@ import { useAdminOrder, useUpdateOrderStatus } from '@/hooks/useOrders'
 import type { OrderStatus } from '@/types/order'
 
 const statusOptions = [
-  { value: 'ORDER_PLACED', label: 'Order Placed' },
-  { value: 'PROCESSED', label: 'Processed' },
+  { value: 'ORDER_PLACED', label: 'New' },
+  { value: 'PROCESSED', label: 'In progress' },
   { value: 'SHIPPED', label: 'Shipped' },
-  { value: 'DELIVERED', label: 'Delivered' },
-  { value: 'CANCELLED', label: 'Cancelled' },
+  { value: 'DELIVERED', label: 'Completed' },
+  { value: 'CANCELLED', label: 'Canceled' },
 ]
 
 const formatDateTime = (value?: string) => {
@@ -23,11 +23,11 @@ const formatDateTime = (value?: string) => {
 }
 
 const statusLabel = (status: OrderStatus) => {
-  if (status === 'ORDER_PLACED') return 'Order Placed'
-  if (status === 'PROCESSED') return 'Processed'
+  if (status === 'ORDER_PLACED') return 'New'
+  if (status === 'PROCESSED') return 'In progress'
   if (status === 'SHIPPED') return 'Shipped'
-  if (status === 'DELIVERED') return 'Delivered'
-  return 'Cancelled'
+  if (status === 'DELIVERED') return 'Completed'
+  return 'Canceled'
 }
 
 export default function OrderDetailsPage() {

@@ -15,7 +15,7 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
-enum ProductStatus {
+export enum ProductStatus {
   PUBLISHED = 'PUBLISHED',
   UNPUBLISHED = 'UNPUBLISHED',
   DRAFT = 'DRAFT',
@@ -50,6 +50,10 @@ export class CreateProductDto {
   @IsString()
   @IsNotEmpty()
   sku: string;
+
+  @IsNumber()
+  @Min(0)
+  quantity: number;
 
   @IsString()
   @IsNotEmpty()
@@ -114,6 +118,15 @@ export class CreateProductDto {
 }
 
 export class UpdateProductDto {
+  @IsOptional()
+  @IsString()
+  sku?: string;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  quantity?: number;
+
   @IsOptional()
   @IsString()
   productListId?: string;
@@ -200,10 +213,16 @@ export class AdminProductDto {
   availability: string;
   viewCount: number;
   totalOrders: number;
+  image?: string;
   createdAt: Date;
   category?: string;
   subCategory?: string;
   productList?: string;
+}
+
+export class UpdateProductStatusDto {
+  @IsEnum(ProductStatus)
+  status: ProductStatus;
 }
 
 export class PaginatedAdminProductsDto {

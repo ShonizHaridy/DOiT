@@ -18,10 +18,12 @@ const FormTextarea = forwardRef<HTMLTextAreaElement, FormTextareaProps>(({
   rows = 4,
   ...props
 }, ref) => {
+  const isRtl = props.dir === 'rtl'
+
   return (
     <div className={cn('flex flex-col gap-1.5', className)}>
       {label && (
-        <label className="text-sm font-medium text-neutral-900">{label}</label>
+        <label className={cn('font-rubik text-xl font-medium text-neutral-900', isRtl && 'text-right')}>{label}</label>
       )}
       <textarea
         ref={ref}

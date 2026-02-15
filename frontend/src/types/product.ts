@@ -120,6 +120,16 @@ export interface AdminProductListItem {
   viewCount: number;
   totalOrders: number;
   createdAt: string;
+  image?: string;
+  imageUrl?: string;
+  images?: Array<
+    | string
+    | {
+        id?: string;
+        url: string;
+        order?: number;
+      }
+  >;
   category?: string;
   subCategory?: string;
   productList?: string;
@@ -148,6 +158,7 @@ export interface CreateProductRequest {
   
   // Product details
   sku: string;
+  quantity: number;
   basePrice: number;
   discountPercentage: number;
   vendor: string;
@@ -176,6 +187,7 @@ export interface UpdateProductRequest {
   descriptionAr?: string;
   detailsAr?: string[];
   sku?: string;
+  quantity?: number;
   basePrice?: number;
   discountPercentage?: number;
   vendor?: string;

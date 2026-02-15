@@ -2,7 +2,7 @@
 // Service
 // ============================================
 
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateProductDto, AdminProductDto, UpdateProductDto, PaginatedAdminProductsDto } from './dto/admin-products.dto';
 
@@ -28,6 +28,8 @@ export class AdminProductsService {
     if (!productList) {
       throw new NotFoundException('Product list not found');
     }
+
+    this.assertVariantsWithinQuantity(dto.variants, dto.quantity);
 
     // Create product with images and variants
     const product = await this.prisma.product.create({
@@ -88,12 +90,27 @@ export class AdminProductsService {
       throw new NotFoundException('Product not found');
     }
 
+    if (dto.sku && dto.sku !== product.sku) {
+      const existingSku = await this.prisma.product.findUnique({
+        where: { sku: dto.sku },
+      });
+
+      if (existingSku && existingSku.id !== id) {
+        throw new ConflictException('SKU already exists');
+      }
+    }
+
+    if (dto.variants && dto.quantity !== undefined) {
+      this.assertVariantsWithinQuantity(dto.variants, dto.quantity);
+    }
+
     // Update product in transaction
     const updated = await this.prisma.$transaction(async (tx) => {
       // Update basic product info
       const updatedProduct = await tx.product.update({
         where: { id },
         data: {
+          sku: dto.sku,
           productListId: dto.productListId,
           nameEn: dto.nameEn,
           nameAr: dto.nameAr,
@@ -177,6 +194,40 @@ export class AdminProductsService {
     }
 
     await this.prisma.product.delete({ where: { id } });
+  }
+
+  async updateProductStatus(
+    id: string,
+    status: 'PUBLISHED' | 'UNPUBLISHED' | 'DRAFT',
+  ): Promise<AdminProductDto> {
+    const product = await this.prisma.product.findUnique({
+      where: { id },
+    });
+
+    if (!product) {
+      throw new NotFoundException('Product not found');
+    }
+
+    const updated = await this.prisma.product.update({
+      where: { id },
+      data: { status },
+      include: {
+        images: { take: 1, orderBy: { order: 'asc' } },
+        variants: true,
+        orderItems: true,
+        productList: {
+          include: {
+            subCategory: {
+              include: {
+                category: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return this.transformAdminProduct(updated);
   }
 
   async getProducts(
@@ -268,7 +319,15 @@ export class AdminProductsService {
       throw new NotFoundException('Product not found');
     }
 
-    return product;
+    return {
+      ...product,
+      basePrice: Number(product.basePrice),
+      sizeChartUrl: this.toAbsoluteUrl(product.sizeChartUrl),
+      images: product.images.map((image) => ({
+        ...image,
+        url: this.toAbsoluteUrl(image.url) ?? image.url,
+      })),
+    };
   }
 
   private transformAdminProduct(product: any): AdminProductDto {
@@ -292,11 +351,32 @@ export class AdminProductsService {
       availability,
       viewCount: product.viewCount,
       totalOrders: product.orderItems?.length || 0,
+      image: this.toAbsoluteUrl(product.images?.[0]?.url),
       createdAt: product.createdAt,
       category: product.productList?.subCategory?.category?.nameEn,
       subCategory: product.productList?.subCategory?.nameEn,
       productList: product.productList?.nameEn,
     };
+  }
+
+  private toAbsoluteUrl(url?: string | null): string | undefined {
+    if (!url) return undefined;
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+
+    const baseUrl = process.env.API_BASE_URL || 'http://localhost:4000';
+    return `${baseUrl}${url}`;
+  }
+
+  private assertVariantsWithinQuantity(
+    variants: Array<{ quantity: number }>,
+    quantity: number,
+  ) {
+    const totalVariantQuantity = variants.reduce((sum, variant) => sum + variant.quantity, 0);
+    if (totalVariantQuantity > quantity) {
+      throw new BadRequestException('Total variant quantity cannot exceed quantity');
+    }
   }
 }
 

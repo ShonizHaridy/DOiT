@@ -38,7 +38,7 @@ const offerTypeOptions = [
 
 const statusOptions = [
   { value: 'active', label: 'Active' },
-  { value: 'inactive', label: 'Inactive' },
+  { value: 'draft', label: 'Draft' },
 ]
 
 const parseNumber = (value: string) => {
@@ -111,7 +111,7 @@ export default function EditOfferPage() {
   useEffect(() => {
     if (!offer) return
     setApplyTo(offer.applyTo)
-    setOfferStatus(offer.status ? 'active' : 'inactive')
+    setOfferStatus(offer.status ? 'active' : 'draft')
     reset({
       offerName: offer.nameEn,
       offerNameAr: offer.nameAr,

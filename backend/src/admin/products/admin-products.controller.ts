@@ -7,6 +7,7 @@ import {
   Get,
   Post,
   Put,
+  Patch,
   Delete,
   Body,
   Param,
@@ -16,7 +17,13 @@ import {
 import { JwtAuthGuard, RolesGuard } from '../../auth/guards';
 import { Roles } from 'src/auth/decorators/auth.decorators';
 import { AdminProductsService } from './admin-products.service';
-import { CreateProductDto, AdminProductDto, UpdateProductDto, PaginatedAdminProductsDto } from './dto/admin-products.dto';
+import {
+  CreateProductDto,
+  AdminProductDto,
+  UpdateProductDto,
+  PaginatedAdminProductsDto,
+  UpdateProductStatusDto,
+} from './dto/admin-products.dto';
 
 @Controller('admin/products')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -40,6 +47,14 @@ export class AdminProductsController {
   @Delete(':id')
   async deleteProduct(@Param('id') id: string): Promise<void> {
     return this.adminProductsService.deleteProduct(id);
+  }
+
+  @Patch(':id/status')
+  async updateProductStatus(
+    @Param('id') id: string,
+    @Body() dto: UpdateProductStatusDto,
+  ): Promise<AdminProductDto> {
+    return this.adminProductsService.updateProductStatus(id, dto.status);
   }
 
   @Get()

@@ -289,10 +289,10 @@ export class ProductsService {
       gender: product.gender,
       type: product.type,
       status: product.status,
-      sizeChartUrl: product.sizeChartUrl,
+      sizeChartUrl: this.toAbsoluteUrl(product.sizeChartUrl),
       images: product.images.map((img) => ({
         id: img.id,
-        url: img.url,
+        url: this.toAbsoluteUrl(img.url) ?? img.url,
         order: img.order,
       })),
       colors,
@@ -323,6 +323,16 @@ export class ProductsService {
           }
         : undefined,
     };
+  }
+
+  private toAbsoluteUrl(url?: string | null): string | undefined {
+    if (!url) return undefined;
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+
+    const baseUrl = process.env.API_BASE_URL || 'http://localhost:4000';
+    return `${baseUrl}${url}`;
   }
 
   private getOrderBy(sortBy: SortBy): Prisma.ProductOrderByWithRelationInput {

@@ -5,16 +5,30 @@ import { useRouter } from 'next/navigation'
 import DataTable, { Column } from '@/components/admin/DataTable'
 import Pagination from '@/components/admin/Pagination'
 import SearchInput from '@/components/admin/SearchInput'
-import FilterButton from '@/components/admin/FilterButton'
+import FilterButton, { type FilterSection, type FilterValues } from '@/components/admin/FilterButton'
+import ActionButtons from '@/components/admin/ActionButtons'
 import StatusBadge, { getStatusVariant } from '@/components/admin/StatusBadge'
 import { useAllCustomers, useUpdateCustomerStatus } from '@/hooks/useCustomer'
 import type { CustomerListItem } from '@/types/customer'
+import { Slash, UserTick } from 'iconsax-reactjs'
 
 const statusLabel = (status: string) => {
   if (status === 'ACTIVE') return 'Active'
   if (status === 'BLOCKED') return 'Blocked'
   return status
 }
+
+const customerFilterSections: FilterSection[] = [
+  {
+    key: 'status',
+    title: 'Status',
+    showBadge: true,
+    options: [
+      { value: 'active', label: 'Active', badgeVariant: 'success' },
+      { value: 'blocked', label: 'Blocked', badgeVariant: 'error' },
+    ],
+  },
+]
 
 const formatDate = (value?: string) => {
   if (!value) return '---'
@@ -44,34 +58,16 @@ function CustomerCell({ name, detail }: { name: string; detail: string }) {
 function BlockButton({ isBlocked, onClick }: { isBlocked: boolean; onClick?: () => void }) {
   return (
     <button
+      type="button"
       onClick={onClick}
-      className="p-1.5 text-red-500 hover:text-red-600 transition-colors"
+      className="cursor-pointer p-1.5 text-red-500 hover:text-red-600 transition-colors"
       title={isBlocked ? 'Unblock user' : 'Block user'}
     >
       {isBlocked ? (
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="8" cy="6" r="3" stroke="currentColor" strokeWidth="1.5"/>
-          <path d="M2 17C2 14.2386 4.23858 12 7 12H9C11.7614 12 14 14.2386 14 17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-          <path d="M16 10V14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-          <path d="M14 12H18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-        </svg>
+        <UserTick size={20} color='green' />
       ) : (
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="10" cy="10" r="7" stroke="currentColor" strokeWidth="1.5"/>
-          <path d="M5 15L15 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-        </svg>
+        <Slash size={20} color='red' />
       )}
-    </button>
-  )
-}
-
-function ShowLink({ onClick }: { onClick?: () => void }) {
-  return (
-    <button
-      onClick={onClick}
-      className="text-sm text-primary hover:text-red-700 font-medium"
-    >
-      Show
     </button>
   )
 }
@@ -80,12 +76,16 @@ export default function CustomersPage() {
   const router = useRouter()
   const [currentPage, setCurrentPage] = useState(1)
   const [searchQuery, setSearchQuery] = useState('')
+  const [customerFilters, setCustomerFilters] = useState<FilterValues>({})
   const pageSize = 10
+  const selectedStatuses = customerFilters.status ?? []
+  const apiStatus = selectedStatuses.length === 1 ? selectedStatuses[0] as 'active' | 'blocked' : 'all'
 
   const { data, isLoading, isError } = useAllCustomers({
     page: currentPage,
     limit: pageSize,
     search: searchQuery || undefined,
+    status: apiStatus,
   })
 
   const { mutateAsync } = useUpdateCustomerStatus()
@@ -146,28 +146,27 @@ export default function CustomersPage() {
     {
       key: 'action',
       header: 'Action',
-      width: 'w-[80px]',
+      width: 'w-[120px]',
       render: (customer) => (
-        <BlockButton
-          isBlocked={customer.status === 'BLOCKED'}
-          onClick={() => handleToggleBlock(customer)}
+        <ActionButtons
+          showEdit={false}
+          showDelete={false}
+          onView={() => router.push(`/admin/customers/${customer.id}`)}
+          extraActions={
+            <BlockButton
+              isBlocked={customer.status === 'BLOCKED'}
+              onClick={() => handleToggleBlock(customer)}
+            />
+          }
         />
-      )
-    },
-    {
-      key: 'details',
-      header: 'Details',
-      width: 'w-[80px]',
-      render: (customer) => (
-        <ShowLink onClick={() => router.push(`/admin/customers/${customer.id}`)} />
       )
     }
   ]
 
   return (
       <div className="p-6">
-        <div className="bg-white rounded-lg">
-          <div className="flex items-center justify-between p-6 pb-4">
+        <div className="bg-white rounded-lg p-4">
+          <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl font-semibold text-neutral-900">All Customers</h1>
             <div className="flex items-center gap-3">
               <SearchInput
@@ -176,7 +175,18 @@ export default function CustomersPage() {
                 onChange={setSearchQuery}
                 className="w-64"
               />
-              <FilterButton onClick={() => undefined} />
+              <FilterButton
+                sections={customerFilterSections}
+                value={customerFilters}
+                onApply={(next) => {
+                  setCustomerFilters(next)
+                  setCurrentPage(1)
+                }}
+                onReset={() => {
+                  setCustomerFilters({})
+                  setCurrentPage(1)
+                }}
+              />
             </div>
           </div>
 
@@ -187,7 +197,7 @@ export default function CustomersPage() {
             emptyMessage={isLoading ? 'Loading customers...' : isError ? 'Failed to load customers' : 'No customers found'}
           />
 
-          <div className="p-6 pt-4">
+          <div className="pt-4">
             <Pagination
               currentPage={pagination?.page ?? currentPage}
               totalPages={pagination?.totalPages ?? 1}

@@ -8,6 +8,7 @@ import { AdminCustomersController } from './customers/admin-customers.controller
 import { AdminContentController } from './content/admin-content.controller';
 import { AdminOffersController } from './offers/admin-offers.controller';
 import { AdminDashboardController } from './dashboard/admin-dashboard.controller';
+import { AdminProfileController } from './profile/admin-profile.controller';
 
 // Import all admin services
 import { AdminProductsService } from './products/admin-products.service';
@@ -17,6 +18,7 @@ import { AdminCustomersService } from './customers/admin-customers.service';
 import { AdminContentService } from './content/admin-content.service';
 import { AdminOffersService } from './offers/admin-offers.service';
 import { AdminDashboardService } from './dashboard/admin-dashboard.service';
+import { AdminProfileService } from './profile/admin-profile.service';
 
 @Module({
   controllers: [
@@ -27,6 +29,7 @@ import { AdminDashboardService } from './dashboard/admin-dashboard.service';
     AdminContentController,
     AdminOffersController,
     AdminDashboardController,
+    AdminProfileController,
   ],
   providers: [
     AdminProductsService,
@@ -36,6 +39,7 @@ import { AdminDashboardService } from './dashboard/admin-dashboard.service';
     AdminContentService,
     AdminOffersService,
     AdminDashboardService,
+    AdminProfileService,
   ],
   exports: [
     AdminProductsService,
@@ -45,6 +49,7 @@ import { AdminDashboardService } from './dashboard/admin-dashboard.service';
     AdminContentService,
     AdminOffersService,
     AdminDashboardService,
+    AdminProfileService,
   ],
 })
 export class AdminModule {}

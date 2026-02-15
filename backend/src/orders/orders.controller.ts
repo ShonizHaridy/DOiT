@@ -5,7 +5,14 @@
 import { Controller, Get, Post, Body, Param, Query, UseGuards } from '@nestjs/common';
 import { GetUser, Roles, Public } from 'src/auth/decorators/auth.decorators';
 import { JwtAuthGuard, RolesGuard } from '../auth/guards';
-import { CreateOrderDto, CreateGuestOrderDto, OrderDto, PaginatedOrdersDto } from './dto/orders.dto';
+import {
+  CreateOrderDto,
+  CreateGuestOrderDto,
+  CreateCustomOrderDto,
+  CustomOrderDto,
+  OrderDto,
+  PaginatedOrdersDto,
+} from './dto/orders.dto';
 import { OrdersService } from './orders.service';
 
 @Controller('orders')
@@ -21,6 +28,14 @@ export class OrdersController {
     @Body() dto: CreateGuestOrderDto,
   ): Promise<OrderDto> {
     return this.ordersService.createGuestOrder(dto);
+  }
+
+  @Public()
+  @Post('custom')
+  async createCustomOrder(
+    @Body() dto: CreateCustomOrderDto,
+  ): Promise<CustomOrderDto> {
+    return this.ordersService.createCustomOrder(dto);
   }
 
   // ============================================
@@ -72,5 +87,13 @@ export class OrdersController {
     @Param('orderNumber') orderNumber: string,
   ): Promise<OrderDto> {
     return this.ordersService.trackOrder(orderNumber);
+  }
+
+  @Public()
+  @Get('custom/track/:orderNumber')
+  async trackCustomOrder(
+    @Param('orderNumber') orderNumber: string,
+  ): Promise<CustomOrderDto> {
+    return this.ordersService.trackCustomOrder(orderNumber);
   }
 }

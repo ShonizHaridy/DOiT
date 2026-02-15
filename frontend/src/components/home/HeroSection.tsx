@@ -37,6 +37,7 @@ export default function HeroSection({ locale, heroSection }: HeroSectionProps) {
         topPosition="-top-[100px] lg:-top-[200px] -start-[50px]" 
         bottomPosition="-bottom-[100px] lg:-bottom-[200px] -end-[50px]" 
         fontSizeClass="text-[10rem] lg:text-[20rem]"
+        animate
       />
 
       {/* ========== MOBILE LAYOUT ========== */}

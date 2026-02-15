@@ -1,16 +1,12 @@
 import { useTranslations } from 'next-intl'
+import PageTitleBanner from '@/components/layout/PageTitleBanner'
 
 export default function ShippingPage() {
   const t = useTranslations('shipping')
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Policy Header */}
-      <div className="w-full h-14 md:h-16 flex items-center justify-center bg-primary">
-        <h1 className="text-primary-900 text-center text-lg md:text-xl lg:text-2xl font-semibold uppercase tracking-wide">
-          Policy
-        </h1>
-      </div>
+      <PageTitleBanner title={t('title')} />
 
       {/* Content */}
       <div className="container-doit py-8 md:py-12 lg:py-16">

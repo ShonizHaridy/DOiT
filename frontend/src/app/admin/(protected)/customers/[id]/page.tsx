@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { ArrowLeft } from 'iconsax-reactjs'
+import { ArrowLeft, Slash } from 'iconsax-reactjs'
 import DataTable, { Column } from '@/components/admin/DataTable'
 import Pagination from '@/components/admin/Pagination'
 import SearchInput from '@/components/admin/SearchInput'
@@ -114,12 +114,13 @@ export default function CustomerDetailsPage() {
         </div>
         <button
           onClick={handleToggleBlock}
-          className="inline-flex items-center gap-2 px-4 h-10 rounded-lg border border-red-200 text-sm font-medium text-primary hover:bg-red-50 transition-colors"
+          className="inline-flex items-center gap-2 px-4 h-10 rounded-lg border border-secondary text-sm font-medium text-secondary hover:bg-red-50 transition-colors cursor-pointer"
         >
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+          {/* <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
             <circle cx="9" cy="9" r="7" stroke="currentColor" strokeWidth="1.5" />
             <path d="M4 14L14 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-          </svg>
+          </svg> */}
+          <Slash size={16} className="text-secondary" />
           {customer.status === 'BLOCKED' ? 'Unblock Customer' : 'Block Customer'}
         </button>
       </div>
@@ -177,8 +178,8 @@ export default function CustomerDetailsPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg">
-        <div className="flex items-center justify-between p-6 pb-4">
+      <div className="bg-white rounded-lg p-4">
+        <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold text-neutral-900">Orders History</h2>
           <div className="flex items-center gap-3">
             <SearchInput
@@ -198,7 +199,7 @@ export default function CustomerDetailsPage() {
           emptyMessage={isOrdersLoading ? 'Loading orders...' : 'No orders found'}
         />
 
-        <div className="p-6 pt-4">
+        <div className="pt-4">
           <Pagination
             currentPage={ordersData?.pagination.page ?? currentPage}
             totalPages={ordersData?.pagination.totalPages ?? 1}

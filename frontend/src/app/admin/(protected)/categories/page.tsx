@@ -6,17 +6,19 @@ import DataTable, { Column } from '@/components/admin/DataTable'
 import Pagination from '@/components/admin/Pagination'
 import SearchInput from '@/components/admin/SearchInput'
 import ActionButtons from '@/components/admin/ActionButtons'
-import { useAdminCategories, useCategories } from '@/hooks/useCategories'
+import { useAdminCategories, useCategories, useUpdateCategory } from '@/hooks/useCategories'
 import type { Category } from '@/types/category'
 
 export default function CategoriesPage() {
   const router = useRouter()
   const [currentPage, setCurrentPage] = useState(1)
   const [searchQuery, setSearchQuery] = useState('')
+  const [togglingCategoryId, setTogglingCategoryId] = useState<string | null>(null)
   const pageSize = 10
 
   const { data: adminCategories, isLoading, isError } = useAdminCategories()
   const { data: categoriesWithChildren } = useCategories(true)
+  const { mutateAsync: updateCategory } = useUpdateCategory()
 
   const productListsCountMap = useMemo(() => {
     const map = new Map<string, number>()
@@ -70,7 +72,18 @@ export default function CategoriesPage() {
       render: (category) => (
         <ActionButtons
           onEdit={() => router.push(`/admin/categories/${category.id}/edit`)}
-          onView={() => router.push(`/admin/categories/${category.id}/edit`)}
+          showView={false}
+          showToggleVisibility
+          isVisible={category.status}
+          onToggleVisibility={async () => {
+            try {
+              setTogglingCategoryId(category.id)
+              await updateCategory({ id: category.id, data: { status: !category.status } })
+            } finally {
+              setTogglingCategoryId(null)
+            }
+          }}
+          className={togglingCategoryId === category.id ? 'opacity-60 pointer-events-none' : undefined}
         />
       )
     }
@@ -78,13 +91,16 @@ export default function CategoriesPage() {
 
   return (
       <div className="p-6">
-        <div className="bg-white rounded-lg">
-          <div className="flex items-center justify-between p-6 pb-4">
+        <div className="bg-white rounded-lg p-4">
+          <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl font-semibold text-neutral-900">All Categories</h1>
             <SearchInput
               placeholder="Search"
               value={searchQuery}
-              onChange={setSearchQuery}
+              onChange={(value) => {
+                setSearchQuery(value)
+                setCurrentPage(1)
+              }}
               className="w-72"
             />
           </div>
@@ -96,7 +112,7 @@ export default function CategoriesPage() {
             emptyMessage={isLoading ? 'Loading categories...' : isError ? 'Failed to load categories' : 'No categories found'}
           />
 
-          <div className="p-6 pt-4">
+          <div className="pt-4">
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}

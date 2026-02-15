@@ -7,6 +7,7 @@ import { useLocale, useTranslations } from 'next-intl'
 import { CloseCircle, Add, Minus, Heart } from 'iconsax-reactjs'
 import { cn } from '@/lib/utils'
 import { getLocalized, type Locale } from '@/lib/i18n-utils'
+import { resolveProductColorHex } from '@/data/product-variant-options'
 import { useAddToWishlist, useRemoveFromWishlist } from '@/hooks/useWishlist'
 import { useAuthStore, useUIStore, useCartStore, useWishlistStore } from '@/store'
 import type { Product } from '@/types/product'
@@ -203,7 +204,7 @@ export default function QuickAddModal() {
                           'w-7 h-7 rounded border-2 transition-all',
                           selectedColor === color ? 'border-primary scale-110' : 'border-transparent'
                         )}
-                        style={{ backgroundColor: color }}
+                        style={{ backgroundColor: resolveProductColorHex(color) }}
                         title={color}
                       />
                     ))}

@@ -100,6 +100,41 @@ export class CreateGuestOrderDto {
   couponCode?: string;
 }
 
+export class CreateCustomOrderDto {
+  @IsString()
+  @IsNotEmpty()
+  productType: string;
+
+  @IsOptional()
+  @IsString()
+  color: string;
+
+  @IsString()
+  @IsNotEmpty()
+  gender: string;
+
+  @IsOptional()
+  @IsString()
+  size: string;
+
+  @IsNumber()
+  @Min(1)
+  quantity: number;
+
+  @IsOptional()
+  @IsString()
+  details: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  referenceImages?: string[];
+
+  @IsOptional()
+  @IsString()
+  customerId?: string;
+}
+
 // ============================================
 // RESPONSE DTOs
 // ============================================
@@ -184,4 +219,33 @@ export class PaginatedOrdersDto {
     total: number;
     totalPages: number;
   };
+}
+
+export class CustomOrderDto {
+  id: string;
+  customerId: string;
+  orderNumber: string;
+  productType: string;
+  color: string;
+  gender: string;
+  size: string;
+  quantity: number;
+  details: string;
+  referenceImages: string[];
+  status: string;
+
+  @OptionalField()
+  @ToNumber()
+  price?: number;
+
+  @OptionalField()
+  @ToNumber()
+  shipping?: number;
+
+  @OptionalField()
+  @ToNumber()
+  total?: number;
+
+  createdAt: Date;
+  updatedAt: Date;
 }

@@ -9,7 +9,7 @@ import {
   Req,
 } from '@nestjs/common';
 import { FastifyRequest } from 'fastify';
-import { Roles } from '../auth/decorators/auth.decorators';
+import { Public, Roles } from '../auth/decorators/auth.decorators';
 import { JwtAuthGuard, RolesGuard } from '../auth/guards';
 import { UploadService, UploadFolder } from './upload.service';
 
@@ -113,6 +113,7 @@ export class UploadController {
   /**
    * Upload custom order images
    */
+  @Public()
   @Post('custom-order-images')
   async uploadCustomOrderImages(@Req() req: FastifyRequest): Promise<{ urls: string[] }> {
     const files = await this.extractMultipleFiles(req);

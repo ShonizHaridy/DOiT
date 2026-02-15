@@ -4,10 +4,15 @@ import type {
   PaginatedOrders,
   CreateOrderRequest,
   CreateGuestOrderRequest,
+  CreateCustomOrderRequest,
   OrderStatistics,
   OrderStatus,
   AdminOrdersResponse,
   AdminOrder,
+  AdminCustomOrdersResponse,
+  AdminCustomOrder,
+  CustomOrderStatus,
+  CustomOrder,
 } from '@/types/order';
 
 // Guest order creation (no auth required)
@@ -16,11 +21,23 @@ export const createGuestOrder = async (data: CreateGuestOrderRequest): Promise<O
   return response.data;
 };
 
-// Track guest order by ID
-export const getGuestOrder = async (orderId: string, email: string): Promise<Order> => {
-  const { data } = await apiClient.post<Order>(`/orders/guest/${orderId}/track`, {
-    email,
-  });
+// Track guest order by order number
+export const getGuestOrder = async (orderNumber: string): Promise<Order> => {
+  const { data } = await apiClient.get<Order>(`/orders/track/${encodeURIComponent(orderNumber)}`);
+  return data;
+};
+
+export const createCustomOrder = async (
+  data: CreateCustomOrderRequest
+): Promise<CustomOrder> => {
+  const response = await apiClient.post<CustomOrder>('/orders/custom', data);
+  return response.data;
+};
+
+export const getCustomOrder = async (orderNumber: string): Promise<CustomOrder> => {
+  const { data } = await apiClient.get<CustomOrder>(
+    `/orders/custom/track/${encodeURIComponent(orderNumber)}`
+  );
   return data;
 };
 
@@ -70,6 +87,35 @@ export const getAllOrders = async (params?: {
 export const getAdminOrder = async (id: string): Promise<AdminOrder> => {
   const { data } = await apiClient.get<AdminOrder>(`/admin/orders/${id}`);
   return data;
+};
+
+export const getAdminCustomOrders = async (params?: {
+  page?: number;
+  limit?: number;
+  status?: string;
+  search?: string;
+}): Promise<AdminCustomOrdersResponse> => {
+  const { data } = await apiClient.get<AdminCustomOrdersResponse>(
+    '/admin/orders/custom',
+    { params }
+  );
+  return data;
+};
+
+export const getAdminCustomOrder = async (id: string): Promise<AdminCustomOrder> => {
+  const { data } = await apiClient.get<AdminCustomOrder>(`/admin/orders/custom/${id}`);
+  return data;
+};
+
+export const updateCustomOrderStatus = async (
+  orderId: string,
+  status: CustomOrderStatus
+): Promise<AdminCustomOrder> => {
+  const response = await apiClient.put<AdminCustomOrder>(
+    `/admin/orders/custom/${orderId}/status`,
+    { status }
+  );
+  return response.data;
 };
 
 export const updateOrderStatus = async (

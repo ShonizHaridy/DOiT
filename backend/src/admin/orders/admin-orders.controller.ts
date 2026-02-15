@@ -15,7 +15,14 @@ import {
 import { JwtAuthGuard, RolesGuard } from '../../auth/guards';
 import { Roles } from 'src/auth/decorators/auth.decorators';
 import { AdminOrdersService } from './admin-orders.service';
-import { PaginatedAdminOrdersDto, AdminOrderDto, UpdateOrderStatusDto } from './dto/admin-orders.dto';
+import {
+  PaginatedAdminOrdersDto,
+  PaginatedAdminCustomOrdersDto,
+  AdminOrderDto,
+  AdminCustomOrderDto,
+  UpdateOrderStatusDto,
+  UpdateCustomOrderStatusDto,
+} from './dto/admin-orders.dto';
 
 @Controller('admin/orders')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -38,6 +45,26 @@ export class AdminOrdersController {
     );
   }
 
+  @Get('custom')
+  async getCustomOrders(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('status') status?: string,
+    @Query('search') search?: string,
+  ): Promise<PaginatedAdminCustomOrdersDto> {
+    return this.adminOrdersService.getCustomOrders(
+      page ? parseInt(page) : 1,
+      limit ? parseInt(limit) : 20,
+      status,
+      search,
+    );
+  }
+
+  @Get('custom/:id')
+  async getCustomOrderById(@Param('id') id: string): Promise<AdminCustomOrderDto> {
+    return this.adminOrdersService.getCustomOrderById(id);
+  }
+
   @Get(':id')
   async getOrderById(@Param('id') id: string): Promise<AdminOrderDto> {
     return this.adminOrdersService.getOrderById(id);
@@ -49,6 +76,14 @@ export class AdminOrdersController {
     @Body() dto: UpdateOrderStatusDto,
   ): Promise<AdminOrderDto> {
     return this.adminOrdersService.updateOrderStatus(id, dto);
+  }
+
+  @Put('custom/:id/status')
+  async updateCustomOrderStatus(
+    @Param('id') id: string,
+    @Body() dto: UpdateCustomOrderStatusDto,
+  ): Promise<AdminCustomOrderDto> {
+    return this.adminOrdersService.updateCustomOrderStatus(id, dto);
   }
 
   @Delete(':id')

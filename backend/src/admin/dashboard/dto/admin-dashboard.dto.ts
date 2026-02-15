@@ -35,3 +35,22 @@ export class DashboardOverviewDto {
   }[];
 }
 
+export class DashboardNotificationItemDto {
+  id: string;
+  type: 'order' | 'customer' | 'offer';
+  title: string;
+  description: string;
+  href: string;
+  createdAt: string;
+}
+
+export class DashboardNotificationsDto {
+  unread: {
+    orders: number;
+    customers: number;
+    offers: number;
+    total: number;
+  };
+  items: DashboardNotificationItemDto[];
+}
+

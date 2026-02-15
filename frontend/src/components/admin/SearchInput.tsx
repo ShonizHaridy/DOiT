@@ -1,6 +1,7 @@
 'use client'
 
 import { cn } from '@/lib/utils'
+import { SearchNormal1 } from 'iconsax-reactjs'
 
 interface SearchInputProps {
   placeholder?: string
@@ -17,17 +18,7 @@ export default function SearchInput({
 }: SearchInputProps) {
   return (
     <div className={cn('relative', className)}>
-      <svg
-        className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400"
-        width="20"
-        height="20"
-        viewBox="0 0 20 20"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <circle cx="9" cy="9" r="6" stroke="currentColor" strokeWidth="1.5"/>
-        <path d="M13.5 13.5L17 17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-      </svg>
+      <SearchNormal1 size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
       <input
         type="text"
         placeholder={placeholder}

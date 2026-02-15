@@ -2,13 +2,21 @@
 // DTOs
 // ============================================
 
-import { IsString, IsEnum, IsOptional, IsNumber } from 'class-validator';
+import { IsString, IsEnum, IsOptional } from 'class-validator';
 
 enum OrderStatus {
   ORDER_PLACED = 'ORDER_PLACED',
   PROCESSED = 'PROCESSED',
   SHIPPED = 'SHIPPED',
   DELIVERED = 'DELIVERED',
+  CANCELLED = 'CANCELLED',
+}
+
+enum CustomOrderStatus {
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  IN_PRODUCTION = 'IN_PRODUCTION',
+  COMPLETED = 'COMPLETED',
   CANCELLED = 'CANCELLED',
 }
 
@@ -23,6 +31,11 @@ export class UpdateOrderStatusDto {
   @IsOptional()
   @IsString()
   trackingNumber?: string;
+}
+
+export class UpdateCustomOrderStatusDto {
+  @IsEnum(CustomOrderStatus)
+  status: CustomOrderStatus;
 }
 
 export class AdminOrderDto {
@@ -55,6 +68,47 @@ export class AdminOrderDto {
 
 export class PaginatedAdminOrdersDto {
   orders: AdminOrderDto[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+  stats: {
+    totalOrders: number;
+    activeOrders: number;
+    completedOrders: number;
+    cancelledOrders: number;
+    totalRevenue: number;
+  };
+}
+
+export class AdminCustomOrderDto {
+  id: string;
+  customerId: string;
+  orderNumber: string;
+  productType: string;
+  color: string;
+  gender: string;
+  size: string;
+  quantity: number;
+  details: string;
+  referenceImages: string[];
+  status: string;
+  price?: number;
+  shipping?: number;
+  total?: number;
+  createdAt: Date;
+  updatedAt: Date;
+  customer?: {
+    id: string;
+    fullName: string;
+    email: string;
+  };
+}
+
+export class PaginatedAdminCustomOrdersDto {
+  orders: AdminCustomOrderDto[];
   pagination: {
     page: number;
     limit: number;

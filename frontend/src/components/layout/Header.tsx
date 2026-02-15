@@ -102,12 +102,6 @@ export default function Header({ locale, categories }: HeaderProps) {
   }, [trimmedQuery])
 
   useEffect(() => {
-    if (!trimmedQuery) {
-      setIsSearchOpen(false)
-    }
-  }, [trimmedQuery])
-
-  useEffect(() => {
     if (!isSearchOpen) return
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Node
@@ -195,10 +189,23 @@ export default function Header({ locale, categories }: HeaderProps) {
     setOpenDropdown(null)
   }
 
-  const handleSearchSubmit = (event?: React.FormEvent) => {
+  const handleSearchSubmit = (
+    event?: React.FormEvent<HTMLFormElement>,
+    directQuery?: string
+  ) => {
     event?.preventDefault()
-    const query = searchQuery.trim()
+    const formQuery = event
+      ? String(new FormData(event.currentTarget).get('q') ?? '')
+      : ''
+    const query =
+      [directQuery, formQuery, searchQuery, debouncedQuery]
+        .find((value) => typeof value === 'string' && value.trim().length > 0)
+        ?.trim() ?? ''
+
     if (!query) return
+
+    setSearchQuery(query)
+    setDebouncedQuery(query)
     setIsSearchOpen(false)
     router.push(`/search?q=${encodeURIComponent(query)}`)
   }
@@ -287,15 +294,28 @@ export default function Header({ locale, categories }: HeaderProps) {
               <div ref={searchInputRef} className="relative">
                 <form
                   onSubmit={handleSearchSubmit}
-                  className="flex items-center px-3 py-2 bg-transparent border border-neutral-600 rounded-md"
+                  className="flex items-center px-3 py-2 bg-transparent border border-white rounded-md"
                 >
                   <input
+                    name="q"
                     type="search"
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => {
+                      const value = e.target.value
+                      setSearchQuery(value)
+
+                      if (value.trim()) {
+                        setIsSearchOpen(true)
+                        setOpenDropdown(null)
+                      } else {
+                        setIsSearchOpen(false)
+                      }
+                    }}
                     onFocus={handleSearchFocus}
                     onKeyDown={(e) => {
-                      if (e.key === 'Escape') setIsSearchOpen(false)
+                      if (e.key === 'Escape') {
+                        setIsSearchOpen(false)
+                      }
                     }}
                     placeholder={t('searchPlaceholder')}
                     className="flex-1 bg-transparent text-[14.4px] text-white font-outfit placeholder:text-white/30 outline-none" // Here applied 14.4 instead of 14 because arabic sometimes break on some font sizes
@@ -421,7 +441,7 @@ export default function Header({ locale, categories }: HeaderProps) {
                     </span>
                     <button
                       type="button"
-                      onClick={() => handleSearchSubmit()}
+                      onClick={() => handleSearchSubmit(undefined, debouncedQuery || searchQuery)}
                       className="text-primary font-medium underline hover:no-underline"
                     >
                       {tSearch('showMore')}

@@ -4,7 +4,10 @@
 
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { DashboardOverviewDto } from './dto/admin-dashboard.dto';
+import {
+  DashboardOverviewDto,
+  DashboardNotificationsDto,
+} from './dto/admin-dashboard.dto';
 
 @Injectable()
 export class AdminDashboardService {
@@ -296,6 +299,159 @@ export class AdminDashboardService {
         sku: product.sku,
         totalStock: product.variants.reduce((sum, v) => sum + v.quantity, 0),
       })),
+    };
+  }
+
+  async getNotifications(since?: string): Promise<DashboardNotificationsDto> {
+    let sinceDate: Date | null = null;
+    if (since) {
+      const parsed = new Date(since);
+      if (!Number.isNaN(parsed.getTime())) {
+        sinceDate = parsed;
+      }
+    }
+
+    const [
+      latestOrders,
+      latestCustomOrders,
+      latestCustomers,
+      latestOffers,
+      unreadStandardOrders,
+      unreadCustomOrders,
+      unreadCustomers,
+      unreadOffers,
+    ] =
+      await Promise.all([
+        this.prisma.order.findMany({
+          take: 5,
+          orderBy: { createdAt: 'desc' },
+          include: {
+            customer: {
+              select: { fullName: true, email: true },
+            },
+          },
+        }),
+        this.prisma.customOrder.findMany({
+          take: 5,
+          orderBy: { createdAt: 'desc' },
+          select: {
+            id: true,
+            orderNumber: true,
+            customerId: true,
+            createdAt: true,
+          },
+        }),
+        this.prisma.customer.findMany({
+          take: 5,
+          orderBy: { createdAt: 'desc' },
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+            createdAt: true,
+          },
+        }),
+        this.prisma.offer.findMany({
+          take: 5,
+          orderBy: { updatedAt: 'desc' },
+          select: {
+            id: true,
+            nameEn: true,
+            code: true,
+            updatedAt: true,
+          },
+        }),
+        this.prisma.order.count({
+          where: sinceDate ? { createdAt: { gt: sinceDate } } : undefined,
+        }),
+        this.prisma.customOrder.count({
+          where: sinceDate ? { createdAt: { gt: sinceDate } } : undefined,
+        }),
+        this.prisma.customer.count({
+          where: sinceDate ? { createdAt: { gt: sinceDate } } : undefined,
+        }),
+        this.prisma.offer.count({
+          where: sinceDate ? { updatedAt: { gt: sinceDate } } : undefined,
+        }),
+      ]);
+
+    const customOrderCustomerIds = Array.from(
+      new Set(
+        latestCustomOrders
+          .map((order) => order.customerId)
+          .filter((customerId) => customerId && !customerId.startsWith('guest-')),
+      ),
+    );
+
+    const customOrderCustomers = customOrderCustomerIds.length
+      ? await this.prisma.customer.findMany({
+          where: { id: { in: customOrderCustomerIds } },
+          select: { id: true, fullName: true, email: true },
+        })
+      : [];
+
+    const customOrderCustomersMap = new Map(
+      customOrderCustomers.map((customer) => [customer.id, customer]),
+    );
+
+    const orderItems = latestOrders.map((order) => ({
+      id: `order-${order.id}`,
+      type: 'order' as const,
+      title: 'New order',
+      description: `${order.orderNumber} by ${order.customer?.fullName || order.customer?.email || 'Guest'}`,
+      href: `/admin/orders/${order.id}`,
+      createdAt: order.createdAt.toISOString(),
+    }));
+
+    const customOrderItems = latestCustomOrders.map((order) => {
+      const customer = customOrderCustomersMap.get(order.customerId);
+      const customerLabel =
+        customer?.fullName ||
+        customer?.email ||
+        (order.customerId.startsWith('guest-') ? 'Guest' : order.customerId);
+
+      return {
+        id: `custom-order-${order.id}`,
+        type: 'order' as const,
+        title: 'New custom order',
+        description: `${order.orderNumber} by ${customerLabel}`,
+        href: `/admin/orders/custom/${order.id}`,
+        createdAt: order.createdAt.toISOString(),
+      };
+    });
+
+    const customerItems = latestCustomers.map((customer) => ({
+      id: `customer-${customer.id}`,
+      type: 'customer' as const,
+      title: 'New registration',
+      description: customer.fullName || customer.email,
+      href: `/admin/customers/${customer.id}`,
+      createdAt: customer.createdAt.toISOString(),
+    }));
+
+    const offerItems = latestOffers.map((offer) => ({
+      id: `offer-${offer.id}`,
+      type: 'offer' as const,
+      title: 'Offer updated',
+      description: `${offer.nameEn} (${offer.code})`,
+      href: `/admin/offers/${offer.id}/edit`,
+      createdAt: offer.updatedAt.toISOString(),
+    }));
+
+    const items = [...orderItems, ...customOrderItems, ...customerItems, ...offerItems]
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+      .slice(0, 12);
+
+    const unreadOrders = unreadStandardOrders + unreadCustomOrders;
+
+    return {
+      unread: {
+        orders: unreadOrders,
+        customers: unreadCustomers,
+        offers: unreadOffers,
+        total: unreadOrders + unreadCustomers + unreadOffers,
+      },
+      items,
     };
   }
 }

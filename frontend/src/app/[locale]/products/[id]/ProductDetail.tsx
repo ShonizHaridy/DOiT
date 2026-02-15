@@ -6,6 +6,7 @@ import { Heart, Add, Minus, TruckFast, SearchZoomIn1 } from 'iconsax-reactjs'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import { getLocalized, getLocalizedArray, type Locale } from '@/lib/i18n-utils'
+import { resolveProductColorHex } from '@/data/product-variant-options'
 import { useAddToWishlist, useRemoveFromWishlist } from '@/hooks/useWishlist'
 import { useAuthStore, useCartStore, useUIStore, useWishlistStore } from '@/store'
 import type { Product } from '@/types/product'
@@ -236,7 +237,7 @@ export default function ProductDetail({ product, locale }: ProductDetailProps) {
                       'w-8 h-8 rounded border-2 transition-all',
                       selectedColor === color ? 'border-primary scale-110' : 'border-gray-300'
                     )}
-                    style={{ backgroundColor: color }}
+                    style={{ backgroundColor: resolveProductColorHex(color) }}
                     title={color}
                   />
                 ))}
@@ -303,7 +304,7 @@ export default function ProductDetail({ product, locale }: ProductDetailProps) {
                       'w-8 h-8 rounded border-2 transition-all',
                       selectedColor === color ? 'border-primary scale-110' : 'border-gray-300'
                     )}
-                    style={{ backgroundColor: color }}
+                    style={{ backgroundColor: resolveProductColorHex(color) }}
                     title={color}
                   />
                 ))}

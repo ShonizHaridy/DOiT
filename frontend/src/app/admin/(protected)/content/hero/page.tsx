@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Image from 'next/image'
 import { useForm } from 'react-hook-form'
 import { FormInput, FormTextarea, FormPageHeader, ImageUpload, UploadedImage } from '@/components/admin/forms'
 import { useHeroSections, useCreateHeroSection, useUpdateHeroSection } from '@/hooks/useContent'
@@ -112,7 +113,7 @@ export default function EditHeroSectionPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-sm text-neutral-600 mb-2">
-                <span className="text-base">EN</span>
+                <Image src="/flags/en.svg" alt="English" width={20} height={20} className="rounded-sm" />
                 <span className="font-medium">English</span>
               </div>
 
@@ -142,7 +143,7 @@ export default function EditHeroSectionPage() {
             <div className="space-y-4" dir="rtl">
               <div className="flex items-center gap-2 text-sm text-neutral-600 mb-2">
                 <span className="font-medium">Arabic</span>
-                <span className="text-base">AR</span>
+                <Image src="/flags/ar.svg" alt="Arabic" width={20} height={20} className="rounded-sm" />
               </div>
 
               <div className="flex flex-col gap-1.5">

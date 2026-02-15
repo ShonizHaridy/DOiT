@@ -1,18 +1,23 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import * as ordersService from '@/services/orders';
 import { useCartStore } from '@/store';
-import type { CreateOrderRequest, OrderStatus } from '@/types/order';
+import type {
+  CreateGuestOrderRequest,
+  CreateOrderRequest,
+  OrderStatus,
+  CustomOrderStatus,
+} from '@/types/order';
 
 export const useCreateGuestOrder = () => {
   return useMutation({
-    mutationFn: (data: CreateOrderRequest) => ordersService.createGuestOrder(data),
+    mutationFn: (data: CreateGuestOrderRequest) => ordersService.createGuestOrder(data),
   });
 };
 
 export const useTrackGuestOrder = () => {
   return useMutation({
-    mutationFn: ({ orderId, email }: { orderId: string; email: string }) =>
-      ordersService.getGuestOrder(orderId, email),
+    mutationFn: ({ orderNumber }: { orderNumber: string }) =>
+      ordersService.getGuestOrder(orderNumber),
   });
 };
 
@@ -83,6 +88,26 @@ export const useAdminOrder = (id: string) => {
   });
 };
 
+export const useAdminCustomOrders = (params?: {
+  page?: number;
+  limit?: number;
+  status?: string;
+  search?: string;
+}) => {
+  return useQuery({
+    queryKey: ['orders', 'custom', params],
+    queryFn: () => ordersService.getAdminCustomOrders(params),
+  });
+};
+
+export const useAdminCustomOrder = (id: string) => {
+  return useQuery({
+    queryKey: ['orders', 'custom', 'admin', id],
+    queryFn: () => ordersService.getAdminCustomOrder(id),
+    enabled: !!id,
+  });
+};
+
 export const useUpdateOrderStatus = () => {
   const queryClient = useQueryClient();
 
@@ -103,6 +128,20 @@ export const useUpdateTrackingNumber = () => {
       ordersService.updateTrackingNumber(orderId, trackingNumber),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
+    },
+  });
+};
+
+export const useUpdateCustomOrderStatus = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ orderId, status }: { orderId: string; status: CustomOrderStatus }) =>
+      ordersService.updateCustomOrderStatus(orderId, status),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders', 'custom'] });
+      queryClient.invalidateQueries({ queryKey: ['orders', 'all'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard', 'notifications'] });
     },
   });
 };

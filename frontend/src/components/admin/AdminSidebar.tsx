@@ -4,12 +4,13 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { CardEdit, ElementPlus, Profile2User, ShopAdd, ShoppingCart, StatusUp, TicketDiscount } from 'iconsax-reactjs'
+import { useAdminNotifications } from '@/hooks/useAdminNotifications'
 
 interface NavItem {
   label: string
   href: string
   icon: React.ReactNode
-  badge?: number
+  badgeKey?: 'orders' | 'customers' | 'offers'
 }
 
 const navItems: NavItem[] = [
@@ -44,7 +45,7 @@ const navItems: NavItem[] = [
     icon: (
       <ShoppingCart size={24} />
     ),
-    badge: 10,
+    badgeKey: 'orders',
   },
   {
     label: 'Customers',
@@ -52,7 +53,7 @@ const navItems: NavItem[] = [
     icon: (
       <Profile2User size={24} variant='Outline' />
     ),
-    badge: 10,
+    badgeKey: 'customers',
   },
   {
     label: 'Offers',
@@ -60,7 +61,7 @@ const navItems: NavItem[] = [
     icon: (
       <TicketDiscount size={24} />
     ),
-    badge: 2,
+    badgeKey: 'offers',
   },
   {
     label: 'Content',
@@ -73,12 +74,18 @@ const navItems: NavItem[] = [
 
 export default function AdminSidebar() {
   const pathname = usePathname()
+  const { unread } = useAdminNotifications()
 
   return (
     <aside className="w-55 min-h-screen bg-white border-r border-neutral-200 py-6">
       <nav className="flex flex-col gap-1">
         {navItems.map((item) => {
-          const isActive = pathname === item.href
+          const isActive =
+            pathname === item.href ||
+            (item.href !== '/admin/dashboard' && pathname.startsWith(`${item.href}/`))
+          const badgeValue = item.badgeKey ? unread[item.badgeKey] : 0
+          const badgeLabel = badgeValue > 99 ? '99+' : String(badgeValue)
+
           return (
             <Link
               key={item.href}
@@ -99,9 +106,9 @@ export default function AdminSidebar() {
                 </span>
                 <span className="text-sm font-medium">{item.label}</span>
               </div>
-              {item.badge && (
+              {badgeValue > 0 && (
                 <span className="min-w-5 h-5 px-1.5 flex items-center justify-center bg-primary text-white text-xs font-medium rounded-full">
-                  {item.badge}
+                  {badgeLabel}
                 </span>
               )}
             </Link>

@@ -3,7 +3,6 @@ import { useAuthStore } from '@/store';
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ||
-  process.env.API_URL ||
   'http://localhost:4000/api';
 
 export const apiClient = axios.create({
@@ -39,10 +38,24 @@ apiClient.interceptors.response.use(
   (error) => {
     // Handle 401 Unauthorized (token expired)
     if (error.response?.status === 401 && typeof window !== 'undefined') {
+      const storeToken = useAuthStore.getState().accessToken;
+      const token =
+        storeToken ??
+        (typeof window !== 'undefined' ? localStorage.getItem('access_token') : null);
+      const hadAuthHeader = Boolean((error.config?.headers as any)?.Authorization);
+
+      if (!hadAuthHeader && !token) {
+        return Promise.reject(error);
+      }
+
       localStorage.removeItem('access_token');
       useAuthStore.getState().clearAuth();
-      const isAdminRoute = window.location.pathname.startsWith('/admin');
-      window.location.href = isAdminRoute ? '/admin/login' : '/sign-in';
+      const pathname = window.location.pathname;
+      const isAdminRoute = pathname.startsWith('/admin');
+
+      if (isAdminRoute) {
+        window.location.href = '/admin/login';
+      }
     }
     
     return Promise.reject(error);

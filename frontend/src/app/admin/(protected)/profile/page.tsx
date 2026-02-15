@@ -1,101 +1,212 @@
 'use client'
 
-import { 
-  User, 
-  Edit2, 
-  Lock1, 
-  LogoutCurve,
-  GalleryEdit
-} from 'iconsax-reactjs'
-
-interface UserProfile {
-  name: string
-  role: string
-  email: string
-  phone: string
-  avatar?: string
-}
-
-// Sample user data
-const userProfile: UserProfile = {
-  name: 'Ahemd Ashraf',
-  role: 'Supervisor',
-  email: 'ahmed@doit.com',
-  phone: '01018128987',
-  avatar: '/avatars/admin.jpg'
-}
+import { useEffect, useMemo, useState } from 'react'
+import { Edit2, GalleryEdit, Lock1, LogoutCurve, ProfileCircle } from 'iconsax-reactjs'
+import { useAdminProfile, useUpdateAdminProfile } from '@/hooks/useAdminProfile'
+import { useLogout } from '@/hooks/useAuth'
 
 export default function ProfilePage() {
-  return (
+  const { data: profile, isLoading, isError } = useAdminProfile()
+  const { mutateAsync, isPending } = useUpdateAdminProfile()
+  const logout = useLogout()
+
+  const [isEditing, setIsEditing] = useState(false)
+  const [fullName, setFullName] = useState('')
+  const [email, setEmail] = useState('')
+  const [phoneNumber, setPhoneNumber] = useState('')
+
+  useEffect(() => {
+    if (!profile || isEditing) return
+    setFullName(profile.fullName ?? '')
+    setEmail(profile.email ?? '')
+    setPhoneNumber(profile.phoneNumber ?? '')
+  }, [profile, isEditing])
+
+  const initials = useMemo(() => {
+    const source = fullName || profile?.fullName || profile?.adminId || 'A'
+    const parts = source.trim().split(/\s+/)
+    return parts.slice(0, 2).map((part) => part[0]?.toUpperCase() ?? '').join('') || 'A'
+  }, [fullName, profile?.fullName, profile?.adminId])
+
+  const openEdit = () => {
+    if (!profile) return
+    setFullName(profile.fullName ?? '')
+    setEmail(profile.email ?? '')
+    setPhoneNumber(profile.phoneNumber ?? '')
+    setIsEditing(true)
+  }
+
+  const cancelEdit = () => {
+    if (profile) {
+      setFullName(profile.fullName ?? '')
+      setEmail(profile.email ?? '')
+      setPhoneNumber(profile.phoneNumber ?? '')
+    }
+    setIsEditing(false)
+  }
+
+  const saveEdit = async () => {
+    await mutateAsync({
+      fullName: fullName.trim(),
+      email: email.trim(),
+      phoneNumber: phoneNumber.trim(),
+    })
+    setIsEditing(false)
+  }
+
+  if (isLoading) {
+    return (
       <div className="p-6">
-        {/* Profile Card */}
-        <div className="bg-white rounded-lg max-w-2xl">
-          {/* Header */}
-          <div className="flex items-center gap-3 p-6 pb-4">
-            <User size={24} variant="Linear" className="text-neutral-600" />
-            <h1 className="text-xl font-semibold text-neutral-900">My Profile</h1>
+        <div className="bg-white rounded-lg p-6 text-sm text-neutral-500">Loading profile...</div>
+      </div>
+    )
+  }
+
+  if (isError || !profile) {
+    return (
+      <div className="p-6">
+        <div className="bg-white rounded-lg p-6 text-sm text-red-600">Failed to load admin profile.</div>
+      </div>
+    )
+  }
+
+  if (isEditing) {
+    return (
+      <div className="p-6">
+        <div className="bg-white rounded-lg max-w-4xl p-6">
+          <div className="flex items-center gap-2 border-b border-neutral-200 pb-3 mb-5">
+            <Edit2 size={22} className="text-neutral-500" />
+            <h1 className="text-3xl font-semibold text-neutral-900">Edit Profile</h1>
           </div>
 
-          {/* Profile Content */}
-          <div className="px-6 pb-6">
-            {/* Avatar and Info */}
-            <div className="flex items-center gap-6 mb-6">
-              {/* Avatar with Edit Overlay */}
-              <div className="relative">
-                <div className="w-28 h-28 rounded-full bg-neutral-200 overflow-hidden">
-                  {/* Placeholder avatar */}
-                  <div className="w-full h-full bg-neutral-300 flex items-center justify-center">
-                    <svg width="48" height="48" viewBox="0 0 48 48" fill="none" className="text-neutral-500">
-                      <circle cx="24" cy="18" r="8" stroke="currentColor" strokeWidth="2"/>
-                      <path d="M8 44C8 35.1634 15.1634 28 24 28C32.8366 28 40 35.1634 40 44" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                    </svg>
-                  </div>
-                </div>
-                {/* Edit overlay button */}
-                <button 
-                  className="absolute bottom-1 right-1 w-8 h-8 bg-neutral-100 rounded-full flex items-center justify-center hover:bg-neutral-200 transition-colors border border-neutral-200"
-                  title="Change photo"
-                >
-                  <GalleryEdit size={16} variant="Linear" className="text-neutral-600" />
-                </button>
-              </div>
-
-              {/* Name and Role */}
-              <div>
-                <h2 className="text-2xl font-semibold text-neutral-900">{userProfile.name}</h2>
-                <span className="inline-block mt-1 px-3 py-1 bg-neutral-100 text-neutral-600 text-sm rounded-full">
-                  {userProfile.role}
-                </span>
-              </div>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-xl font-medium text-neutral-900 mb-2">Name</label>
+              <input
+                value={fullName}
+                onChange={(event) => setFullName(event.target.value)}
+                className="w-full h-11 rounded border border-neutral-200 px-3 text-base text-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-200"
+                placeholder="Enter name"
+              />
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex items-center gap-3 mb-8">
-              <button className="inline-flex items-center gap-2 px-5 py-2.5 border border-neutral-200 rounded-lg text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors">
-                Edit Profile
-              </button>
-              <button className="inline-flex items-center gap-2 px-5 py-2.5 border border-neutral-200 rounded-lg text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors">
-                Reset Password
-              </button>
-              <button className="inline-flex items-center gap-2 px-5 py-2.5 border border-red-200 rounded-lg text-sm font-medium text-primary hover:bg-red-50 transition-colors">
-                <LogoutCurve size={18} variant="Linear" />
-                Log Out
-              </button>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xl font-medium text-neutral-900 mb-2">Email</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  className="w-full h-11 rounded border border-neutral-200 px-3 text-base text-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-200"
+                  placeholder="Enter email"
+                />
+              </div>
+              <div>
+                <label className="block text-xl font-medium text-neutral-900 mb-2">Phone Number</label>
+                <input
+                  value={phoneNumber}
+                  onChange={(event) => setPhoneNumber(event.target.value)}
+                  className="w-full h-11 rounded border border-neutral-200 px-3 text-base text-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-200"
+                  placeholder="Enter phone number"
+                />
+              </div>
             </div>
+          </div>
 
-            {/* Contact Info */}
-            <div className="flex items-center gap-12">
-              <div>
-                <span className="text-sm font-medium text-neutral-900">Email</span>
-                <p className="text-sm text-neutral-500 mt-0.5">{userProfile.email}</p>
-              </div>
-              <div>
-                <span className="text-sm font-medium text-neutral-900">Phone Number</span>
-                <p className="text-sm text-neutral-500 mt-0.5">{userProfile.phone}</p>
-              </div>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
+            <button
+              type="button"
+              onClick={cancelEdit}
+              className="h-12 rounded-xl border border-neutral-900 text-neutral-900 text-xl font-medium cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={saveEdit}
+              disabled={isPending}
+              className="h-12 rounded-xl bg-neutral-900 text-white text-xl font-semibold disabled:opacity-60 cursor-pointer"
+            >
+              {isPending ? 'Saving...' : 'Save'}
+            </button>
           </div>
         </div>
       </div>
+    )
+  }
+
+  return (
+    <div className="p-6">
+      <div className="bg-white rounded-lg max-w-4xl p-6">
+        <div className="flex items-center gap-2 border-b border-neutral-200 pb-3 mb-5">
+          <ProfileCircle size={24} className="text-neutral-500" />
+          <h1 className="text-4xl font-semibold text-neutral-900">My Profile</h1>
+        </div>
+
+        <div className="flex items-center gap-6 mb-6">
+          <div className="relative">
+            <div className="w-40 h-40 rounded-full overflow-hidden bg-neutral-200 flex items-center justify-center">
+              {profile.avatarUrl ? (
+                <img src={profile.avatarUrl} alt={profile.fullName} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-neutral-200 to-neutral-300 flex items-center justify-center text-4xl font-semibold text-neutral-600">
+                  {initials}
+                </div>
+              )}
+            </div>
+            <button
+              type="button"
+              className="absolute bottom-1 right-3 w-10 h-10 rounded-xl border border-neutral-200 bg-neutral-100 flex items-center justify-center"
+            >
+              <GalleryEdit size={20} className="text-neutral-600" />
+            </button>
+          </div>
+
+          <div>
+            <h2 className="text-5xl font-semibold text-neutral-900">{profile.fullName || profile.adminId}</h2>
+            <span className="inline-flex items-center mt-2 px-3 py-1 rounded-md bg-neutral-100 text-neutral-700 text-2xl">
+              {profile.role || 'Supervisor'}
+            </span>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3 mb-6">
+          <button
+            type="button"
+            onClick={openEdit}
+            className="h-12 px-6 rounded-xl border border-neutral-900 text-neutral-900 text-xl font-medium cursor-pointer"
+          >
+            Edit Profile
+          </button>
+          <button
+            type="button"
+            className="h-12 px-6 rounded-xl border border-neutral-900 text-neutral-900 text-xl font-medium cursor-pointer inline-flex items-center gap-2"
+            onClick={() => undefined}
+          >
+            <Lock1 size={18} />
+            Reset Password
+          </button>
+          <button
+            type="button"
+            onClick={logout}
+            className="h-12 px-6 rounded-xl border border-red-400 text-primary text-xl font-medium cursor-pointer inline-flex items-center gap-2"
+          >
+            <LogoutCurve size={18} />
+            Log Out
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xl">
+          <div className="flex items-center gap-3">
+            <span className="text-neutral-900">Email</span>
+            <span className="font-semibold text-neutral-500">{profile.email}</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-neutral-900">Phone Number</span>
+            <span className="font-semibold text-neutral-500">{profile.phoneNumber || '---'}</span>
+          </div>
+        </div>
+      </div>
+    </div>
   )
 }

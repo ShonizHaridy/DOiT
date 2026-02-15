@@ -101,10 +101,14 @@ export default function MobileMenu({ isOpen, onClose, locale, categories }: Mobi
     setOpenSubCategoryId((prev) => (prev === subCategoryId ? null : subCategoryId))
   }
 
-  const handleSearchSubmit = (event?: React.FormEvent) => {
+  const handleSearchSubmit = (event?: React.FormEvent<HTMLFormElement>) => {
     event?.preventDefault()
-    const query = searchQuery.trim()
+    const formQuery = event
+      ? String(new FormData(event.currentTarget).get('q') ?? '')
+      : ''
+    const query = (formQuery || searchQuery).trim()
     if (!query) return
+    setSearchQuery(query)
     onClose()
     router.push(`/search?q=${encodeURIComponent(query)}`)
   }
@@ -170,6 +174,7 @@ export default function MobileMenu({ isOpen, onClose, locale, categories }: Mobi
             className="flex items-center justify-between h-[45px] px-4 border border-neutral-100 rounded-lg bg-white"
           >
             <input
+              name="q"
               type="search"
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}

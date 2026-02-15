@@ -22,6 +22,17 @@ export interface CreateGuestOrderRequest extends CreateOrderRequest {
   fullAddress: string;
 }
 
+export interface CreateCustomOrderRequest {
+  productType: string;
+  color: string;
+  gender: string;
+  size: string;
+  quantity: number;
+  details: string;
+  referenceImages?: string[];
+  customerId?: string;
+}
+
 // Response types
 export interface OrderItem {
   id: string;
@@ -119,6 +130,41 @@ export interface AdminOrdersResponse {
   };
 }
 
+export type CustomOrderStatus =
+  | 'PENDING'
+  | 'APPROVED'
+  | 'IN_PRODUCTION'
+  | 'COMPLETED'
+  | 'CANCELLED';
+
+export interface AdminCustomOrderCustomer {
+  id: string;
+  fullName: string;
+  email: string;
+}
+
+export interface AdminCustomOrder extends CustomOrder {
+  status: CustomOrderStatus;
+  customer?: AdminCustomOrderCustomer;
+}
+
+export interface AdminCustomOrdersResponse {
+  orders: AdminCustomOrder[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+  stats?: {
+    totalOrders: number;
+    activeOrders: number;
+    completedOrders: number;
+    cancelledOrders: number;
+    totalRevenue: number;
+  };
+}
+
 export interface OrderStatistics {
   totalOrders: number;
   totalRevenue: number;
@@ -128,5 +174,24 @@ export interface OrderStatistics {
   shippedOrders: number;
   deliveredOrders: number;
   cancelledOrders: number;
+}
+
+export interface CustomOrder {
+  id: string;
+  customerId: string;
+  orderNumber: string;
+  productType: string;
+  color: string;
+  gender: string;
+  size: string;
+  quantity: number;
+  details: string;
+  referenceImages: string[];
+  status: string;
+  price?: number;
+  shipping?: number;
+  total?: number;
+  createdAt: string;
+  updatedAt: string;
 }
 

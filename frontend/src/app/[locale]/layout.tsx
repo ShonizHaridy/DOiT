@@ -48,7 +48,7 @@ export default async function LocaleLayout({
               <GlobalProviders>
                 <Header locale={locale} categories={categories} />
                 <main>{children}</main>
-                <Footer locale={locale} />
+                <Footer locale={locale} categories={categories} />
               </GlobalProviders>
             </DirProvider>
           </NextIntlClientProvider>

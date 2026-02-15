@@ -1,14 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { useForm } from 'react-hook-form'
 import { Gallery, CloseCircle } from 'iconsax-reactjs'
 import { Input, Select, Textarea, Button } from '@/components/ui'
-
-interface CustomMadeFormProps {
-  locale: string
-}
+import { uploadCustomOrderImages } from '@/services/upload'
+import { createCustomOrder } from '@/services/orders'
+import { useAuthStore } from '@/store'
+import { useRouter } from '@/i18n/navigation'
 
 interface FormData {
   productType: string
@@ -19,11 +19,17 @@ interface FormData {
   details: string
 }
 
-export default function CustomMadeForm({ locale }: CustomMadeFormProps) {
+export default function CustomMadeForm() {
   const t = useTranslations('home.customMade')
-  const [images, setImages] = useState<string[]>([])
+  const router = useRouter()
+  const [images, setImages] = useState<Array<{ file: File; preview: string }>>([])
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
+  const [submitSuccess, setSubmitSuccess] = useState<string | null>(null)
+  const currentUser = useAuthStore((state) => state.user)
+  const imagesRef = useRef<Array<{ file: File; preview: string }>>([])
 
-  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>({
     defaultValues: {
       productType: '',
       gender: '',
@@ -34,20 +40,79 @@ export default function CustomMadeForm({ locale }: CustomMadeFormProps) {
     }
   })
 
-  const onSubmit = (data: FormData) => {
-    console.log('Form submitted:', { ...data, images })
+  useEffect(() => {
+    imagesRef.current = images
+  }, [images])
+
+  useEffect(() => {
+    return () => {
+      imagesRef.current.forEach((item) => URL.revokeObjectURL(item.preview))
+    }
+  }, [])
+
+  const onSubmit = async (data: FormData) => {
+    try {
+      setSubmitError(null)
+      setSubmitSuccess(null)
+      setIsSubmitting(true)
+
+      const files = images.map((item) => item.file)
+      const referenceImages = files.length > 0 ? await uploadCustomOrderImages(files) : []
+
+      const customOrder = await createCustomOrder({
+        productType: data.productType,
+        color: data.color,
+        gender: data.gender,
+        size: data.size,
+        quantity: data.quantity,
+        details: data.details,
+        referenceImages,
+        customerId: currentUser?.role === 'customer' ? currentUser.id : undefined,
+      })
+
+      setSubmitSuccess(`Order ${customOrder.orderNumber} was sent successfully.`)
+      images.forEach((item) => URL.revokeObjectURL(item.preview))
+      setImages([])
+      reset({
+        productType: '',
+        gender: '',
+        color: '',
+        size: '',
+        quantity: 1,
+        details: '',
+      })
+      router.push(`/orders/track/${encodeURIComponent(customOrder.orderNumber)}`)
+    } catch {
+      setSubmitError('Failed to send custom order. Please try again.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
     if (files) {
-      const newImages = Array.from(files).map(file => URL.createObjectURL(file))
-      setImages(prev => [...prev, ...newImages].slice(0, 3))
+      const remainingSlots = 3 - images.length
+      const nextFiles = Array.from(files).slice(0, Math.max(0, remainingSlots))
+      const nextItems = nextFiles.map((file) => ({
+        file,
+        preview: URL.createObjectURL(file),
+      }))
+      if (nextItems.length > 0) {
+        setImages((prev) => [...prev, ...nextItems])
+      }
     }
+    e.target.value = ''
   }
 
   const removeImage = (index: number) => {
-    setImages(prev => prev.filter((_, i) => i !== index))
+    setImages((prev) => {
+      const removed = prev[index]
+      if (removed) {
+        URL.revokeObjectURL(removed.preview)
+      }
+      return prev.filter((_, i) => i !== index)
+    })
   }
 
   const productTypeOptions = [
@@ -70,19 +135,28 @@ export default function CustomMadeForm({ locale }: CustomMadeFormProps) {
     { value: 'xl', label: t('form.sizeOptions.xl') },
     { value: 'xxl', label: t('form.sizeOptions.xxl') },
   ]
-
-  const maxImages = typeof window !== 'undefined' && window.innerWidth >= 1024 ? 3 : 2
-
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
         className="bg-white/70 backdrop-blur-sm rounded-xl md:rounded-[20px] p-6 md:p-8 border border-[#F5F4F4] shadow-form"
     >
+      {submitError && (
+        <div className="mb-4 rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          {submitError}
+        </div>
+      )}
+
+      {submitSuccess && (
+        <div className="mb-4 rounded border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+          {submitSuccess}
+        </div>
+      )}
+
       {/* Mobile Layout */}
       <div className="flex flex-col gap-4 lg:hidden">
         <Select
           label={t('form.productType')}
-          placeholder={t('form.productTypePlaceholder')}
+          placeholder={t('form.selectOption')}
           options={productTypeOptions}
           error={errors.productType?.message}
           {...register('productType', { required: true })}
@@ -97,7 +171,7 @@ export default function CustomMadeForm({ locale }: CustomMadeFormProps) {
 
         <Select
           label={t('form.gender')}
-          placeholder={t('form.genderPlaceholder')}
+          placeholder={t('form.selectOption')}
           options={genderOptions}
           error={errors.gender?.message}
           {...register('gender', { required: true })}
@@ -105,7 +179,7 @@ export default function CustomMadeForm({ locale }: CustomMadeFormProps) {
 
         <Select
           label={t('form.size')}
-          placeholder={t('form.sizePlaceholder')}
+          placeholder={t('form.selectOption')}
           options={sizeOptions}
           error={errors.size?.message}
           {...register('size')}
@@ -159,7 +233,7 @@ export default function CustomMadeForm({ locale }: CustomMadeFormProps) {
                   {images[index] ? (
                     <>
                       <img
-                        src={images[index]}
+                        src={images[index].preview}
                         alt={`Upload ${index + 1}`}
                         className="w-full h-full object-cover rounded"
                       />
@@ -191,7 +265,7 @@ export default function CustomMadeForm({ locale }: CustomMadeFormProps) {
         <div className="flex flex-col gap-4">
           <Select
             label={t('form.productType')}
-            placeholder={t('form.productTypePlaceholder')}
+            placeholder={t('form.selectOption')}
             options={productTypeOptions}
             error={errors.productType?.message}
             {...register('productType', { required: true })}
@@ -217,7 +291,7 @@ export default function CustomMadeForm({ locale }: CustomMadeFormProps) {
         <div className="flex flex-col gap-4">
           <Select
             label={t('form.gender')}
-            placeholder={t('form.genderPlaceholder')}
+            placeholder={t('form.selectOption')}
             options={genderOptions}
             error={errors.gender?.message}
             {...register('gender', { required: true })}
@@ -225,7 +299,7 @@ export default function CustomMadeForm({ locale }: CustomMadeFormProps) {
 
           <Select
             label={t('form.size')}
-            placeholder={t('form.sizePlaceholder')}
+            placeholder={t('form.selectOption')}
             options={sizeOptions}
             error={errors.size?.message}
             {...register('size')}
@@ -274,7 +348,7 @@ export default function CustomMadeForm({ locale }: CustomMadeFormProps) {
                   {images[index] ? (
                     <>
                       <img
-                        src={images[index]}
+                        src={images[index].preview}
                         alt={`Upload ${index + 1}`}
                         className="w-full h-full object-cover rounded"
                       />
@@ -302,8 +376,8 @@ export default function CustomMadeForm({ locale }: CustomMadeFormProps) {
 
       {/* Submit Button */}
       <div className="mt-6 flex justify-center">
-        <Button type="submit" size="lg">
-          {t('form.confirmOrder')}
+        <Button type="submit" size="lg" disabled={isSubmitting}>
+          {isSubmitting ? 'Submitting...' : t('form.confirmOrder')}
         </Button>
       </div>
     </form>

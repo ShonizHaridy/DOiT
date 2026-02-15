@@ -9,8 +9,7 @@ import { STYLE_CATEGORIES } from '@/data/products'
 import RotatingBanner from '@/components/home/RotatingBanner'
 import { RedBlockText } from '@/components/layout/RedBlockText'
 import GrowingDotsBackground from '@/components/ui/GrowingDotsBackground'
-import { getFeaturedProducts } from '@/services/products'
-import { getLocalized, type Locale } from '@/lib/i18n-utils' 
+import { getLocalized } from '@/lib/i18n-utils' 
 import { serverFetch } from '@/lib/server-fetch'
 import type { Product } from '@/types/product'
 import { HomeContent } from '@/types/content'
@@ -72,7 +71,7 @@ export default async function HomePage({ params }: HomePageProps) {
         <GrowingDotsBackground
           showText={false}
           noDotsZone={{ top: 0, bottom: 0 }}
-          dotsZone='corners'
+          // dotsZone='corners'
         />
         {/* Section Title */}
         <div className="flex justify-center mb-6 md:mb-8 z-(--z-content)">
@@ -107,21 +106,27 @@ export default async function HomePage({ params }: HomePageProps) {
 
         {/* Products Grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 lg:gap-18 md:gap-5 z-(--z-content)">
-          {featuredProducts.map((product) => (
+          {featuredProducts.map((product) => {
+            const hasDiscount = product.discountPercentage > 0 && product.finalPrice < product.basePrice
+
+            return (
               <ProductCard
                 key={product.id}
                 id={product.id}
                 title={getLocalized(product, 'name', locale)}
-                image={product.images[0].url}
-                price={product.basePrice} // Check later as this needs to be managed when there is a discount
-                currency={"EGP"}
+                image={product.images[0]?.url ?? '/placeholder-product.png'}
+                price={hasDiscount ? product.finalPrice : product.basePrice}
+                originalPrice={hasDiscount ? product.basePrice : undefined}
+                discountPercentage={hasDiscount ? product.discountPercentage : undefined}
+                currency="EGP"
                 href={`/${locale}/products/${product.id}`}
                 colors={product.colors}
                 sizes={product.sizes}
                 gender={product.gender}
                 quickAddProduct={product}
               />
-            ))}
+            )
+          })}
           </div>
       </section>
 
@@ -235,7 +240,7 @@ export default async function HomePage({ params }: HomePageProps) {
             </h2>
           </div>
 
-          <CustomMadeForm locale={locale} />
+          <CustomMadeForm />
         </div>
       </section>
     </div>

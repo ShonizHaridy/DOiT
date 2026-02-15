@@ -1,15 +1,22 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useForm, useFieldArray } from 'react-hook-form'
+import Image from 'next/image'
+import { useForm, useFieldArray, Controller, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { FormInput, FormTextarea, FormSelect, ImageUpload, FormPageHeader, UploadedImage } from '@/components/admin/forms'
+import { FormInput, FormTextarea, FormSelect, FormColorSelect, ImageUpload, FormPageHeader, UploadedImage } from '@/components/admin/forms'
 import { productSchema, ProductFormData } from '@/lib/schemas/admin'
 import { Add, Trash } from 'iconsax-reactjs'
 import { useCreateProduct } from '@/hooks/useProducts'
 import { useCategories, useFilterOptions } from '@/hooks/useCategories'
 import { uploadProductImage, uploadProductImages } from '@/services/upload'
+import {
+  DEFAULT_PRODUCT_SIZE_VALUES,
+  buildProductColorOptions,
+  mergeProductOptionValues,
+  normalizeProductColorValue,
+} from '@/data/product-variant-options'
 
 const parseNumber = (value?: string) => {
   if (!value) return undefined
@@ -43,14 +50,18 @@ export default function AddProductPage() {
   const vendorOptions = (filterOptions?.brands ?? []).map((brand) => ({ value: brand, label: brand }))
   const genderOptions = (filterOptions?.genders ?? []).map((gender) => ({ value: gender, label: gender }))
   const typeOptions = (filterOptions?.types ?? []).map((type) => ({ value: type, label: type }))
-  const colorOptions = (filterOptions?.colors ?? []).map((color) => ({ value: color, label: color }))
-  const sizeOptions = (filterOptions?.sizes ?? []).map((size) => ({ value: size, label: size }))
+  const colorOptions = buildProductColorOptions(filterOptions?.colors)
+  const sizeOptions = mergeProductOptionValues(DEFAULT_PRODUCT_SIZE_VALUES, filterOptions?.sizes)
+    .map((size) => ({ value: size, label: size }))
 
   const {
     register,
     control,
     handleSubmit,
     watch,
+    setValue,
+    setError,
+    clearErrors,
     formState: { errors }
   } = useForm<ProductFormData>({
     resolver: zodResolver(productSchema),
@@ -78,6 +89,12 @@ export default function AddProductPage() {
 
   const selectedCategory = watch('category')
   const selectedSubCategory = watch('subCategory')
+  const watchedVariants = useWatch({ control, name: 'variants' })
+  const [isQuantityManuallyEdited, setIsQuantityManuallyEdited] = useState(false)
+
+  const variantQuantityTotal = useMemo(() => (
+    (watchedVariants ?? []).reduce((sum, variant) => sum + (parseNumber(variant.quantity) ?? 0), 0)
+  ), [watchedVariants])
 
   const categoryOptions = useMemo(() => (
     categories?.map((category) => ({ value: category.id, label: category.nameEn })) ?? []
@@ -99,7 +116,37 @@ export default function AddProductPage() {
     name: 'variants'
   })
 
+  useEffect(() => {
+    if (isQuantityManuallyEdited) return
+
+    setValue('quantity', variantQuantityTotal > 0 ? String(variantQuantityTotal) : '', {
+      shouldValidate: true,
+      shouldDirty: false,
+    })
+  }, [isQuantityManuallyEdited, setValue, variantQuantityTotal])
+
+  const quantityRegister = register('quantity', {
+    onChange: () => {
+      setIsQuantityManuallyEdited(true)
+    },
+  })
+
   const onSubmit = async (data: ProductFormData) => {
+    const quantity = parseNumber(data.quantity) ?? 0
+    const variantsTotal = data.variants.reduce(
+      (sum, variant) => sum + (parseNumber(variant.quantity) ?? 0),
+      0
+    )
+
+    if (variantsTotal > quantity) {
+      setError('quantity', {
+        type: 'manual',
+        message: 'Quantity must be greater than or equal to variants total',
+      })
+      return
+    }
+    clearErrors('quantity')
+
     const newMediaFiles = mediaImages.filter((img) => img.file).map((img) => img.file!) 
     const newMediaUrls = newMediaFiles.length ? await uploadProductImages(newMediaFiles) : []
     const existingMediaUrls = mediaImages.filter((img) => !img.file).map((img) => img.url)
@@ -118,6 +165,7 @@ export default function AddProductPage() {
       descriptionAr: data.descriptionAr,
       detailsAr: parseDetails(data.detailsAr),
       sku: data.sku,
+      quantity,
       basePrice: parseNumber(data.basePrice) ?? 0,
       discountPercentage: parseNumber(data.discountPercentage) ?? 0,
       vendor: data.vendor,
@@ -128,7 +176,7 @@ export default function AddProductPage() {
       sizeChartUrl: sizeChartUrl,
       imageUrls: allMediaUrls,
       variants: data.variants.map((variant) => ({
-        color: variant.color,
+        color: normalizeProductColorValue(variant.color),
         size: variant.size,
         quantity: parseNumber(variant.quantity) ?? 0,
       })),
@@ -149,7 +197,7 @@ export default function AddProductPage() {
           <div className="grid grid-cols-2 gap-8 pb-6 border-b border-neutral-100">
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-sm text-neutral-600 mb-4">
-                <span className="text-base">EN</span>
+                <Image src="/flags/en.svg" alt="English" width={20} height={20} className="rounded-sm" />
                 <span>English</span>
               </div>
 
@@ -180,7 +228,7 @@ export default function AddProductPage() {
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-sm text-neutral-600 mb-4 justify-end">
                 <span>Arabic</span>
-                <span className="text-base">AR</span>
+                <Image src="/flags/ar.svg" alt="Arabic" width={20} height={20} className="rounded-sm" />
               </div>
 
               <FormInput
@@ -235,7 +283,7 @@ export default function AddProductPage() {
                   type="number"
                   placeholder="0"
                   error={errors.quantity}
-                  {...register('quantity')}
+                  {...quantityRegister}
                 />
                 <FormSelect
                   label="Status"
@@ -244,6 +292,22 @@ export default function AddProductPage() {
                   {...register('status')}
                 />
               </div>
+              <div className="flex items-center justify-between text-xs text-neutral-500 -mt-1">
+                <span>Variants total: {variantQuantityTotal}</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsQuantityManuallyEdited(false)
+                    setValue('quantity', variantQuantityTotal > 0 ? String(variantQuantityTotal) : '', {
+                      shouldValidate: true,
+                      shouldDirty: true,
+                    })
+                  }}
+                  className="text-neutral-700 underline hover:text-neutral-900 transition-colors"
+                >
+                  Use derived quantity
+                </button>
+              </div>
 
               <div className="space-y-4">
                 {fields.map((field, index) => (
@@ -251,13 +315,21 @@ export default function AddProductPage() {
                     <span className="text-sm font-medium text-neutral-500 pb-2.5 w-16">
                       Variant {index + 1}:
                     </span>
-                    <FormSelect
-                      label={index === 0 ? 'Color' : undefined}
-                      options={colorOptions}
-                      placeholder="Color"
-                      className="flex-1"
-                      error={errors.variants?.[index]?.color}
-                      {...register(`variants.${index}.color`)}
+                    <Controller
+                      control={control}
+                      name={`variants.${index}.color` as const}
+                      render={({ field: colorField }) => (
+                        <FormColorSelect
+                          label={index === 0 ? 'Color' : undefined}
+                          options={colorOptions}
+                          placeholder="Color"
+                          className="flex-1"
+                          error={errors.variants?.[index]?.color}
+                          value={colorField.value}
+                          onChange={colorField.onChange}
+                          onBlur={colorField.onBlur}
+                        />
+                      )}
                     />
                     <FormSelect
                       label={index === 0 ? 'Size' : undefined}

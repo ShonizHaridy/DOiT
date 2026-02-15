@@ -464,13 +464,21 @@
 //         status: true,
 //       },
 //       {
-//         imageUrl: 'https://api.doitegypt.com/uploads/banners/exclusive.png',
-//         titleEn: 'EXCLUSIVE OFFERS',
-//         titleAr: 'عروض حصرية',
-//         link: '/offers/exclusive',
-//         order: 2,
-//         status: true,
-//       },
+    //     imageUrl: 'https://api.doitegypt.com/uploads/banners/exclusive.png',
+    //     titleEn: 'EXCLUSIVE OFFERS',
+    //     titleAr: 'عروض حصرية',
+    //     link: '/offers/exclusive',
+    //     order: 2,
+    //     status: true,
+    //   },
+    // {
+    //     imageUrl: '/uploads/banners/black-friday2.png',
+    //     titleEn: 'BLACK FRIDAY',
+    //     titleAr: 'الجمعة السوداء',
+    //     link: '/offers/black-friday2',
+    //     order: 3,
+    //     status: true,
+    //   },
 //     ],
 //   });
 

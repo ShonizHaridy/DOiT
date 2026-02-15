@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl'
 import FavoriteButton from '@/components/products/FavoriteButton'
 import AddToCartButton from '@/components/products/AddToCartButton'
 import { cn } from '@/lib/utils'
+import { resolveProductColorHex } from '@/data/product-variant-options'
 import type { Product } from '@/types/product'
 
 export type ProductCardVariant = 'full' | 'simple' | 'minimal'
@@ -254,7 +255,7 @@ export default function ProductCard({
                   <div
                     key={index}
                     className="w-4 h-4 rounded-sm border border-gray-300"
-                    style={{ backgroundColor: color }}
+                    style={{ backgroundColor: resolveProductColorHex(color) }}
                     title={color}
                   />
                 ))}

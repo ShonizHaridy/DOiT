@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils'
 
-type StatusVariant = 
+export type StatusVariant = 
   | 'success'      // Green - In stock, Published, Completed
   | 'warning'      // Yellow/Orange - Low stock, In progress
   | 'error'        // Red - Out of stock, Unpublished, Canceled
@@ -14,11 +14,11 @@ interface StatusBadgeProps {
 }
 
 const variantStyles: Record<StatusVariant, string> = {
-  success: 'bg-green-50 text-green-600 border-green-200',
-  warning: 'bg-orange-50 text-orange-600 border-orange-200',
-  error: 'bg-red-50 text-red-600 border-red-200',
-  info: 'bg-blue-50 text-blue-600 border-blue-200',
-  default: 'bg-neutral-50 text-neutral-600 border-neutral-200',
+  success: 'bg-green-100 text-green-800 border-green-200',
+  warning: 'bg-amber-100 text-amber-800 border-amber-200',
+  error: 'bg-red-100 text-red-700 border-red-200',
+  info: 'bg-blue-100 text-blue-700 border-blue-200',
+  default: 'bg-neutral-100 text-neutral-800 border-neutral-200',
 }
 
 export default function StatusBadge({ 
@@ -47,12 +47,12 @@ export function getStatusVariant(status: string): StatusVariant {
   }
   
   // Warning states
-  if (['low stock', 'in progress', 'pending', 'processing'].includes(statusLower)) {
+  if (['low stock', 'in progress', 'pending', 'processing', 'scheduled'].includes(statusLower)) {
     return 'warning'
   }
   
   // Error states
-  if (['out of stock', 'out fo stock', 'unpublished', 'canceled', 'cancelled', 'inactive'].includes(statusLower)) {
+  if (['out of stock', 'out fo stock', 'unpublished', 'canceled', 'cancelled', 'inactive', 'expired'].includes(statusLower)) {
     return 'error'
   }
   

@@ -66,3 +66,22 @@ export interface DashboardRecentActivity {
     totalStock: number;
   }>;
 }
+
+export interface AdminNotificationItem {
+  id: string;
+  type: 'order' | 'customer' | 'offer';
+  title: string;
+  description: string;
+  href: string;
+  createdAt: string;
+}
+
+export interface AdminNotifications {
+  unread: {
+    orders: number;
+    customers: number;
+    offers: number;
+    total: number;
+  };
+  items: AdminNotificationItem[];
+}

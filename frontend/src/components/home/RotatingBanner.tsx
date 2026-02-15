@@ -51,7 +51,7 @@ export default function RotatingBanner({ locale, banners }: RotatingBannerProps)
   return (
     <section className="w-full">
       <Link 
-        href={`/${locale}${currentBanner.link}`}
+        href='#'
         className="relative block h-42 md:h-56 lg:h-161 overflow-hidden group"
       >
         <Image

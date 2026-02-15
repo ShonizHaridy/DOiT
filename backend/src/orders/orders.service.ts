@@ -7,9 +7,18 @@ import {
   NotFoundException,
   BadRequestException,
   ForbiddenException,
+  Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateOrderDto, CreateGuestOrderDto, OrderDto, PaginatedOrdersDto } from './dto/orders.dto';
+import { EmailService } from '../auth/email.service';
+import {
+  CreateOrderDto,
+  CreateGuestOrderDto,
+  CreateCustomOrderDto,
+  CustomOrderDto,
+  OrderDto,
+  PaginatedOrdersDto,
+} from './dto/orders.dto';
 
 // Type for order item data to ensure type safety
 interface OrderItemData {
@@ -31,7 +40,12 @@ interface OrderItemData {
 
 @Injectable()
 export class OrdersService {
-  constructor(private prisma: PrismaService) {}
+  private readonly logger = new Logger(OrdersService.name);
+
+  constructor(
+    private prisma: PrismaService,
+    private emailService: EmailService,
+  ) {}
 
   // ============================================
   // HELPERS
@@ -57,6 +71,7 @@ export class OrdersService {
     let customer = await this.prisma.customer.findUnique({
       where: { email },
     });
+    const isNewGuestCustomer = !customer;
 
     let customerId: string;
     let addressId: string;
@@ -99,6 +114,14 @@ export class OrdersService {
       addressId = result.addressId;
     }
 
+    if (isNewGuestCustomer) {
+      await this.notifyAdminNewCustomer({
+        id: customerId,
+        email,
+        fullName,
+      });
+    }
+
     // Create order using the existing createOrder logic
     return this.createOrderInternal(customerId, {
       items,
@@ -107,6 +130,44 @@ export class OrdersService {
       notes,
       couponCode,
     });
+  }
+
+  async createCustomOrder(dto: CreateCustomOrderDto): Promise<CustomOrderDto> {
+    const orderNumber = `#C${Date.now().toString().slice(-8)}${Math.floor(Math.random() * 1000)}`;
+    const customerId =
+      dto.customerId && dto.customerId.trim().length > 0
+        ? dto.customerId.trim()
+        : `guest-${Date.now().toString(36)}`;
+
+    const customOrder = await this.prisma.customOrder.create({
+      data: {
+        customerId,
+        orderNumber,
+        productType: dto.productType,
+        color: dto.color ?? '',
+        gender: dto.gender,
+        size: dto.size ?? '',
+        quantity: dto.quantity,
+        details: dto.details ?? '',
+        referenceImages: dto.referenceImages ?? [],
+      },
+    });
+
+    await this.notifyAdminCustomOrder(customOrder.orderNumber, customOrder.customerId);
+
+    return this.transformCustomOrder(customOrder);
+  }
+
+  async trackCustomOrder(orderNumber: string): Promise<CustomOrderDto> {
+    const customOrder = await this.prisma.customOrder.findUnique({
+      where: { orderNumber },
+    });
+
+    if (!customOrder) {
+      throw new NotFoundException('Custom order not found');
+    }
+
+    return this.transformCustomOrder(customOrder);
   }
 
   // ============================================
@@ -283,7 +344,10 @@ export class OrdersService {
       return newOrder;
     });
 
-    return this.getOrderById(customerId, order.id);
+    const createdOrder = await this.getOrderById(customerId, order.id);
+    await this.notifyAdminNewOrder(createdOrder.orderNumber, createdOrder.total, customerId);
+
+    return createdOrder;
   }
 
   // ============================================
@@ -376,5 +440,75 @@ export class OrdersService {
         discount: item.discount ?? undefined,
       })),
     };
+  }
+
+  private transformCustomOrder(customOrder: any): CustomOrderDto {
+    return {
+      id: customOrder.id,
+      customerId: customOrder.customerId,
+      orderNumber: customOrder.orderNumber,
+      productType: customOrder.productType,
+      color: customOrder.color,
+      gender: customOrder.gender,
+      size: customOrder.size,
+      quantity: customOrder.quantity,
+      details: customOrder.details,
+      referenceImages: Array.isArray(customOrder.referenceImages)
+        ? (customOrder.referenceImages as string[])
+        : [],
+      status: customOrder.status,
+      price: this.toNumber(customOrder.price),
+      shipping: this.toNumber(customOrder.shipping),
+      total: this.toNumber(customOrder.total),
+      createdAt: customOrder.createdAt,
+      updatedAt: customOrder.updatedAt,
+    };
+  }
+
+  private async notifyAdminNewCustomer(customer: {
+    id: string;
+    email: string;
+    fullName: string;
+  }) {
+    try {
+      await this.emailService.sendAdminAlert(
+        'New customer registered',
+        `New customer: ${customer.fullName} (${customer.email})\nCustomer ID: ${customer.id}`,
+      );
+    } catch (error) {
+      this.logger.warn(
+        `Failed to send admin email for new customer ${customer.id}: ${(error as Error).message}`,
+      );
+    }
+  }
+
+  private async notifyAdminNewOrder(
+    orderNumber: string,
+    total: number,
+    customerId: string,
+  ) {
+    try {
+      await this.emailService.sendAdminAlert(
+        `New order ${orderNumber}`,
+        `A new order was placed.\nOrder: ${orderNumber}\nCustomer ID: ${customerId}\nTotal: ${total} EGP`,
+      );
+    } catch (error) {
+      this.logger.warn(
+        `Failed to send admin email for order ${orderNumber}: ${(error as Error).message}`,
+      );
+    }
+  }
+
+  private async notifyAdminCustomOrder(orderNumber: string, customerId: string) {
+    try {
+      await this.emailService.sendAdminAlert(
+        `New custom order ${orderNumber}`,
+        `A new custom order was placed.\nOrder: ${orderNumber}\nCustomer ID: ${customerId}`,
+      );
+    } catch (error) {
+      this.logger.warn(
+        `Failed to send admin email for custom order ${orderNumber}: ${(error as Error).message}`,
+      );
+    }
   }
 }
