@@ -10,6 +10,7 @@ export interface CartItem {
   originalPrice?: number
   currency: string
   quantity: number
+  maxQuantity?: number
   size: string
   color: string
   vendor?: string
@@ -53,13 +54,35 @@ export const useCartStore = create<CartState>()(
       addItem: (item) => {
         const id = `${item.productId}-${item.size}-${item.color}`
         set((state) => {
+          const maxQuantity =
+            typeof item.maxQuantity === 'number' && item.maxQuantity > 0
+              ? item.maxQuantity
+              : undefined
           const existingIndex = state.items.findIndex((i) => i.id === id)
           if (existingIndex > -1) {
             const newItems = [...state.items]
-            newItems[existingIndex].quantity += item.quantity
+            const existingItem = newItems[existingIndex]
+            const effectiveMax = maxQuantity ?? existingItem.maxQuantity
+            const nextQuantityRaw = existingItem.quantity + item.quantity
+            const nextQuantity =
+              typeof effectiveMax === 'number'
+                ? Math.min(nextQuantityRaw, effectiveMax)
+                : nextQuantityRaw
+            newItems[existingIndex] = {
+              ...existingItem,
+              ...item,
+              quantity: nextQuantity,
+              maxQuantity: effectiveMax,
+            }
             return { items: newItems }
           }
-          return { items: [...state.items, { ...item, id }] }
+          const initialQuantity =
+            typeof maxQuantity === 'number'
+              ? Math.min(item.quantity, maxQuantity)
+              : item.quantity
+          return {
+            items: [...state.items, { ...item, id, quantity: initialQuantity, maxQuantity }],
+          }
         })
       },
 
@@ -72,8 +95,17 @@ export const useCartStore = create<CartState>()(
       updateQuantity: (id, quantity) => {
         if (quantity < 1) return
         set((state) => ({
+          ...state,
           items: state.items.map((item) =>
-            item.id === id ? { ...item, quantity } : item
+            item.id === id
+              ? {
+                  ...item,
+                  quantity:
+                    typeof item.maxQuantity === 'number'
+                      ? Math.min(quantity, item.maxQuantity)
+                      : quantity,
+                }
+              : item
           ),
         }))
       },

@@ -43,6 +43,7 @@ export default function Header({ locale, categories }: HeaderProps) {
   const searchInputRef = useRef<HTMLDivElement | null>(null)
   const searchPanelRef = useRef<HTMLDivElement | null>(null)
   const isSignedIn = Boolean(accessToken)
+  const visibleWishlistCount = isSignedIn ? wishlistCount : 0
 
   const formatCount = (count: number) => (count > 99 ? '99+' : `${count}`)
   const trimmedQuery = searchQuery.trim()
@@ -381,9 +382,11 @@ export default function Header({ locale, categories }: HeaderProps) {
                 </div>
                 <Link href="/wishlist" className="relative flex items-center justify-center">
                   <Heart size={24} color="#fff" variant="Outline" />
-                  <span className="absolute -top-1 -end-1 min-w-[16px] h-[16px] px-0.5 bg-[#00A3FF] text-white text-[8px] font-normal rounded-full flex items-center justify-center">
-                    {formatCount(wishlistCount)}
-                  </span>
+                  {visibleWishlistCount > 0 && (
+                    <span className="absolute -top-1 -end-1 min-w-[16px] h-[16px] px-0.5 bg-[#00A3FF] text-white text-[8px] font-normal rounded-full flex items-center justify-center">
+                      {formatCount(visibleWishlistCount)}
+                    </span>
+                  )}
                 </Link>
                 <Link href="/cart" className="relative flex items-center justify-center">
                   <ShoppingCart size={24} color="#FFFFFF" variant="Outline" />

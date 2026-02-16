@@ -4,13 +4,14 @@
 
 import { Controller, Get, Post, Body, Param, Query, UseGuards } from '@nestjs/common';
 import { GetUser, Roles, Public } from 'src/auth/decorators/auth.decorators';
-import { JwtAuthGuard, RolesGuard } from '../auth/guards';
+import { JwtAuthGuard, OptionalJwtAuthGuard, RolesGuard } from '../auth/guards';
 import {
   CreateOrderDto,
   CreateGuestOrderDto,
   CreateCustomOrderDto,
   CustomOrderDto,
   OrderDto,
+  PaginatedCustomOrdersDto,
   PaginatedOrdersDto,
 } from './dto/orders.dto';
 import { OrdersService } from './orders.service';
@@ -31,11 +32,13 @@ export class OrdersController {
   }
 
   @Public()
+  @UseGuards(OptionalJwtAuthGuard)
   @Post('custom')
   async createCustomOrder(
     @Body() dto: CreateCustomOrderDto,
+    @GetUser('id') customerId?: string,
   ): Promise<CustomOrderDto> {
-    return this.ordersService.createCustomOrder(dto);
+    return this.ordersService.createCustomOrder(dto, customerId);
   }
 
   // ============================================
@@ -61,6 +64,23 @@ export class OrdersController {
     @Query('status') status?: string,
   ): Promise<PaginatedOrdersDto> {
     return this.ordersService.getOrders(
+      customerId,
+      page ? parseInt(page) : 1,
+      limit ? parseInt(limit) : 20,
+      status,
+    );
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('customer')
+  @Get('custom')
+  async getCustomOrders(
+    @GetUser('id') customerId: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('status') status?: string,
+  ): Promise<PaginatedCustomOrdersDto> {
+    return this.ordersService.getCustomOrders(
       customerId,
       page ? parseInt(page) : 1,
       limit ? parseInt(limit) : 20,

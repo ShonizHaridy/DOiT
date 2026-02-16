@@ -40,3 +40,15 @@ export const toggleOfferStatus = async (id: string, status: boolean): Promise<Of
   const response = await apiClient.put<Offer>(`/admin/offers/${id}`, { status });
   return response.data;
 };
+
+export const exportAllOffersCsv = async (params?: {
+  search?: string;
+  type?: string;
+  status?: string;
+}): Promise<Blob> => {
+  const { data } = await apiClient.get<Blob>('/admin/offers/export', {
+    params,
+    responseType: 'blob',
+  });
+  return data;
+};

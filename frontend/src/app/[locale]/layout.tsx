@@ -15,7 +15,7 @@ const locales = ['en', 'ar']
 async function getCategories(): Promise<Category[]> {
   try {
     return await serverFetch<Category[]>('/categories?includeChildren=true', {
-      revalidate: 3600,
+      revalidate: 0,
       tags: ['categories'],
     })
   } catch {

@@ -9,6 +9,8 @@ import FilterButton, { type FilterSection, type FilterValues } from '@/component
 import ExportButton from '@/components/admin/ExportButton'
 import StatusBadge, { getStatusVariant } from '@/components/admin/StatusBadge'
 import { useAllOrders, useAdminCustomOrders } from '@/hooks/useOrders'
+import { downloadCsvBlob, exportCsv } from '@/lib/export-csv'
+import { exportAllCustomOrdersCsv, exportAllOrdersCsv } from '@/services/orders'
 import type { AdminOrder, AdminCustomOrder, OrderStatus, CustomOrderStatus } from '@/types/order'
 import { User } from 'iconsax-reactjs'
 
@@ -76,6 +78,11 @@ const formatDate = (value?: string) => {
   return Number.isNaN(date.getTime()) ? '---' : date.toLocaleDateString()
 }
 
+const createExportFilename = (prefix: string) => {
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-')
+  return `${prefix}-${stamp}.csv`
+}
+
 function CustomerCell({ name, detail }: { name: string; detail: string }) {
   return (
     <div className="flex items-center gap-3">
@@ -112,6 +119,8 @@ export default function OrdersPage() {
   const [customOrdersPage, setCustomOrdersPage] = useState(1)
   const [customOrdersSearch, setCustomOrdersSearch] = useState('')
   const [customOrdersFilters, setCustomOrdersFilters] = useState<FilterValues>({})
+  const [isExportingAllOrders, setIsExportingAllOrders] = useState(false)
+  const [isExportingCustomOrders, setIsExportingCustomOrders] = useState(false)
   const pageSize = 10
 
   const selectedStatuses = (allOrdersFilters.status ?? []) as UiOrderStatus[]
@@ -155,6 +164,94 @@ export default function OrdersPage() {
     : customOrders
   const usingLocalCustomStatusFilter = selectedCustomStatuses.length > 1
   const customPagination = customData?.pagination
+
+  const exportCurrentAllOrdersPage = () => {
+    const headers = [
+      'Order Number',
+      'Customer Name',
+      'Customer Email',
+      'Status',
+      'Items',
+      'Total',
+      'Currency',
+      'Created',
+    ]
+    const rows = filteredAllOrders.map((order) => [
+      order.orderNumber,
+      order.customer?.fullName ?? '',
+      order.customer?.email ?? '',
+      statusLabel(order.status),
+      order.itemsCount ?? order.items?.length ?? 0,
+      Number(order.total).toFixed(2),
+      order.currency ?? 'EGP',
+      order.createdAt ? new Date(order.createdAt).toISOString() : '',
+    ])
+
+    exportCsv(createExportFilename('orders-current-page'), headers, rows)
+  }
+
+  const exportCurrentCustomOrdersPage = () => {
+    const headers = [
+      'Order Number',
+      'Customer Name',
+      'Customer Email',
+      'Status',
+      'Product Type',
+      'Color',
+      'Gender',
+      'Size',
+      'Quantity',
+      'Total',
+      'Created',
+    ]
+    const rows = filteredCustomOrders.map((order) => [
+      order.orderNumber,
+      order.customer?.fullName ?? (order.customerId.startsWith('guest-') ? 'Guest' : order.customerId),
+      order.customer?.email ?? '',
+      statusLabel(order.status),
+      order.productType,
+      order.color,
+      order.gender,
+      order.size,
+      order.quantity,
+      order.total ?? '',
+      order.createdAt ? new Date(order.createdAt).toISOString() : '',
+    ])
+
+    exportCsv(createExportFilename('custom-orders-current-page'), headers, rows)
+  }
+
+  const exportAllOrdersFiltered = async () => {
+    setIsExportingAllOrders(true)
+    try {
+      const statusParam = selectedStatuses.length
+        ? selectedStatuses.map((status) => ORDER_UI_TO_API[status]).join(',')
+        : undefined
+      const blob = await exportAllOrdersCsv({
+        search: allOrdersSearch || undefined,
+        status: statusParam,
+      })
+      downloadCsvBlob(createExportFilename('orders-all-filtered'), blob)
+    } finally {
+      setIsExportingAllOrders(false)
+    }
+  }
+
+  const exportAllCustomOrdersFiltered = async () => {
+    setIsExportingCustomOrders(true)
+    try {
+      const statusParam = selectedCustomStatuses.length
+        ? selectedCustomStatuses.map((status) => CUSTOM_UI_TO_API[status]).join(',')
+        : undefined
+      const blob = await exportAllCustomOrdersCsv({
+        search: customOrdersSearch || undefined,
+        status: statusParam,
+      })
+      downloadCsvBlob(createExportFilename('custom-orders-all-filtered'), blob)
+    } finally {
+      setIsExportingCustomOrders(false)
+    }
+  }
 
   const allOrdersColumns: Column<AdminOrder>[] = [
     {
@@ -294,7 +391,11 @@ export default function OrdersPage() {
                 setAllOrdersPage(1)
               }}
             />
-            <ExportButton onClick={() => undefined} />
+            <ExportButton
+              onExportCurrentPage={exportCurrentAllOrdersPage}
+              onExportAllFiltered={exportAllOrdersFiltered}
+              allFilteredLabel={isExportingAllOrders ? 'All (filtered) - exporting...' : 'All (filtered)'}
+            />
           </div>
         </div>
 
@@ -338,7 +439,11 @@ export default function OrdersPage() {
                 setCustomOrdersPage(1)
               }}
             />
-            <ExportButton onClick={() => undefined} />
+            <ExportButton
+              onExportCurrentPage={exportCurrentCustomOrdersPage}
+              onExportAllFiltered={exportAllCustomOrdersFiltered}
+              allFilteredLabel={isExportingCustomOrders ? 'All (filtered) - exporting...' : 'All (filtered)'}
+            />
           </div>
         </div>
 

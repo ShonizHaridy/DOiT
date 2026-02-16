@@ -1,4 +1,5 @@
 import OrdersContent from './OrdersContent'
+import { getTranslations } from 'next-intl/server'
 
 interface OrdersPageProps {
   params: Promise<{ locale: string }>
@@ -6,13 +7,14 @@ interface OrdersPageProps {
 
 export default async function OrdersPage({ params }: OrdersPageProps) {
   const { locale } = await params
+  const t = await getTranslations({ locale, namespace: 'orders' })
 
   return (
     <div className="min-h-screen bg-white">
       {/* Red Banner */}
       <div className="w-full h-14 lg:h-20 flex items-center justify-center bg-secondary">
         <h1 className="font-roboto-condensed font-bold text-lg lg:text-2xl text-white uppercase tracking-wider">
-          MY ORDERS
+          {t('title')}
         </h1>
       </div>
 

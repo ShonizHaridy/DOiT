@@ -12,7 +12,17 @@ import type {
 // PROFILE
 // ============================================
 
-export const useCustomerProfile = (options?: UseQueryOptions<CustomerProfile>) => {
+type CustomerProfileQueryOptions = Omit<
+  UseQueryOptions<CustomerProfile>,
+  'queryKey' | 'queryFn'
+>
+
+type AddressesQueryOptions = Omit<
+  UseQueryOptions<Address[]>,
+  'queryKey' | 'queryFn'
+>
+
+export const useCustomerProfile = (options?: CustomerProfileQueryOptions) => {
   return useQuery({
     queryKey: ['customer', 'profile'],
     queryFn: () => customerService.getCustomerProfile(),
@@ -36,7 +46,7 @@ export const useUpdateProfile = () => {
 // ADDRESSES
 // ============================================
 
-export const useAddresses = (options?: UseQueryOptions<Address[]>) => {
+export const useAddresses = (options?: AddressesQueryOptions) => {
   return useQuery({
     queryKey: ['customer', 'addresses'],
     queryFn: () => customerService.getAddresses(),

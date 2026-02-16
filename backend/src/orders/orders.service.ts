@@ -17,6 +17,7 @@ import {
   CreateCustomOrderDto,
   CustomOrderDto,
   OrderDto,
+  PaginatedCustomOrdersDto,
   PaginatedOrdersDto,
 } from './dto/orders.dto';
 
@@ -59,6 +60,11 @@ export class OrdersService {
     }
     const result = Number(value);
     return Number.isNaN(result) ? undefined : result;
+  }
+
+  private normalizeOrderStatus(status?: string): string | undefined {
+    if (!status || status === 'all') return undefined;
+    return status.toUpperCase().replace(/-/g, '_');
   }
 
   // ============================================
@@ -132,10 +138,15 @@ export class OrdersService {
     });
   }
 
-  async createCustomOrder(dto: CreateCustomOrderDto): Promise<CustomOrderDto> {
+  async createCustomOrder(
+    dto: CreateCustomOrderDto,
+    authenticatedCustomerId?: string,
+  ): Promise<CustomOrderDto> {
     const orderNumber = `#C${Date.now().toString().slice(-8)}${Math.floor(Math.random() * 1000)}`;
     const customerId =
-      dto.customerId && dto.customerId.trim().length > 0
+      authenticatedCustomerId && authenticatedCustomerId.trim().length > 0
+        ? authenticatedCustomerId.trim()
+        : dto.customerId && dto.customerId.trim().length > 0
         ? dto.customerId.trim()
         : `guest-${Date.now().toString(36)}`;
 
@@ -362,8 +373,9 @@ export class OrdersService {
     const skip = (page - 1) * limit;
 
     const where: any = { customerId };
-    if (status && status !== 'all') {
-      where.status = status.toUpperCase().replace('-', '_');
+    const normalizedStatus = this.normalizeOrderStatus(status);
+    if (normalizedStatus) {
+      where.status = normalizedStatus;
     }
 
     const [orders, total] = await Promise.all([
@@ -379,6 +391,41 @@ export class OrdersService {
 
     return {
       orders: orders.map((order) => this.prepareOrderData(order)),
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  async getCustomOrders(
+    customerId: string,
+    page = 1,
+    limit = 20,
+    status?: string,
+  ): Promise<PaginatedCustomOrdersDto> {
+    const skip = (page - 1) * limit;
+
+    const where: any = { customerId };
+    const normalizedStatus = this.normalizeOrderStatus(status);
+    if (normalizedStatus) {
+      where.status = normalizedStatus;
+    }
+
+    const [orders, total] = await Promise.all([
+      this.prisma.customOrder.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.customOrder.count({ where }),
+    ]);
+
+    return {
+      orders: orders.map((order) => this.transformCustomOrder(order)),
       pagination: {
         page,
         limit,

@@ -10,7 +10,6 @@ import { getLocalized, type Locale } from '@/lib/i18n-utils'
 import { resolveProductColorHex } from '@/data/product-variant-options'
 import { useAddToWishlist, useRemoveFromWishlist } from '@/hooks/useWishlist'
 import { useAuthStore, useUIStore, useCartStore, useWishlistStore } from '@/store'
-import type { Product } from '@/types/product'
 
 export default function QuickAddModal() {
   const { quickAdd, closeQuickAdd } = useUIStore()
@@ -55,8 +54,18 @@ export default function QuickAddModal() {
     return () => { document.body.style.overflow = '' }
   }, [isOpen])
 
+  const selectedVariantStock = product?.variants?.find(
+    (variant) => variant.size === selectedSize && variant.color === selectedColor
+  )?.quantity
+  const quantityLimit = Math.max(
+    0,
+    typeof selectedVariantStock === 'number' ? selectedVariantStock : product?.totalStock ?? 0
+  )
+  const effectiveQuantity = quantityLimit < 1 ? 1 : Math.min(quantity, quantityLimit)
+
   const handleAddToCart = useCallback(() => {
     if (!product || !selectedSize || !selectedColor) return
+    if (quantityLimit < 1) return
     const hasDiscount = product.discountPercentage > 0 && product.finalPrice < product.basePrice
     addItem({
       productId: product.id,
@@ -65,7 +74,8 @@ export default function QuickAddModal() {
       price: product.finalPrice,
       originalPrice: hasDiscount ? product.basePrice : undefined,
       currency: 'EGP',
-      quantity,
+      quantity: effectiveQuantity,
+      maxQuantity: quantityLimit,
       size: selectedSize,
       color: selectedColor,
       vendor: product.vendor,
@@ -75,7 +85,7 @@ export default function QuickAddModal() {
       discount: hasDiscount ? t('discountOff', { value: product.discountPercentage }) : undefined,
     })
     closeQuickAdd()
-  }, [product, selectedSize, selectedColor, quantity, addItem, closeQuickAdd, locale, t])
+  }, [product, selectedSize, selectedColor, quantityLimit, effectiveQuantity, addItem, closeQuickAdd, locale, t])
 
   if (!isOpen || !product) return null
 
@@ -216,14 +226,16 @@ export default function QuickAddModal() {
                   <span className="text-sm text-text-body">{t('quantity')}:</span>
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      onClick={() => setQuantity(Math.max(1, effectiveQuantity - 1))}
+                      disabled={effectiveQuantity <= 1}
                       className="w-7 h-7 flex items-center justify-center border border-border-light rounded-full text-text-body hover:border-primary transition-colors"
                     >
                       <Minus size={14} />
                     </button>
-                    <span className="w-8 text-center font-medium">{quantity}</span>
+                    <span className="w-8 text-center font-medium">{effectiveQuantity}</span>
                     <button
-                      onClick={() => setQuantity(quantity + 1)}
+                      onClick={() => setQuantity(Math.min(quantityLimit, effectiveQuantity + 1))}
+                      disabled={quantityLimit < 1 || effectiveQuantity >= quantityLimit}
                       className="w-7 h-7 flex items-center justify-center border border-border-light rounded-full text-text-body hover:border-primary transition-colors"
                     >
                       <Add size={14} />
@@ -259,7 +271,7 @@ export default function QuickAddModal() {
 
                 <button
                   onClick={handleAddToCart}
-                  disabled={!selectedSize || !selectedColor}
+                  disabled={!selectedSize || !selectedColor || quantityLimit < 1}
                   className="flex-1 flex items-center justify-center gap-2 py-3 bg-primary text-white rounded-lg font-rubik font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

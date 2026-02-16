@@ -249,3 +249,15 @@ export class CustomOrderDto {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export class PaginatedCustomOrdersDto {
+  @Type(() => CustomOrderDto)
+  orders: CustomOrderDto[];
+
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}

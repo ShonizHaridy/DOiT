@@ -17,6 +17,61 @@ import {
 export class AdminOrdersService {
   constructor(private prisma: PrismaService) {}
 
+  private normalizeStatusFilter(status?: string): string[] {
+    if (!status || status === 'all') {
+      return [];
+    }
+
+    return status
+      .split(',')
+      .map((value) => value.trim())
+      .filter(Boolean)
+      .map((value) => value.toUpperCase().replace(/-/g, '_'));
+  }
+
+  private buildOrdersWhere(status?: string, search?: string): any {
+    const where: any = {};
+    const statusValues = this.normalizeStatusFilter(status);
+
+    if (statusValues.length === 1) {
+      where.status = statusValues[0];
+    } else if (statusValues.length > 1) {
+      where.status = { in: statusValues };
+    }
+
+    if (search) {
+      where.OR = [
+        { orderNumber: { contains: search, mode: 'insensitive' } },
+        { customer: { email: { contains: search, mode: 'insensitive' } } },
+        { customer: { fullName: { contains: search, mode: 'insensitive' } } },
+      ];
+    }
+
+    return where;
+  }
+
+  private buildCustomOrdersWhere(status?: string, search?: string): any {
+    const where: any = {};
+    const statusValues = this.normalizeStatusFilter(status);
+
+    if (statusValues.length === 1) {
+      where.status = statusValues[0];
+    } else if (statusValues.length > 1) {
+      where.status = { in: statusValues };
+    }
+
+    if (search) {
+      where.OR = [
+        { orderNumber: { contains: search, mode: 'insensitive' } },
+        { customerId: { contains: search, mode: 'insensitive' } },
+        { productType: { contains: search, mode: 'insensitive' } },
+        { details: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    return where;
+  }
+
   private toNumber(value: any): number | undefined {
     if (value === null || value === undefined || value === '') {
       return undefined;
@@ -37,20 +92,7 @@ export class AdminOrdersService {
     search?: string,
   ): Promise<PaginatedAdminOrdersDto> {
     const skip = (page - 1) * limit;
-
-    const where: any = {};
-
-    if (status && status !== 'all') {
-      where.status = status.toUpperCase().replace('-', '_');
-    }
-
-    if (search) {
-      where.OR = [
-        { orderNumber: { contains: search, mode: 'insensitive' } },
-        { customer: { email: { contains: search, mode: 'insensitive' } } },
-        { customer: { fullName: { contains: search, mode: 'insensitive' } } },
-      ];
-    }
+    const where = this.buildOrdersWhere(status, search);
 
     const [orders, total, stats] = await Promise.all([
       this.prisma.order.findMany({
@@ -123,20 +165,7 @@ export class AdminOrdersService {
     search?: string,
   ): Promise<PaginatedAdminCustomOrdersDto> {
     const skip = (page - 1) * limit;
-    const where: any = {};
-
-    if (status && status !== 'all') {
-      where.status = status.toUpperCase().replace('-', '_');
-    }
-
-    if (search) {
-      where.OR = [
-        { orderNumber: { contains: search, mode: 'insensitive' } },
-        { customerId: { contains: search, mode: 'insensitive' } },
-        { productType: { contains: search, mode: 'insensitive' } },
-        { details: { contains: search, mode: 'insensitive' } },
-      ];
-    }
+    const where = this.buildCustomOrdersWhere(status, search);
 
     const [orders, total, stats] = await Promise.all([
       this.prisma.customOrder.findMany({
@@ -265,6 +294,118 @@ export class AdminOrdersService {
     await this.prisma.order.delete({ where: { id } });
   }
 
+  async exportOrdersCsv(status?: string, search?: string): Promise<string> {
+    const where = this.buildOrdersWhere(status, search);
+    const orders = await this.prisma.order.findMany({
+      where,
+      include: {
+        customer: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+          },
+        },
+        items: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const headers = [
+      'Order Number',
+      'Customer Name',
+      'Customer Email',
+      'Status',
+      'Items',
+      'Total',
+      'Currency',
+      'Payment Method',
+      'Tracking Number',
+      'Created At',
+    ];
+
+    const rows = orders.map((order) => [
+      order.orderNumber,
+      order.customer.fullName,
+      order.customer.email,
+      this.toUiStatus(order.status),
+      order.items.length,
+      Number(order.total).toFixed(2),
+      order.currency,
+      order.paymentMethod ?? '',
+      order.trackingNumber ?? '',
+      this.formatDateTime(order.createdAt),
+    ]);
+
+    return this.toCsv(headers, rows);
+  }
+
+  async exportCustomOrdersCsv(status?: string, search?: string): Promise<string> {
+    const where = this.buildCustomOrdersWhere(status, search);
+    const orders = await this.prisma.customOrder.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const customerIds = Array.from(
+      new Set(
+        orders
+          .map((order) => order.customerId)
+          .filter((customerId) => customerId && !customerId.startsWith('guest-')),
+      ),
+    );
+
+    const customers = customerIds.length
+      ? await this.prisma.customer.findMany({
+          where: { id: { in: customerIds } },
+          select: { id: true, fullName: true, email: true },
+        })
+      : [];
+
+    const customersMap = new Map(customers.map((customer) => [customer.id, customer]));
+
+    const headers = [
+      'Order Number',
+      'Customer Name',
+      'Customer Email',
+      'Status',
+      'Product Type',
+      'Color',
+      'Gender',
+      'Size',
+      'Quantity',
+      'Price',
+      'Shipping',
+      'Total',
+      'Created At',
+    ];
+
+    const rows = orders.map((order) => {
+      const customer = customersMap.get(order.customerId);
+      const customerName =
+        customer?.fullName ?? (order.customerId.startsWith('guest-') ? 'Guest' : order.customerId);
+      const customerEmail = customer?.email ?? '';
+
+      return [
+        order.orderNumber,
+        customerName,
+        customerEmail,
+        this.toUiStatus(order.status),
+        order.productType,
+        order.color,
+        order.gender,
+        order.size,
+        order.quantity,
+        this.toNumber(order.price) ?? '',
+        this.toNumber(order.shipping) ?? '',
+        this.toNumber(order.total) ?? '',
+        this.formatDateTime(order.createdAt),
+      ];
+    });
+
+    return this.toCsv(headers, rows);
+  }
+
   private async getOrderStats() {
     const [total, active, completed, cancelled, revenueData] = await Promise.all([
       this.prisma.order.count(),
@@ -380,6 +521,39 @@ export class AdminOrdersService {
       updatedAt: order.updatedAt,
       customer,
     };
+  }
+
+  private toUiStatus(status: string): string {
+    const value = status.toUpperCase();
+    if (value === 'ORDER_PLACED' || value === 'PENDING') return 'New';
+    if (value === 'PROCESSED' || value === 'APPROVED') return 'In progress';
+    if (value === 'SHIPPED' || value === 'IN_PRODUCTION') return 'Shipped';
+    if (value === 'DELIVERED' || value === 'COMPLETED') return 'Completed';
+    if (value === 'CANCELLED') return 'Canceled';
+    return status;
+  }
+
+  private formatDateTime(value: Date): string {
+    return value.toISOString();
+  }
+
+  private escapeCsvValue(value: unknown): string {
+    if (value === null || value === undefined) return '';
+    const text = String(value);
+
+    if (/[",\n\r]/.test(text)) {
+      return `"${text.replace(/"/g, '""')}"`;
+    }
+
+    return text;
+  }
+
+  private toCsv(headers: string[], rows: unknown[][]): string {
+    const lines = [
+      headers.map((value) => this.escapeCsvValue(value)).join(','),
+      ...rows.map((row) => row.map((value) => this.escapeCsvValue(value)).join(',')),
+    ];
+    return `\uFEFF${lines.join('\n')}`;
   }
 }
 

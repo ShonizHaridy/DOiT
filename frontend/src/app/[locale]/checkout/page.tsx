@@ -1,20 +1,20 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { ArrowDown2, Sms, ArrowUp2 } from 'iconsax-reactjs'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import { useRouter } from '@/i18n/navigation'
 import { createAddress } from '@/services/customer'
 import { createGuestOrder, createOrder } from '@/services/orders'
 import { useAuthStore, useCartStore } from '@/store'
 
-type TranslateFn = (key: string, values?: Record<string, unknown>) => string
+type TranslateFn = (key: string, values?: Record<string, string | number | Date>) => string
 
 const buildCheckoutSchema = (t: TranslateFn) =>
   z.object({
@@ -40,23 +40,26 @@ const buildCheckoutSchema = (t: TranslateFn) =>
     billingAddress: z.string(),
   })
 
-interface CheckoutPageProps {
-  params: { locale: string }
-}
-
-export default function CheckoutPage({ params }: CheckoutPageProps) {
-  const { locale } = params
+export default function CheckoutPage() {
+  const locale = useLocale()
   const t = useTranslations('checkout')
   const tProduct = useTranslations('product')
   const checkoutSchema = useMemo(() => buildCheckoutSchema(t), [t])
   type CheckoutFormData = z.infer<typeof checkoutSchema>
   const router = useRouter()
   const accessToken = useAuthStore((state) => state.accessToken)
+  const user = useAuthStore((state) => state.user)
   const { items, getSubtotal, couponCode, clearCart } = useCartStore()
   const [isOrderSummaryOpen, setIsOrderSummaryOpen] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [successOrderNumber, setSuccessOrderNumber] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [hasSession, setHasSession] = useState(() =>
+    Boolean(
+      accessToken ||
+      (typeof window !== 'undefined' ? localStorage.getItem('access_token') : null)
+    )
+  )
   const genderLabels: Record<string, string> = {
     MEN: tProduct('genderValues.men'),
     WOMEN: tProduct('genderValues.women'),
@@ -71,6 +74,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<CheckoutFormData>({
     resolver: zodResolver(checkoutSchema),
@@ -81,6 +85,18 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
       billingAddress: 'same',
     },
   })
+
+  useEffect(() => {
+    const legacyToken =
+      typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
+    setHasSession(Boolean(accessToken || legacyToken))
+  }, [accessToken])
+
+  useEffect(() => {
+    if (user?.email) {
+      setValue('email', user.email)
+    }
+  }, [setValue, user?.email])
 
   const buildFullAddress = (data: CheckoutFormData) => {
     const parts = [
@@ -112,9 +128,16 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
     }))
 
     const paymentMethod = data.payment === 'cod' ? 'Cash on Delivery' : data.payment
+    const sessionAvailable =
+      hasSession ||
+      (typeof window !== 'undefined' && Boolean(localStorage.getItem('access_token')))
+
+    if (sessionAvailable && !hasSession) {
+      setHasSession(true)
+    }
 
     try {
-      if (accessToken) {
+      if (sessionAvailable) {
         const address = await createAddress({
           label: data.saveInfo ? 'Home' : 'Checkout',
           fullAddress: buildFullAddress(data),
@@ -129,7 +152,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
 
         setSuccessOrderNumber(order.orderNumber)
         clearCart()
-        router.push(`/${locale}/orders`)
+        router.push(`/orders`)
       } else {
         const order = await createGuestOrder({
           items: orderItems,
@@ -154,8 +177,9 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
             })
           )
         }
+        router.push(`/orders/track/${encodeURIComponent(order.orderNumber)}`)
       }
-    } catch (error) {
+    } catch {
       setSubmitError(t('submitError'))
     } finally {
       setIsSubmitting(false)
@@ -261,12 +285,12 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
             <div className="mb-4 rounded border border-green-200 bg-green-50 p-3 text-sm text-green-700">
               <p className="font-medium">{t('orderSuccessTitle')}</p>
               <p>{t('orderNumber', { number: successOrderNumber })}</p>
-              {accessToken && (
+              {hasSession && (
                 <Link href={`/${locale}/orders`} className="underline text-green-700">
                   {t('viewOrders')}
                 </Link>
               )}
-              {!accessToken && (
+              {!hasSession && (
                 <p className="mt-2 text-xs text-green-700">
                   {t('guestOrderNote')}
                 </p>
@@ -279,9 +303,11 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
             <div className="mb-6">
               <div className="flex items-center justify-between mb-2">
                 <h2 className="font-rubik font-medium text-lg">{t('email')}</h2>
-                <Link href={`/${locale}/sign-in`} className="text-sm underline">
-                  {t('signIn')}
-                </Link>
+                {!hasSession && (
+                  <Link href={`/${locale}/sign-in`} className="text-sm underline">
+                    {t('signIn')}
+                  </Link>
+                )}
               </div>
               <div className="relative">
                 <Sms size={20} className="absolute start-3 top-1/2 -translate-y-1/2 text-text-placeholder" />

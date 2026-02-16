@@ -11,6 +11,7 @@ import {
   Body,
   Param,
   Query,
+  Header,
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard, RolesGuard } from '../../auth/guards';
@@ -29,6 +30,17 @@ export class AdminOffersController {
   @Get()
   async getOffers(@Query('status') status?: string) {
     return this.adminOffersService.getOffers(status);
+  }
+
+  @Get('export')
+  @Header('Content-Type', 'text/csv; charset=utf-8')
+  @Header('Content-Disposition', 'attachment; filename="offers-export.csv"')
+  async exportOffers(
+    @Query('search') search?: string,
+    @Query('type') type?: string,
+    @Query('status') status?: string,
+  ): Promise<string> {
+    return this.adminOffersService.exportOffersCsv(search, type, status);
   }
 
   @Get(':id')

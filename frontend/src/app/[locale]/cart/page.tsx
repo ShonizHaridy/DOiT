@@ -3,40 +3,34 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useLocale, useTranslations } from 'next-intl'
 import { Add, Minus, Trash, TicketDiscount } from 'iconsax-reactjs'
 import { useCartStore } from '@/store'
 
-interface CartPageProps {
-  params: { locale: string }
-}
-
-export default function CartPage({ params }: CartPageProps) {
-  const { locale } = params
+export default function CartPage() {
+  const locale = useLocale()
+  const t = useTranslations('cart')
+  const tProduct = useTranslations('product')
   const {
     items,
     removeItem,
     updateQuantity,
     couponCode,
-    applyCoupon,
     removeCoupon,
     getSubtotal,
   } = useCartStore()
 
   const [couponInput, setCouponInput] = useState('')
-  const [couponError, setCouponError] = useState('')
 
   const subtotal = getSubtotal()
-
-  const handleApplyCoupon = () => {
-    if (!couponInput.trim()) return
-    const success = applyCoupon(couponInput)
-    if (success) {
-      setCouponError('')
-      setCouponInput('')
-    } else {
-      setCouponError('Invalid coupon code')
-    }
+  const currency = items[0]?.currency ?? 'EGP'
+  const genderLabels: Record<string, string> = {
+    MEN: tProduct('genderValues.men'),
+    WOMEN: tProduct('genderValues.women'),
+    KIDS: tProduct('genderValues.kids'),
+    UNISEX: tProduct('genderValues.unisex'),
   }
+  const formatGender = (value?: string) => (value ? genderLabels[value] ?? value : '')
 
   if (items.length === 0) {
     return (
@@ -44,17 +38,17 @@ export default function CartPage({ params }: CartPageProps) {
         {/* Red Banner */}
         <div className="w-full h-14 lg:h-20 flex items-center justify-center bg-secondary">
           <h1 className="font-roboto-condensed font-bold text-lg lg:text-2xl text-white uppercase tracking-wider">
-            MY SHOPPING CART
+            {t('title')}
           </h1>
         </div>
 
         <div className="max-w-[1200px] mx-auto px-4 lg:px-6 py-16 text-center">
-          <p className="text-lg text-text-body mb-6">Your cart is empty</p>
+          <p className="text-lg text-text-body mb-6">{t('empty')}</p>
           <Link
             href={`/${locale}`}
             className="inline-block px-8 py-3 bg-primary text-white font-medium rounded hover:bg-primary/90 transition-colors"
           >
-            Continue Shopping
+            {t('continueShopping')}
           </Link>
         </div>
       </div>
@@ -66,7 +60,7 @@ export default function CartPage({ params }: CartPageProps) {
       {/* Red Banner */}
       <div className="w-full h-14 lg:h-20 flex items-center justify-center bg-secondary">
         <h1 className="font-roboto-condensed font-bold text-lg lg:text-2xl text-white uppercase tracking-wider">
-          MY SHOPPING CART
+          {t('title')}
         </h1>
       </div>
 
@@ -76,10 +70,10 @@ export default function CartPage({ params }: CartPageProps) {
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-200">
-                <th className="text-start py-4 font-roboto font-medium text-sm text-text-body">Product</th>
-                <th className="text-start py-4 font-roboto font-medium text-sm text-text-body">Price</th>
-                <th className="text-start py-4 font-roboto font-medium text-sm text-text-body">Quantity</th>
-                <th className="text-end py-4 font-roboto font-medium text-sm text-text-body">Total</th>
+                <th className="text-start py-4 font-roboto font-medium text-sm text-text-body">{t('product')}</th>
+                <th className="text-start py-4 font-roboto font-medium text-sm text-text-body">{t('price')}</th>
+                <th className="text-start py-4 font-roboto font-medium text-sm text-text-body">{t('quantity')}</th>
+                <th className="text-end py-4 font-roboto font-medium text-sm text-text-body">{t('total')}</th>
               </tr>
             </thead>
             <tbody>
@@ -107,23 +101,23 @@ export default function CartPage({ params }: CartPageProps) {
                         </h3>
                         <div className="grid grid-cols-2 gap-x-8 gap-y-0.5 text-sm text-text-body">
                           <div className="flex gap-2">
-                            <span>Vendor</span>
+                            <span>{t('vendor')}</span>
                             <span className="font-medium text-primary">{item.vendor}</span>
                           </div>
                           <div className="flex gap-2">
-                            <span>Type</span>
+                            <span>{t('type')}</span>
                             <span className="font-medium text-primary">{item.type}</span>
                           </div>
                           <div className="flex gap-2">
-                            <span>Size</span>
+                            <span>{t('size')}</span>
                             <span className="font-medium text-primary">{item.size}</span>
                           </div>
                           <div className="flex gap-2">
-                            <span>Gender</span>
-                            <span className="font-medium text-primary">{item.gender}</span>
+                            <span>{t('gender')}</span>
+                            <span className="font-medium text-primary">{formatGender(item.gender)}</span>
                           </div>
                           <div className="flex gap-2">
-                            <span>SKU</span>
+                            <span>{t('sku')}</span>
                             <span className="font-medium text-primary">{item.sku}</span>
                           </div>
                         </div>
@@ -142,7 +136,7 @@ export default function CartPage({ params }: CartPageProps) {
                       )}
                       {item.discount && (
                         <div className="flex items-center gap-1 text-xs text-green-600 mt-1">
-                          <span className="text-secondary">âŠ›</span>
+                          <span className="text-secondary">&bull;</span>
                           <span>{item.discount}</span>
                         </div>
                       )}
@@ -152,7 +146,8 @@ export default function CartPage({ params }: CartPageProps) {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                        className="w-7 h-7 flex items-center justify-center border border-border-light rounded-full hover:border-primary transition-colors"
+                        disabled={item.quantity <= 1}
+                        className="w-7 h-7 flex items-center justify-center border border-border-light rounded-full hover:border-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <Minus size={14} />
                       </button>
@@ -161,7 +156,8 @@ export default function CartPage({ params }: CartPageProps) {
                       </span>
                       <button
                         onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                        className="w-7 h-7 flex items-center justify-center border border-border-light rounded-full hover:border-primary transition-colors"
+                        disabled={typeof item.maxQuantity === 'number' && item.quantity >= item.maxQuantity}
+                        className="w-7 h-7 flex items-center justify-center border border-border-light rounded-full hover:border-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <Add size={14} />
                       </button>
@@ -196,23 +192,23 @@ export default function CartPage({ params }: CartPageProps) {
                 </h3>
                 <div className="grid grid-cols-2 gap-x-3 text-xs text-text-body mb-2">
                   <div className="flex gap-1">
-                    <span>Vendor</span>
+                    <span>{t('vendor')}</span>
                     <span className="font-medium text-primary">{item.vendor}</span>
                   </div>
                   <div className="flex gap-1">
-                    <span>Type</span>
+                    <span>{t('type')}</span>
                     <span className="font-medium text-primary">{item.type}</span>
                   </div>
                   <div className="flex gap-1">
-                    <span>Size</span>
+                    <span>{t('size')}</span>
                     <span className="font-medium text-primary">{item.size}</span>
                   </div>
                   <div className="flex gap-1">
-                    <span>Gender</span>
-                    <span className="font-medium text-primary">{item.gender}</span>
+                    <span>{t('gender')}</span>
+                    <span className="font-medium text-primary">{formatGender(item.gender)}</span>
                   </div>
                   <div className="flex gap-1">
-                    <span>SKU</span>
+                    <span>{t('sku')}</span>
                     <span className="font-medium text-primary">{item.sku}</span>
                   </div>
                 </div>
@@ -232,14 +228,16 @@ export default function CartPage({ params }: CartPageProps) {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                      className="w-6 h-6 flex items-center justify-center border border-border-light rounded-full"
+                      disabled={item.quantity <= 1}
+                      className="w-6 h-6 flex items-center justify-center border border-border-light rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Minus size={12} />
                     </button>
                     <span className="w-6 text-center text-sm">{item.quantity}</span>
                     <button
                       onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                      className="w-6 h-6 flex items-center justify-center border border-border-light rounded-full"
+                      disabled={typeof item.maxQuantity === 'number' && item.quantity >= item.maxQuantity}
+                      className="w-6 h-6 flex items-center justify-center border border-border-light rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Add size={12} />
                     </button>
@@ -250,7 +248,7 @@ export default function CartPage({ params }: CartPageProps) {
                   onClick={() => removeItem(item.id)}
                   className="text-sm text-text-body underline mt-2"
                 >
-                  Remove
+                  {t('remove')}
                 </button>
               </div>
             </div>
@@ -262,15 +260,15 @@ export default function CartPage({ params }: CartPageProps) {
           <div className="lg:w-96">
             {/* Coupon */}
             <div className="mb-4">
-              <label className="font-roboto font-medium text-base mb-2 block">Apply Coupon</label>
+              <label className="font-roboto font-medium text-base mb-2 block">{t('applyCoupon')}</label>
               {couponCode ? (
                 <div className="flex items-center justify-between p-3 bg-green-50 rounded border border-green-200">
-                  <span className="text-sm text-green-700">Coupon "{couponCode}" applied</span>
+                  <span className="text-sm text-green-700">{t('couponApplied', { code: couponCode })}</span>
                   <button
                     onClick={removeCoupon}
                     className="text-sm text-red-500 hover:underline"
                   >
-                    Remove
+                    {t('remove')}
                   </button>
                 </div>
               ) : (
@@ -281,23 +279,22 @@ export default function CartPage({ params }: CartPageProps) {
                       type="text"
                       value={couponInput}
                       onChange={(e) => setCouponInput(e.target.value)}
-                      placeholder="enter discount code"
+                      placeholder={t('couponPlaceholder')}
                       className="w-full ps-10 pe-3 py-2.5 border border-border-light rounded text-sm outline-none focus:border-primary"
                     />
                   </div>
                 </div>
               )}
-              {couponError && <p className="text-xs text-red-500 mt-1">{couponError}</p>}
             </div>
 
             {/* Subtotal */}
             <div className="flex items-center justify-between py-3 border-t border-gray-200 mb-2">
-              <span className="text-text-body">Subtotal :</span>
-              <span className="font-bold text-lg text-primary">{subtotal.toLocaleString()} EGP</span>
+              <span className="text-text-body">{t('subtotal')} :</span>
+              <span className="font-bold text-lg text-primary">{subtotal.toLocaleString()} {currency}</span>
             </div>
 
             <p className="text-xs text-text-placeholder mb-4">
-              Taxes and Shipping Calculated at Checkout
+              {t('taxesAndShipping')}
             </p>
 
             {/* Checkout Button */}
@@ -305,7 +302,7 @@ export default function CartPage({ params }: CartPageProps) {
               href={`/${locale}/checkout`}
               className="block w-full py-3 bg-primary text-white text-center font-rubik font-medium rounded hover:bg-primary/90 transition-colors"
             >
-              Check Out
+              {t('checkout')}
             </Link>
           </div>
         </div>

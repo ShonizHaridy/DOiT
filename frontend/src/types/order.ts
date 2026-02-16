@@ -30,7 +30,6 @@ export interface CreateCustomOrderRequest {
   quantity: number;
   details: string;
   referenceImages?: string[];
-  customerId?: string;
 }
 
 // Response types
@@ -127,6 +126,16 @@ export interface AdminOrdersResponse {
     completedOrders: number;
     cancelledOrders: number;
     totalRevenue: number;
+  };
+}
+
+export interface PaginatedCustomOrders {
+  orders: CustomOrder[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
   };
 }
 

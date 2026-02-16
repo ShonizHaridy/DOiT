@@ -151,6 +151,12 @@ export default function ProductsPage() {
       )
     },
     {
+      key: 'totalStock',
+      header: 'Stock Qty',
+      width: 'w-[100px]',
+      render: (product) => product.totalStock,
+    },
+    {
       key: 'status',
       header: 'Status',
       width: 'w-[120px]',

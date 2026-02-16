@@ -25,10 +25,13 @@ export const useOrders = (params?: {
   page?: number;
   limit?: number;
   status?: string;
+}, options?: {
+  enabled?: boolean;
 }) => {
   return useQuery({
     queryKey: ['orders', params],
     queryFn: () => ordersService.getOrders(params),
+    enabled: options?.enabled ?? true,
   });
 };
 
@@ -37,6 +40,20 @@ export const useOrder = (id: string) => {
     queryKey: ['orders', id],
     queryFn: () => ordersService.getOrder(id),
     enabled: !!id,
+  });
+};
+
+export const useCustomOrders = (params?: {
+  page?: number;
+  limit?: number;
+  status?: string;
+}, options?: {
+  enabled?: boolean;
+}) => {
+  return useQuery({
+    queryKey: ['orders', 'custom', params],
+    queryFn: () => ordersService.getCustomOrders(params),
+    enabled: options?.enabled ?? true,
   });
 };
 

@@ -2,6 +2,7 @@ import { apiClient } from '@/lib/axios-client';
 import type {
   Order,
   PaginatedOrders,
+  PaginatedCustomOrders,
   CreateOrderRequest,
   CreateGuestOrderRequest,
   CreateCustomOrderRequest,
@@ -56,6 +57,17 @@ export const getOrders = async (params?: {
 
 export const getOrder = async (id: string): Promise<Order> => {
   const { data } = await apiClient.get<Order>(`/orders/${id}`);
+  return data;
+};
+
+export const getCustomOrders = async (params?: {
+  page?: number;
+  limit?: number;
+  status?: string;
+}): Promise<PaginatedCustomOrders> => {
+  const { data } = await apiClient.get<PaginatedCustomOrders>('/orders/custom', {
+    params,
+  });
   return data;
 };
 
@@ -150,6 +162,28 @@ export const getOrderStatistics = async (params?: {
     '/admin/orders/statistics',
     { params }
   );
+  return data;
+};
+
+export const exportAllOrdersCsv = async (params?: {
+  status?: string;
+  search?: string;
+}): Promise<Blob> => {
+  const { data } = await apiClient.get<Blob>('/admin/orders/export', {
+    params,
+    responseType: 'blob',
+  });
+  return data;
+};
+
+export const exportAllCustomOrdersCsv = async (params?: {
+  status?: string;
+  search?: string;
+}): Promise<Blob> => {
+  const { data } = await apiClient.get<Blob>('/admin/orders/custom/export', {
+    params,
+    responseType: 'blob',
+  });
   return data;
 };
 

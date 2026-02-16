@@ -10,6 +10,71 @@ import { CreateOfferDto, UpdateOfferDto, CreatePopupOfferDto, UpdatePopupOfferDt
 export class AdminOffersService {
   constructor(private prisma: PrismaService) {}
 
+  private normalizeListParam(value?: string): string[] {
+    if (!value) return [];
+
+    return value
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+
+  private buildOfferExportWhere(search?: string, type?: string, status?: string): any {
+    const conditions: any[] = [];
+    const now = new Date();
+
+    if (search) {
+      conditions.push({
+        OR: [
+          { code: { contains: search, mode: 'insensitive' } },
+          { nameEn: { contains: search, mode: 'insensitive' } },
+          { nameAr: { contains: search, mode: 'insensitive' } },
+        ],
+      });
+    }
+
+    const typeValues = this.normalizeListParam(type).map((entry) =>
+      entry.toUpperCase() === 'BOGO' ? 'BUNDLE' : entry.toUpperCase(),
+    );
+    if (typeValues.length > 0) {
+      conditions.push({ type: { in: Array.from(new Set(typeValues)) } });
+    }
+
+    const statusValues = this.normalizeListParam(status).map((entry) => entry.toUpperCase());
+    if (statusValues.length > 0) {
+      const statusConditions: any[] = [];
+
+      if (statusValues.includes('DRAFT')) {
+        statusConditions.push({ status: false });
+      }
+      if (statusValues.includes('SCHEDULED')) {
+        statusConditions.push({
+          AND: [{ status: true }, { startDate: { gt: now } }],
+        });
+      }
+      if (statusValues.includes('EXPIRED')) {
+        statusConditions.push({
+          AND: [{ status: true }, { startDate: { lte: now } }, { endDate: { lt: now } }],
+        });
+      }
+      if (statusValues.includes('ACTIVE')) {
+        statusConditions.push({
+          AND: [{ status: true }, { startDate: { lte: now } }, { endDate: { gte: now } }],
+        });
+      }
+
+      if (statusConditions.length > 0) {
+        conditions.push({ OR: statusConditions });
+      }
+    }
+
+    if (conditions.length === 0) {
+      return {};
+    }
+
+    return { AND: conditions };
+  }
+
   // ============ OFFERS ============
 
   async createOffer(dto: CreateOfferDto) {
@@ -117,6 +182,46 @@ export class AdminOffersService {
     return offer;
   }
 
+  async exportOffersCsv(search?: string, type?: string, status?: string): Promise<string> {
+    const where = this.buildOfferExportWhere(search, type, status);
+    const offers = await this.prisma.offer.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const headers = [
+      'Code',
+      'Name (EN)',
+      'Name (AR)',
+      'Type',
+      'Status',
+      'Discount Value',
+      'Apply To',
+      'Target',
+      'Usage',
+      'Start Date',
+      'End Date',
+      'Created At',
+    ];
+
+    const rows = offers.map((offer) => [
+      offer.code,
+      offer.nameEn,
+      offer.nameAr,
+      this.formatOfferType(offer.type),
+      this.getOfferStatusLabel(offer.status, offer.startDate, offer.endDate),
+      offer.discountValue,
+      offer.applyTo,
+      offer.targetId ?? '',
+      offer.currentUsage ?? 0,
+      offer.startDate.toISOString(),
+      offer.endDate.toISOString(),
+      offer.createdAt.toISOString(),
+    ]);
+
+    return this.toCsv(headers, rows);
+  }
+
   // ============ POPUP OFFERS ============
 
   async createPopupOffer(dto: CreatePopupOfferDto) {
@@ -180,6 +285,41 @@ export class AdminOffersService {
     return this.prisma.popupOffer.findMany({
       orderBy: { createdAt: 'desc' },
     });
+  }
+
+  private formatOfferType(type: string): string {
+    if (type === 'FIXED_AMOUNT') return 'Fixed amount';
+    if (type === 'FREE_SHIPPING') return 'Free shipping';
+    if (type === 'PERCENTAGE') return 'Percentage';
+    return 'Bundle';
+  }
+
+  private getOfferStatusLabel(status: boolean, startDate: Date, endDate: Date): string {
+    if (!status) return 'Draft';
+
+    const now = new Date();
+    if (startDate.getTime() > now.getTime()) return 'Scheduled';
+    if (endDate.getTime() < now.getTime()) return 'Expired';
+    return 'Active';
+  }
+
+  private escapeCsvValue(value: unknown): string {
+    if (value === null || value === undefined) return '';
+    const text = String(value);
+
+    if (/[",\n\r]/.test(text)) {
+      return `"${text.replace(/"/g, '""')}"`;
+    }
+
+    return text;
+  }
+
+  private toCsv(headers: string[], rows: unknown[][]): string {
+    const lines = [
+      headers.map((value) => this.escapeCsvValue(value)).join(','),
+      ...rows.map((row) => row.map((value) => this.escapeCsvValue(value)).join(',')),
+    ];
+    return `\uFEFF${lines.join('\n')}`;
   }
 }
 

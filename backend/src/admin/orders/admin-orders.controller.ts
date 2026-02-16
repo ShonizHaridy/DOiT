@@ -10,6 +10,7 @@ import {
   Body,
   Param,
   Query,
+  Header,
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard, RolesGuard } from '../../auth/guards';
@@ -58,6 +59,26 @@ export class AdminOrdersController {
       status,
       search,
     );
+  }
+
+  @Get('export')
+  @Header('Content-Type', 'text/csv; charset=utf-8')
+  @Header('Content-Disposition', 'attachment; filename="orders-export.csv"')
+  async exportOrders(
+    @Query('status') status?: string,
+    @Query('search') search?: string,
+  ): Promise<string> {
+    return this.adminOrdersService.exportOrdersCsv(status, search);
+  }
+
+  @Get('custom/export')
+  @Header('Content-Type', 'text/csv; charset=utf-8')
+  @Header('Content-Disposition', 'attachment; filename="custom-orders-export.csv"')
+  async exportCustomOrders(
+    @Query('status') status?: string,
+    @Query('search') search?: string,
+  ): Promise<string> {
+    return this.adminOrdersService.exportCustomOrdersCsv(status, search);
   }
 
   @Get('custom/:id')

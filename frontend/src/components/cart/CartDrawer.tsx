@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useLocale, useTranslations } from 'next-intl'
 import { CloseCircle, Add, Minus, TicketDiscount } from 'iconsax-reactjs'
 import { cn } from '@/lib/utils'
 import { useCartStore } from '@/store'
@@ -22,8 +23,19 @@ export default function CartDrawer() {
 
   const [couponInput, setCouponInput] = useState('')
   const [couponError, setCouponError] = useState('')
+  const locale = useLocale()
+  const t = useTranslations('cart')
+  const tProduct = useTranslations('product')
 
   const subtotal = getSubtotal()
+  const currency = items[0]?.currency ?? 'EGP'
+  const genderLabels: Record<string, string> = {
+    MEN: tProduct('genderValues.men'),
+    WOMEN: tProduct('genderValues.women'),
+    KIDS: tProduct('genderValues.kids'),
+    UNISEX: tProduct('genderValues.unisex'),
+  }
+  const formatGender = (value?: string) => (value ? genderLabels[value] ?? value : '')
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -45,7 +57,7 @@ export default function CartDrawer() {
       setCouponError('')
       setCouponInput('')
     } else {
-      setCouponError('Invalid coupon code')
+      setCouponError(t('invalidCoupon'))
     }
   }
 
@@ -70,11 +82,11 @@ export default function CartDrawer() {
       >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
-          <h2 className="font-roboto font-bold text-lg">Order Details :</h2>
+          <h2 className="font-roboto font-bold text-lg">{t('orderDetails')}</h2>
           <button
             onClick={closeCart}
             className="text-text-body hover:text-primary transition-colors"
-            aria-label="Close cart"
+            aria-label={t('closeCart')}
           >
             <CloseCircle size={28} />
           </button>
@@ -84,12 +96,12 @@ export default function CartDrawer() {
         <div className="flex-1 overflow-y-auto p-4">
           {items.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center">
-              <p className="text-text-body mb-4">Your cart is empty</p>
+              <p className="text-text-body mb-4">{t('empty')}</p>
               <button
                 onClick={closeCart}
                 className="px-6 py-2 bg-primary text-white rounded font-medium hover:bg-primary/90 transition-colors"
               >
-                Continue Shopping
+                {t('continueShopping')}
               </button>
             </div>
           ) : (
@@ -119,23 +131,23 @@ export default function CartDrawer() {
                     </h3>
                     <div className="grid grid-cols-2 gap-x-4 text-xs text-text-body mb-2">
                       <div className="flex gap-1">
-                        <span>Vendor</span>
+                        <span>{t('vendor')}</span>
                         <span className="font-medium text-primary">{item.vendor}</span>
                       </div>
                       <div className="flex gap-1">
-                        <span>Type</span>
+                        <span>{t('type')}</span>
                         <span className="font-medium text-primary">{item.type}</span>
                       </div>
                       <div className="flex gap-1">
-                        <span>Size</span>
+                        <span>{t('size')}</span>
                         <span className="font-medium text-primary">{item.size}</span>
                       </div>
                       <div className="flex gap-1">
-                        <span>Gender</span>
-                        <span className="font-medium text-primary">{item.gender}</span>
+                        <span>{t('gender')}</span>
+                        <span className="font-medium text-primary">{formatGender(item.gender)}</span>
                       </div>
                       <div className="flex gap-1">
-                        <span>SKU</span>
+                        <span>{t('sku')}</span>
                         <span className="font-medium text-primary">{item.sku}</span>
                       </div>
                     </div>
@@ -163,17 +175,19 @@ export default function CartDrawer() {
                     {/* Quantity & Remove */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-text-body">Quantity:</span>
+                        <span className="text-xs text-text-body">{t('quantity')}:</span>
                         <button
                           onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                          className="w-6 h-6 flex items-center justify-center border border-border-light rounded-full"
+                          disabled={item.quantity <= 1}
+                          className="w-6 h-6 flex items-center justify-center border border-border-light rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <Minus size={12} />
                         </button>
                         <span className="w-6 text-center text-sm font-medium">{item.quantity}</span>
                         <button
                           onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                          className="w-6 h-6 flex items-center justify-center border border-border-light rounded-full"
+                          disabled={typeof item.maxQuantity === 'number' && item.quantity >= item.maxQuantity}
+                          className="w-6 h-6 flex items-center justify-center border border-border-light rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <Add size={12} />
                         </button>
@@ -182,7 +196,7 @@ export default function CartDrawer() {
                         onClick={() => removeItem(item.id)}
                         className="text-sm text-text-body underline hover:text-secondary"
                       >
-                        Remove
+                        {t('remove')}
                       </button>
                     </div>
                   </div>
@@ -197,15 +211,15 @@ export default function CartDrawer() {
           <div className="p-4 border-t border-gray-200">
             {/* Coupon */}
             <div className="mb-4">
-              <label className="font-roboto font-medium text-sm mb-2 block">Apply Coupon</label>
+              <label className="font-roboto font-medium text-sm mb-2 block">{t('applyCoupon')}</label>
               {couponCode ? (
                 <div className="flex items-center justify-between p-3 bg-green-50 rounded border border-green-200">
-                  <span className="text-sm text-green-700">Coupon "{couponCode}" applied</span>
+                  <span className="text-sm text-green-700">{t('couponApplied', { code: couponCode })}</span>
                   <button
                     onClick={removeCoupon}
                     className="text-sm text-red-500 hover:underline"
                   >
-                    Remove
+                    {t('remove')}
                   </button>
                 </div>
               ) : (
@@ -216,7 +230,7 @@ export default function CartDrawer() {
                       type="text"
                       value={couponInput}
                       onChange={(e) => setCouponInput(e.target.value)}
-                      placeholder="enter discount code"
+                      placeholder={t('couponPlaceholder')}
                       className="w-full ps-10 pe-3 py-2.5 border border-border-light rounded text-sm outline-none focus:border-primary"
                     />
                   </div>
@@ -224,7 +238,7 @@ export default function CartDrawer() {
                     onClick={handleApplyCoupon}
                     className="px-4 py-2 bg-primary text-white text-sm rounded hover:bg-primary/90 transition-colors"
                   >
-                    Apply
+                    {t('apply')}
                   </button>
                 </div>
               )}
@@ -233,28 +247,28 @@ export default function CartDrawer() {
 
             {/* Subtotal */}
             <div className="flex items-center justify-between py-3 border-t border-gray-200 mb-4">
-              <span className="text-text-body">SubTotal :</span>
-              <span className="font-bold text-lg text-primary">{subtotal.toLocaleString()} EGP</span>
+              <span className="text-text-body">{t('subtotal')} :</span>
+              <span className="font-bold text-lg text-primary">{subtotal.toLocaleString()} {currency}</span>
             </div>
 
             <p className="text-xs text-text-placeholder mb-4">
-              Taxes and Shipping Calculated at Checkout
+              {t('taxesAndShipping')}
             </p>
 
             {/* Buttons */}
             <Link
-              href="/checkout"
+              href={`/${locale}/checkout`}
               onClick={closeCart}
               className="block w-full py-3 bg-primary text-white text-center font-rubik font-medium rounded hover:bg-primary/90 transition-colors mb-3"
             >
-              Check Out
+              {t('checkout')}
             </Link>
             <Link
-              href="/cart"
+              href={`/${locale}/cart`}
               onClick={closeCart}
               className="block w-full py-2 text-center font-rubik font-medium text-primary underline"
             >
-              View Cart
+              {t('viewCart')}
             </Link>
           </div>
         )}

@@ -113,7 +113,9 @@
 //               </div>
 //               <div className="text-white text-center">
 //                 <span className="font-normal">Powered by </span>
-//                 <span className="font-bold text-[#00CCAD]">NOVIX CODE</span>
+//                 <a href="https://novixcode.com" className="font-bold text-[#00CCAD] hover:underline transition-colors">
+//                     NOVIX CODE
+//                 </a>
 //               </div>
 //             </div>
 //           </div>
@@ -195,7 +197,10 @@
 //           {/* Copyright */}
 //           <div className="flex justify-between items-center text-sm text-white">
 //             <span>© 2026 <span className="font-bold">DoiT</span> All rights reserved.</span>
-//             <span>Powered by <span className="font-bold text-[#00CCAD]">NOVIX CODE</span></span>
+//             <span className="font-normal">Powered by </span>
+//             <a href="https://novixcode.com" className="font-bold text-[#00CCAD] hover:underline transition-colors">
+//                 NOVIX CODE
+//             </a>
 //           </div>
 //         </div>
 //       </div>

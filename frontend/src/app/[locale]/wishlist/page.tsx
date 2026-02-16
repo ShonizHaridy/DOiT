@@ -1,6 +1,6 @@
 'use client'
 
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import ProductCard from '@/components/products/ProductCard'
 import { useWishlist } from '@/hooks/useWishlist'
 import { useAuthStore, useUIStore } from '@/store'
@@ -8,12 +8,8 @@ import PageTitleBanner from '@/components/layout/PageTitleBanner'
 import { getLocalized, type Locale } from '@/lib/i18n-utils'
 // import RedBlockText from '@/components/layout/RedBlockText'
 
-interface WishlistPageProps {
-  params: { locale: string }
-}
-
-export default function WishlistPage({ params }: WishlistPageProps) {
-  const { locale } = params
+export default function WishlistPage() {
+  const locale = useLocale()
   const t = useTranslations('wishlist')
   const tAuth = useTranslations('auth')
   const accessToken = useAuthStore((state) => state.accessToken)

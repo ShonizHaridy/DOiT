@@ -44,7 +44,8 @@ function ParticleCanvas() {
         vx: 0,
         vy: 0,
         r: 1.5 + Math.random() * 2,
-        color: Math.random() > 0.5 ? [255, 60, 60] : [0, 204, 173],
+        color: Math.random() > 0.5 ? [255, 60, 60] : [254, 5, 3], // Red only with grades, to match the design better
+        // color: Math.random() > 0.5 ? [255, 60, 60] : [255, 255, 255], // Mix of red and white particles
       })
     }
     return particles
@@ -301,7 +302,9 @@ export default function FooterParticles({ locale, categories }: FooterProps) {
                 </div>
                 <div className="text-white text-center">
                   <span className="font-normal">Powered by </span>
-                  <span className="font-bold text-[#00CCAD]">NOVIX CODE</span>
+                  <a href="https://novixcode.com" target="_blank" rel="noopener noreferrer" className="font-bold text-[#00CCAD] hover:underline">
+                    NOVIX CODE
+                  </a>
                 </div>
               </div>
             </div>
@@ -369,7 +372,10 @@ export default function FooterParticles({ locale, categories }: FooterProps) {
           <div className="mt-10 flex flex-col gap-2 border-t border-white/20 pt-4 text-xs text-white/70 sm:flex-row sm:items-center sm:justify-between">
             <p>© 2026 <span className="font-bold">DOiT</span> All rights reserved.</p>
             <p>
-              Powered by <span className="font-semibold text-[#00CCAD]">NOVIX CODE</span>
+              Powered by{' '}
+              <a href="https://novixcode.com" target="_blank" rel="noopener noreferrer" className="font-semibold text-[#00CCAD] hover:underline">
+              NOVIX CODE
+              </a>
             </p>
           </div>
         </div>

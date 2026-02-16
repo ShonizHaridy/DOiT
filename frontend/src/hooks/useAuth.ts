@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import * as authService from '@/services/auth';
-import { useAuthStore } from '@/store';
+import { useAuthStore, useWishlistStore } from '@/store';
 import type {
   SendOtpRequest,
   VerifyOtpRequest,
@@ -77,10 +77,13 @@ export const useAdminResetPassword = () => {
 export const useLogout = () => {
   const queryClient = useQueryClient();
   const clearAuth = useAuthStore((state) => state.clearAuth);
+  const clearWishlist = useWishlistStore((state) => state.clearWishlist);
 
   return () => {
     localStorage.removeItem('access_token');
+    localStorage.removeItem('doit-wishlist');
     clearAuth();
+    clearWishlist();
     queryClient.clear();
     window.location.href = '/';
   };

@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { Heart, Add, Minus, TruckFast, SearchZoomIn1 } from 'iconsax-reactjs'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
@@ -19,6 +20,7 @@ interface ProductDetailProps {
 export default function ProductDetail({ product, locale }: ProductDetailProps) {
   const t = useTranslations('product')
   const { addItem, openCart } = useCartStore()
+  const cartItems = useCartStore((state) => state.items)
   const { isInWishlist } = useWishlistStore()
   const { openSizeChart, openSignIn } = useUIStore()
   const accessToken = useAuthStore((state) => state.accessToken)
@@ -36,8 +38,20 @@ export default function ProductDetail({ product, locale }: ProductDetailProps) {
   const description = getLocalized(product, 'description', locale as Locale)
   const details = getLocalizedArray(product, 'details', locale as Locale)
   const imageUrls = product.images.map((image) => image.url)
-  const inStock = product.availability !== 'out-of-stock'
+  const selectedVariantStock = product.variants?.find(
+    (variant) => variant.size === selectedSize && variant.color === selectedColor
+  )?.quantity
+  const quantityLimit = Math.max(
+    0,
+    typeof selectedVariantStock === 'number' ? selectedVariantStock : product.totalStock
+  )
+  const effectiveQuantity = quantityLimit < 1 ? 1 : Math.min(quantity, quantityLimit)
+  const inStock = product.availability !== 'out-of-stock' && quantityLimit > 0
   const hasDiscount = product.discountPercentage > 0 && product.finalPrice < product.basePrice
+  const productInCart = useMemo(
+    () => cartItems.some((item) => item.productId === product.id),
+    [cartItems, product.id]
+  )
   const genderLabelMap: Record<string, string> = {
     MEN: t('genderValues.men'),
     WOMEN: t('genderValues.women'),
@@ -52,6 +66,7 @@ export default function ProductDetail({ product, locale }: ProductDetailProps) {
       : t('outOfStock')
 
   const handleAddToCart = () => {
+    if (quantityLimit < 1) return
     addItem({
       productId: product.id,
       title: productName,
@@ -59,7 +74,8 @@ export default function ProductDetail({ product, locale }: ProductDetailProps) {
       price: product.finalPrice,
       originalPrice: hasDiscount ? product.basePrice : undefined,
       currency: 'EGP',
-      quantity,
+      quantity: effectiveQuantity,
+      maxQuantity: quantityLimit,
       size: selectedSize,
       color: selectedColor,
       vendor: product.vendor,
@@ -249,14 +265,16 @@ export default function ProductDetail({ product, locale }: ProductDetailProps) {
               <span className="text-sm text-text-body">{t('quantity')}:</span>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  onClick={() => setQuantity(Math.max(1, effectiveQuantity - 1))}
+                  disabled={effectiveQuantity <= 1}
                   className="w-7 h-7 flex items-center justify-center border border-border-light rounded-full hover:border-primary transition-colors"
                 >
                   <Minus size={14} />
                 </button>
-                <span className="w-8 text-center font-medium">{quantity}</span>
+                <span className="w-8 text-center font-medium">{effectiveQuantity}</span>
                 <button
-                  onClick={() => setQuantity(quantity + 1)}
+                  onClick={() => setQuantity(Math.min(quantityLimit, effectiveQuantity + 1))}
+                  disabled={quantityLimit < 1 || effectiveQuantity >= quantityLimit}
                   className="w-7 h-7 flex items-center justify-center border border-border-light rounded-full hover:border-primary transition-colors"
                 >
                   <Add size={14} />
@@ -278,14 +296,16 @@ export default function ProductDetail({ product, locale }: ProductDetailProps) {
                 <span className="text-sm text-text-body">{t('quantity')}:</span>
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    onClick={() => setQuantity(Math.max(1, effectiveQuantity - 1))}
+                    disabled={effectiveQuantity <= 1}
                     className="w-7 h-7 flex items-center justify-center border border-border-light rounded-full"
                   >
                     <Minus size={14} />
                   </button>
-                  <span className="w-8 text-center font-medium">{quantity}</span>
+                  <span className="w-8 text-center font-medium">{effectiveQuantity}</span>
                   <button
-                    onClick={() => setQuantity(quantity + 1)}
+                    onClick={() => setQuantity(Math.min(quantityLimit, effectiveQuantity + 1))}
+                    disabled={quantityLimit < 1 || effectiveQuantity >= quantityLimit}
                     className="w-7 h-7 flex items-center justify-center border border-border-light rounded-full"
                   >
                     <Add size={14} />
@@ -313,18 +333,27 @@ export default function ProductDetail({ product, locale }: ProductDetailProps) {
           </div>
 
           {/* Mobile: Add to Cart Button (Full Width) */}
-          <button
-            onClick={handleAddToCart}
-            disabled={!inStock}
-            className="lg:hidden w-full flex items-center justify-center gap-2 py-3 bg-primary text-white rounded font-rubik font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors mb-6"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
-              <line x1="3" y1="6" x2="21" y2="6"/>
-              <path d="M16 10a4 4 0 01-8 0"/>
-            </svg>
-            <span>{t('addToCart')}</span>
-          </button>
+          {productInCart ? (
+            <Link
+              href={`/${locale}/checkout`}
+              className="lg:hidden w-full flex items-center justify-center gap-2 py-3 bg-primary text-white rounded font-rubik font-medium hover:bg-primary/90 transition-colors mb-6"
+            >
+              <span>{t('goToCheckout')}</span>
+            </Link>
+          ) : (
+            <button
+              onClick={handleAddToCart}
+              disabled={!inStock}
+              className="lg:hidden w-full flex items-center justify-center gap-2 py-3 bg-primary text-white rounded font-rubik font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors mb-6"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+                <line x1="3" y1="6" x2="21" y2="6"/>
+                <path d="M16 10a4 4 0 01-8 0"/>
+              </svg>
+              <span>{t('addToCart')}</span>
+            </button>
+          )}
 
           {/* Desktop: Action Buttons */}
           <div className="hidden lg:flex gap-4 mb-6">
@@ -340,18 +369,27 @@ export default function ProductDetail({ product, locale }: ProductDetailProps) {
               <Heart size={20} variant={isFavorite ? 'Bold' : 'Outline'} />
               <span>{t('addToWishlist')}</span>
             </button>
-            <button
-              onClick={handleAddToCart}
-              disabled={!inStock}
-              className="flex-1 flex items-center justify-center gap-2 py-3 bg-primary text-white rounded-lg font-rubik font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
-                <line x1="3" y1="6" x2="21" y2="6"/>
-                <path d="M16 10a4 4 0 01-8 0"/>
-              </svg>
-              <span>{t('addToCart')}</span>
-            </button>
+            {productInCart ? (
+              <Link
+                href={`/${locale}/checkout`}
+                className="flex-1 flex items-center justify-center gap-2 py-3 bg-primary text-white rounded-lg font-rubik font-medium hover:bg-primary/90 transition-colors"
+              >
+                <span>{t('goToCheckout')}</span>
+              </Link>
+            ) : (
+              <button
+                onClick={handleAddToCart}
+                disabled={!inStock}
+                className="flex-1 flex items-center justify-center gap-2 py-3 bg-primary text-white rounded-lg font-rubik font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+                  <line x1="3" y1="6" x2="21" y2="6"/>
+                  <path d="M16 10a4 4 0 01-8 0"/>
+                </svg>
+                <span>{t('addToCart')}</span>
+              </button>
+            )}
           </div>
 
           {/* Details */}

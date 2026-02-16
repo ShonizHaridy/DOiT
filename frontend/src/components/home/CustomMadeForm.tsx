@@ -26,7 +26,7 @@ export default function CustomMadeForm() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null)
-  const currentUser = useAuthStore((state) => state.user)
+  const accessToken = useAuthStore((state) => state.accessToken)
   const imagesRef = useRef<Array<{ file: File; preview: string }>>([])
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>({
@@ -67,7 +67,6 @@ export default function CustomMadeForm() {
         quantity: data.quantity,
         details: data.details,
         referenceImages,
-        customerId: currentUser?.role === 'customer' ? currentUser.id : undefined,
       })
 
       setSubmitSuccess(`Order ${customOrder.orderNumber} was sent successfully.`)
@@ -81,7 +80,15 @@ export default function CustomMadeForm() {
         quantity: 1,
         details: '',
       })
-      router.push(`/orders/track/${encodeURIComponent(customOrder.orderNumber)}`)
+      const hasSession =
+        Boolean(accessToken) ||
+        (typeof window !== 'undefined' && Boolean(localStorage.getItem('access_token')))
+
+      if (hasSession) {
+        router.push('/orders')
+      } else {
+        router.push(`/orders/track/${encodeURIComponent(customOrder.orderNumber)}`)
+      }
     } catch {
       setSubmitError('Failed to send custom order. Please try again.')
     } finally {
