@@ -100,10 +100,97 @@ export class EmailService {
     await this.sendMail(recipients.join(','), subject, text);
   }
 
+  async sendPopupOfferEmail(
+    to: string,
+    payload: {
+      amount: number;
+      amountLabel?: string;
+      voucherCode: string;
+      headline?: string;
+      subHeadline?: string;
+    },
+  ): Promise<void> {
+    const normalizedCode = payload.voucherCode.trim().toUpperCase();
+    const normalizedAmount = Number(payload.amount);
+    const explicitAmountLabel = payload.amountLabel?.trim();
+    const amountLabel = explicitAmountLabel
+      ? explicitAmountLabel
+      : Number.isFinite(normalizedAmount) && normalizedAmount > 0
+      ? `${normalizedAmount}% Off`
+      : 'Special Offer';
+    const headline = payload.headline?.trim() || 'Your Discount Expires Soon!';
+    const subHeadline =
+      payload.subHeadline?.trim() ||
+      "Don't miss out. Complete your purchase now and save big.";
+    const ctaUrl =
+      this.configService.get<string>('FRONTEND_URL') ?? 'https://doit.com';
+
+    const subject = 'Your Discount Expires Soon!';
+    const text = [
+      headline,
+      '',
+      subHeadline,
+      '',
+      `LIMITED TIME OFFER - HURRY!`,
+      amountLabel,
+      `Code: ${normalizedCode}`,
+      '',
+      `Complete purchase: ${ctaUrl}`,
+    ].join('\n');
+
+    const html = `
+      <div style="margin:0;padding:24px;background:#f3f4f6;font-family:Arial,sans-serif;color:#111827;">
+        <div style="max-width:560px;margin:0 auto;background:#ffffff;border:1px solid #e5e7eb;border-radius:14px;padding:28px;">
+          <h1 style="margin:0 0 14px;font-size:34px;line-height:1.2;text-align:center;font-weight:700;">${this.escapeHtml(
+            headline,
+          )}</h1>
+          <p style="margin:0 0 22px;text-align:center;font-size:20px;line-height:1.5;color:#374151;">${this.escapeHtml(
+            subHeadline,
+          )}</p>
+
+          <div style="border:2px solid #111827;border-radius:12px;padding:18px;text-align:center;margin:0 0 20px;">
+            <p style="margin:0 0 10px;font-size:18px;font-weight:700;color:#111827;">LIMITED TIME OFFER - HURRY!</p>
+            <p style="margin:0 0 12px;font-size:44px;line-height:1.1;font-weight:800;color:#111827;">${this.escapeHtml(
+              amountLabel,
+            )}</p>
+            <div style="display:inline-block;border:2px dashed #9ca3af;border-radius:10px;padding:12px 18px;background:#f9fafb;">
+              <span style="font-size:30px;letter-spacing:1px;font-weight:700;color:#111827;">${this.escapeHtml(
+                normalizedCode,
+              )}</span>
+            </div>
+            <p style="margin:12px 0 0;font-size:20px;color:#374151;">Use this code at checkout before it's gone.</p>
+          </div>
+
+          <div style="text-align:center;margin:0 0 20px;">
+            <a href="${this.escapeHtml(
+              ctaUrl,
+            )}" style="display:inline-block;background:#111827;color:#ffffff;text-decoration:none;padding:18px 28px;border-radius:10px;font-size:24px;font-weight:700;">Complete Purchase Now</a>
+          </div>
+
+          <p style="margin:0;text-align:center;font-size:18px;line-height:1.6;color:#111827;">
+            Your discount code expires soon. Do not miss this opportunity to save on your favorite products.
+          </p>
+        </div>
+      </div>
+    `;
+
+    await this.sendMail(to, subject, text, html);
+  }
+
+  private escapeHtml(value: string): string {
+    return value
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   private async sendMail(
     to: string,
     subject: string,
     text: string,
+    html?: string,
   ): Promise<void> {
     if (!this.transporter) {
       throw new Error('Email transport is not configured');
@@ -114,6 +201,7 @@ export class EmailService {
       to,
       subject,
       text,
+      html,
     });
   }
 }

@@ -41,6 +41,7 @@ async function main() {
     prisma.admin.deleteMany(),
     prisma.offer.deleteMany(),
     prisma.popupOffer.deleteMany(),
+    prisma.sitePage.deleteMany(),
     prisma.heroSection.deleteMany(),
     prisma.vendor.deleteMany(),
     prisma.bannerAd.deleteMany(),
@@ -57,6 +58,7 @@ async function main() {
       adminId: 'admin001',
       email: 'admin@doit.com',
       password: hashedPassword,
+      adminLevel: 'SUPER_ADMIN',
     },
   });
   console.log('✅ Admin created');
@@ -435,6 +437,71 @@ async function main() {
     },
   });
 
+  await prisma.sitePage.createMany({
+    data: [
+      {
+        slug: 'shipping',
+        titleEn: 'Shipping Policy',
+        titleAr: 'سياسة الشحن',
+        contentEn:
+          '## Order Processing Times\n\nOrders are typically processed within 3-5 working days inside Cairo, and within 5-7 working days outside Cairo.\n\n## Tracking Your Order\n\nOnce your order is shipped, you will receive a shipping confirmation email with tracking information.\n\n## Delivery\n\nYou will receive a phone call from the shipping company to arrange a convenient delivery time.\n\n## Damages and Lost Packages\n\nIf you receive a damaged package, contact us immediately and we will help resolve it quickly.',
+        contentAr:
+          '## أوقات معالجة الطلبات\n\nعادة ما تتم معالجة الطلبات خلال 3-5 أيام عمل داخل القاهرة، وخلال 5-7 أيام عمل خارج القاهرة.\n\n## تتبع طلبك\n\nبمجرد شحن طلبك، ستتلقى بريدًا إلكترونيًا لتأكيد الشحن مع معلومات التتبع.\n\n## التسليم\n\nستتلقى مكالمة من شركة الشحن لتحديد الوقت الأنسب للتسليم.\n\n## الأضرار والطرود المفقودة\n\nإذا استلمت طردًا تالفًا، يرجى التواصل معنا فورًا وسنساعدك على حل المشكلة بسرعة.',
+        showInFooter: true,
+        order: 10,
+        status: true,
+      },
+      {
+        slug: 'privacy',
+        titleEn: 'Privacy Policy',
+        titleAr: 'سياسة الخصوصية',
+        contentEn:
+          '## Information We Collect\n\nWe collect only the information required to process orders and improve your shopping experience.\n\n## How We Use Information\n\nYour information is used for order fulfillment, customer support, and service-related communication.\n\n## Data Protection\n\nWe apply reasonable security measures to protect your personal data from unauthorized access.\n\n## Contact Us\n\nIf you have questions about this policy, contact our support team.',
+        contentAr:
+          '## المعلومات التي نجمعها\n\nنجمع فقط المعلومات اللازمة لإتمام الطلبات وتحسين تجربة التسوق.\n\n## كيفية استخدام المعلومات\n\nتُستخدم معلوماتك لإتمام الطلبات وخدمة العملاء والتواصل المرتبط بالخدمة.\n\n## حماية البيانات\n\nنطبق إجراءات أمنية مناسبة لحماية بياناتك الشخصية من الوصول غير المصرح به.\n\n## تواصل معنا\n\nإذا كان لديك أي أسئلة حول هذه السياسة، يرجى التواصل مع فريق الدعم.',
+        showInFooter: true,
+        order: 20,
+        status: true,
+      },
+      {
+        slug: 'terms',
+        titleEn: 'Terms of Service',
+        titleAr: 'شروط الخدمة',
+        contentEn:
+          '## Acceptance of Terms\n\nBy using this website, you agree to these terms and applicable laws.\n\n## Orders and Payments\n\nAll orders are subject to availability and confirmation. Prices and offers may change without prior notice.\n\n## Limitation of Liability\n\nWe are not liable for indirect or incidental damages resulting from use of the site.\n\n## Changes to Terms\n\nWe may update these terms from time to time. Continued use means acceptance of updates.',
+        contentAr:
+          '## قبول الشروط\n\nباستخدام هذا الموقع، فإنك توافق على هذه الشروط والقوانين المعمول بها.\n\n## الطلبات والدفع\n\nتخضع جميع الطلبات للتوفر والتأكيد. قد تتغير الأسعار والعروض دون إشعار مسبق.\n\n## تحديد المسؤولية\n\nلسنا مسؤولين عن الأضرار غير المباشرة أو العرضية الناتجة عن استخدام الموقع.\n\n## تحديث الشروط\n\nقد نقوم بتحديث هذه الشروط من وقت لآخر، واستمرارك في الاستخدام يعني قبولك للتحديثات.',
+        showInFooter: true,
+        order: 30,
+        status: true,
+      },
+      {
+        slug: 'returns',
+        titleEn: 'Return & Refund Policy',
+        titleAr: 'سياسة الإرجاع والاسترداد',
+        contentEn:
+          '## Return Window\n\nEligible items can be returned within the announced return period from delivery date.\n\n## Item Condition\n\nReturned items must be unused, in original condition, and with original packaging.\n\n## Refund Process\n\nApproved refunds are processed through the original payment method within the normal banking timeline.\n\n## Support\n\nFor return requests, contact support with your order number.',
+        contentAr:
+          '## فترة الإرجاع\n\nيمكن إرجاع المنتجات المؤهلة خلال فترة الإرجاع المعلنة من تاريخ التسليم.\n\n## حالة المنتج\n\nيجب أن تكون المنتجات المرتجعة غير مستخدمة وبحالتها الأصلية مع التغليف الأصلي.\n\n## آلية الاسترداد\n\nتتم معالجة الاسترداد المعتمد عبر وسيلة الدفع الأصلية وفق المدة البنكية المعتادة.\n\n## الدعم\n\nلطلب الإرجاع، تواصل مع الدعم مع رقم الطلب.',
+        showInFooter: true,
+        order: 40,
+        status: true,
+      },
+      {
+        slug: 'stores',
+        titleEn: 'Locate Our Stores',
+        titleAr: 'العثور على متاجرنا',
+        contentEn:
+          '## Find a Store\n\nYou can visit our partner stores and official points of sale.\n\n## Opening Hours\n\nStore working hours may vary by location and season.\n\n## Before You Visit\n\nWe recommend calling ahead to confirm product availability.',
+        contentAr:
+          '## ابحث عن متجر\n\nيمكنك زيارة متاجرنا الشريكة ونقاط البيع الرسمية.\n\n## مواعيد العمل\n\nقد تختلف ساعات العمل حسب الموقع والموسم.\n\n## قبل الزيارة\n\nنوصي بالاتصال مسبقًا للتأكد من توفر المنتجات.',
+        showInFooter: true,
+        order: 50,
+        status: true,
+      },
+    ],
+  });
+
   console.log('✅ Content created');
 
   // ============================================
@@ -469,6 +536,7 @@ async function main() {
   console.log('- Product Variants: ~20');
   console.log('- Admin: 1');
   console.log('- Sample Customer: 1');
+  console.log('- Site Pages: 5');
 }
 
 main()

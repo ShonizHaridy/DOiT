@@ -6,6 +6,7 @@ import { Link } from '@/i18n/navigation'
 import Logo from '@/components/ui/Logo'
 import { getLocalized, type Locale } from '@/lib/i18n-utils'
 import type { Category } from '@/types/category'
+import { useInformationPages } from '@/hooks/useContent'
 
 interface FooterProps {
   locale: string
@@ -200,6 +201,7 @@ function ParticleCanvas() {
 /* ── Footer ────────────────────────────────────────────────────────── */
 export default function FooterParticles({ locale, categories }: FooterProps) {
   const t = useTranslations('footer')
+  const { data: informationPages } = useInformationPages()
 
   const categoryLinks = useMemo<FooterLink[]>(() => {
     const backendLinks = (categories ?? [])
@@ -219,13 +221,24 @@ export default function FooterParticles({ locale, categories }: FooterProps) {
     ]
   }, [categories, locale, t])
 
-  const serviceLinks: FooterLink[] = [
-    { label: t('serviceItems.locate'), href: '/stores' },
-    { label: t('serviceItems.returns'), href: '/returns' },
-    { label: t('serviceItems.shipping'), href: '/shipping' },
-    { label: t('serviceItems.privacy'), href: '/privacy' },
-    { label: t('serviceItems.terms'), href: '/terms' },
-  ]
+  const informationLinks = useMemo<FooterLink[]>(() => {
+    const dynamicLinks = (informationPages ?? [])
+      .map((page) => ({
+        label: locale === 'ar' ? page.titleAr : page.titleEn,
+        href: `/info/${page.slug}`,
+      }))
+      .filter((item) => item.label.trim().length > 0)
+
+    if (dynamicLinks.length > 0) return dynamicLinks
+
+    return [
+      { label: t('serviceItems.locate'), href: '/info/stores' },
+      { label: t('serviceItems.returns'), href: '/info/returns' },
+      { label: t('serviceItems.shipping'), href: '/info/shipping' },
+      { label: t('serviceItems.privacy'), href: '/info/privacy' },
+      { label: t('serviceItems.terms'), href: '/info/terms' },
+    ]
+  }, [informationPages, locale, t])
 
   return (
     <footer className="relative overflow-hidden bg-graphite text-white">
@@ -267,10 +280,10 @@ export default function FooterParticles({ locale, categories }: FooterProps) {
               {/* Services */}
               <div className="flex flex-col items-start gap-4 flex-1">
                 <h3 className="text-[#FEFEFD] text-sm font-roboto font-medium leading-tight">
-                  {t('services')}
+                  {t('information')}
                 </h3>
                 <div className="flex flex-col items-start gap-2">
-                  {serviceLinks.map((item) => (
+                  {informationLinks.map((item) => (
                     <Link
                       key={`mob-svc-${item.href}`}
                       href={item.href}
@@ -351,10 +364,10 @@ export default function FooterParticles({ locale, categories }: FooterProps) {
 
             <div>
               <h3 className="mb-4 text-lg font-semibold uppercase tracking-wide">
-                {t('services')}
+                {t('information')}
               </h3>
               <ul className="space-y-2.5">
-                {serviceLinks.map((item) => (
+                {informationLinks.map((item) => (
                   <li key={`desk-svc-${item.href}`}>
                     <Link
                       href={item.href}

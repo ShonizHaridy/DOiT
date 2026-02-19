@@ -6,6 +6,7 @@ import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
 import DirProvider from '@/components/DirProvider'
 import GlobalProviders from '@/components/providers/GlobalProviders'
+import OfferPopupModal from '@/components/offers/OfferPopupModal'
 import { serverFetch } from '@/lib/server-fetch'
 import type { Category } from '@/types/category'
 import '../globals.css'
@@ -47,6 +48,7 @@ export default async function LocaleLayout({
             <DirProvider>
               <GlobalProviders>
                 <Header locale={locale} categories={categories} />
+                <OfferPopupModal />
                 <main>{children}</main>
                 <Footer locale={locale} categories={categories} />
               </GlobalProviders>

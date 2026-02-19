@@ -1331,6 +1331,96 @@
         ]
       }
     },
+    "/api/admin/content/site-pages": {
+      "get": {
+        "operationId": "AdminContentController_getSitePages",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "AdminContent"
+        ]
+      },
+      "post": {
+        "operationId": "AdminContentController_createSitePage",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSitePageDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "AdminContent"
+        ]
+      }
+    },
+    "/api/admin/content/site-pages/{id}": {
+      "put": {
+        "operationId": "AdminContentController_updateSitePage",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSitePageDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "AdminContent"
+        ]
+      },
+      "delete": {
+        "operationId": "AdminContentController_deleteSitePage",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "AdminContent"
+        ]
+      }
+    },
     "/api/admin/offers": {
       "get": {
         "operationId": "AdminOffersController_getOffers",
@@ -1666,6 +1756,210 @@
         },
         "tags": [
           "AdminProfile"
+        ]
+      }
+    },
+    "/api/admin/shipping-rates": {
+      "get": {
+        "operationId": "AdminShippingController_getShippingRates",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "AdminShipping"
+        ]
+      },
+      "post": {
+        "operationId": "AdminShippingController_createShippingRate",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateShippingRateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "AdminShipping"
+        ]
+      }
+    },
+    "/api/admin/shipping-rates/bulk": {
+      "post": {
+        "operationId": "AdminShippingController_upsertShippingRates",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkUpsertShippingRatesDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "AdminShipping"
+        ]
+      }
+    },
+    "/api/admin/shipping-rates/{id}": {
+      "put": {
+        "operationId": "AdminShippingController_updateShippingRate",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateShippingRateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "AdminShipping"
+        ]
+      },
+      "delete": {
+        "operationId": "AdminShippingController_deleteShippingRate",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "AdminShipping"
+        ]
+      }
+    },
+    "/api/admin/admin-users": {
+      "get": {
+        "operationId": "AdminUsersController_listAdmins",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "AdminUsers"
+        ]
+      },
+      "post": {
+        "operationId": "AdminUsersController_createAdmin",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAdminUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "AdminUsers"
+        ]
+      }
+    },
+    "/api/admin/admin-users/{id}": {
+      "put": {
+        "operationId": "AdminUsersController_updateAdmin",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAdminUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "AdminUsers"
+        ]
+      },
+      "delete": {
+        "operationId": "AdminUsersController_deleteAdmin",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "AdminUsers"
         ]
       }
     },
@@ -2062,6 +2356,44 @@
         ]
       }
     },
+    "/api/orders/coupon/validate": {
+      "post": {
+        "operationId": "OrdersController_validateCoupon",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ValidateCouponDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Orders"
+        ]
+      }
+    },
+    "/api/orders/shipping-rates": {
+      "get": {
+        "operationId": "OrdersController_getShippingRates",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Orders"
+        ]
+      }
+    },
     "/api/orders": {
       "post": {
         "operationId": "OrdersController_createOrder",
@@ -2210,6 +2542,67 @@
       "get": {
         "operationId": "ContentController_getActivePopupOffer",
         "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Content"
+        ]
+      }
+    },
+    "/api/content/popup-offer/claim": {
+      "post": {
+        "operationId": "ContentController_claimPopupOffer",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClaimPopupOfferDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Content"
+        ]
+      }
+    },
+    "/api/content/information-pages": {
+      "get": {
+        "operationId": "ContentController_getInformationPages",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Content"
+        ]
+      }
+    },
+    "/api/content/information-pages/{slug}": {
+      "get": {
+        "operationId": "ContentController_getInformationPageBySlug",
+        "parameters": [
+          {
+            "name": "slug",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": ""
@@ -2432,6 +2825,14 @@
         "type": "object",
         "properties": {}
       },
+      "CreateSitePageDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "UpdateSitePageDto": {
+        "type": "object",
+        "properties": {}
+      },
       "CreateOfferDto": {
         "type": "object",
         "properties": {}
@@ -2449,6 +2850,26 @@
         "properties": {}
       },
       "UpdateAdminProfileDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "CreateShippingRateDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "BulkUpsertShippingRatesDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "UpdateShippingRateDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "CreateAdminUserDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "UpdateAdminUserDto": {
         "type": "object",
         "properties": {}
       },
@@ -2476,7 +2897,15 @@
         "type": "object",
         "properties": {}
       },
+      "ValidateCouponDto": {
+        "type": "object",
+        "properties": {}
+      },
       "CreateOrderDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "ClaimPopupOfferDto": {
         "type": "object",
         "properties": {}
       }

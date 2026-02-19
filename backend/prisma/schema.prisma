@@ -22,6 +22,7 @@ model Admin {
   adminId       String    @unique // Used for login instead of email
   email         String    @unique
   password      String // Hashed
+  adminLevel    AdminLevel @default(ADMIN)
   resetCode     String? // For password recovery
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -340,6 +341,18 @@ model CustomOrder {
   @@map("custom_orders")
 }
 
+model ShippingRate {
+  id          String   @id @default(cuid())
+  governorate String   @unique
+  price       Decimal  @db.Decimal(10, 2)
+  status      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([status])
+  @@map("shipping_rates")
+}
+
 // ============================================
 // OFFERS & COUPONS
 // ============================================
@@ -466,6 +479,23 @@ model FeaturedProducts {
   @@map("featured_products")
 }
 
+model SitePage {
+  id              String    @id @default(cuid())
+  slug            String    @unique
+  titleEn         String
+  titleAr         String
+  contentEn       String    @db.Text
+  contentAr       String    @db.Text
+  showInFooter    Boolean   @default(true)
+  order           Int       @default(0)
+  status          Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([status, showInFooter, order])
+  @@map("site_pages")
+}
+
 // ============================================
 // ENUMS
 // ============================================
@@ -517,4 +547,9 @@ enum OfferScope {
   SUB_CATEGORY
   PRODUCT_LIST
   PRODUCT_TYPE
+}
+
+enum AdminLevel {
+  SUPER_ADMIN
+  ADMIN
 }

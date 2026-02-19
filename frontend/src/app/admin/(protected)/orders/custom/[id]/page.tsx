@@ -1,12 +1,13 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { FormPageHeader } from '@/components/admin/forms'
 import StatusSelect from '@/components/admin/StatusSelect'
 import OrderStatusTimeline, { StatusStep } from '@/components/admin/OrderStatusTimeline'
 import { useAdminCustomOrder, useUpdateCustomOrderStatus } from '@/hooks/useOrders'
 import type { CustomOrderStatus } from '@/types/order'
+import { toAbsoluteMediaUrl } from '@/lib/media-url'
 
 type UiOrderStatus = 'NEW' | 'IN_PROGRESS' | 'SHIPPED' | 'COMPLETED' | 'CANCELED'
 
@@ -50,7 +51,10 @@ const labelForUiStatus = (status: UiOrderStatus) => {
 
 const imageUrlsFrom = (referenceImages: unknown) => {
   if (!Array.isArray(referenceImages)) return []
-  return referenceImages.filter((url): url is string => typeof url === 'string' && !!url)
+  return referenceImages
+    .filter((url): url is string => typeof url === 'string' && !!url)
+    .map((url) => toAbsoluteMediaUrl(url))
+    .filter(Boolean)
 }
 
 export default function CustomOrderDetailsPage() {
@@ -58,12 +62,9 @@ export default function CustomOrderDetailsPage() {
   const orderId = params?.id as string
   const { data: order, isLoading } = useAdminCustomOrder(orderId)
   const { mutateAsync, isPending } = useUpdateCustomOrderStatus()
-  const [orderStatus, setOrderStatus] = useState<UiOrderStatus | ''>('')
-
-  useEffect(() => {
-    if (!order?.status) return
-    setOrderStatus(CUSTOM_API_TO_UI[order.status as CustomOrderStatus] ?? 'NEW')
-  }, [order?.status])
+  const [statusOverride, setStatusOverride] = useState<UiOrderStatus | ''>('')
+  const orderStatus =
+    statusOverride || (order?.status ? (CUSTOM_API_TO_UI[order.status as CustomOrderStatus] ?? 'NEW') : '')
 
   const imageUrls = useMemo(
     () => imageUrlsFrom(order?.referenceImages),
@@ -102,7 +103,7 @@ export default function CustomOrderDetailsPage() {
     if (!order) return
     const nextUiStatus = value as UiOrderStatus
     const nextApiStatus = CUSTOM_UI_TO_API[nextUiStatus]
-    setOrderStatus(nextUiStatus)
+    setStatusOverride(nextUiStatus)
     await mutateAsync({ orderId: order.id, status: nextApiStatus })
   }
 
@@ -117,7 +118,7 @@ export default function CustomOrderDetailsPage() {
   }
 
   const customerName = order.customer?.fullName ?? (order.customerId.startsWith('guest-') ? 'Guest' : order.customerId)
-  const customerEmail = order.customer?.email ?? '---'
+  const customerEmail = order.customer?.email || '---'
 
   return (
     <form className="p-6">

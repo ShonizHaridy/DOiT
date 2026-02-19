@@ -6,6 +6,7 @@ import { Controller, Get, Post, Body, Param, Query, UseGuards } from '@nestjs/co
 import { GetUser, Roles, Public } from 'src/auth/decorators/auth.decorators';
 import { JwtAuthGuard, OptionalJwtAuthGuard, RolesGuard } from '../auth/guards';
 import {
+  CouponValidationDto,
   CreateOrderDto,
   CreateGuestOrderDto,
   CreateCustomOrderDto,
@@ -13,6 +14,8 @@ import {
   OrderDto,
   PaginatedCustomOrdersDto,
   PaginatedOrdersDto,
+  ShippingRateDto,
+  ValidateCouponDto,
 } from './dto/orders.dto';
 import { OrdersService } from './orders.service';
 
@@ -36,9 +39,25 @@ export class OrdersController {
   @Post('custom')
   async createCustomOrder(
     @Body() dto: CreateCustomOrderDto,
-    @GetUser('id') customerId?: string,
+    @GetUser() requestUser?: { id?: string; role?: string },
   ): Promise<CustomOrderDto> {
+    const customerId =
+      requestUser?.role === 'customer' && typeof requestUser.id === 'string'
+        ? requestUser.id
+        : undefined;
     return this.ordersService.createCustomOrder(dto, customerId);
+  }
+
+  @Public()
+  @Post('coupon/validate')
+  async validateCoupon(@Body() dto: ValidateCouponDto): Promise<CouponValidationDto> {
+    return this.ordersService.validateCoupon(dto.code, dto.subtotal);
+  }
+
+  @Public()
+  @Get('shipping-rates')
+  async getShippingRates(): Promise<ShippingRateDto[]> {
+    return this.ordersService.getShippingRates();
   }
 
   // ============================================

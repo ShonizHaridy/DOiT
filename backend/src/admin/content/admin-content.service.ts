@@ -2,9 +2,19 @@
 // Service
 // ============================================
 
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { CreateHeroSectionDto, UpdateHeroSectionDto, CreateVendorDto, UpdateVendorDto, CreateBannerDto, UpdateBannerDto, UpdateFeaturedProductsDto } from './dto/admin-content.dto';
+import {
+  CreateHeroSectionDto,
+  UpdateHeroSectionDto,
+  CreateVendorDto,
+  UpdateVendorDto,
+  CreateBannerDto,
+  UpdateBannerDto,
+  UpdateFeaturedProductsDto,
+  CreateSitePageDto,
+  UpdateSitePageDto,
+} from './dto/admin-content.dto';
 
 @Injectable()
 export class AdminContentService {
@@ -216,6 +226,99 @@ export class AdminContentService {
         selectedProducts: dto.selectedProducts,
       },
     });
+  }
+
+  // ============ SITE PAGES ============
+
+  async getSitePages() {
+    return this.prisma.sitePage.findMany({
+      orderBy: [{ order: 'asc' }, { createdAt: 'asc' }],
+    });
+  }
+
+  async createSitePage(dto: CreateSitePageDto) {
+    const normalizedSlug = this.normalizeSlug(dto.slug);
+    await this.assertUniqueSlug(normalizedSlug);
+
+    return this.prisma.sitePage.create({
+      data: {
+        slug: normalizedSlug,
+        titleEn: dto.titleEn.trim(),
+        titleAr: dto.titleAr.trim(),
+        contentEn: dto.contentEn.trim(),
+        contentAr: dto.contentAr.trim(),
+        showInFooter: dto.showInFooter ?? true,
+        order: dto.order ?? 0,
+        status: dto.status ?? true,
+      },
+    });
+  }
+
+  async updateSitePage(id: string, dto: UpdateSitePageDto) {
+    const existing = await this.prisma.sitePage.findUnique({
+      where: { id },
+    });
+
+    if (!existing) {
+      throw new NotFoundException('Site page not found');
+    }
+
+    const normalizedSlug = dto.slug ? this.normalizeSlug(dto.slug) : undefined;
+    if (normalizedSlug && normalizedSlug !== existing.slug) {
+      await this.assertUniqueSlug(normalizedSlug, id);
+    }
+
+    return this.prisma.sitePage.update({
+      where: { id },
+      data: {
+        slug: normalizedSlug,
+        titleEn: dto.titleEn?.trim(),
+        titleAr: dto.titleAr?.trim(),
+        contentEn: dto.contentEn?.trim(),
+        contentAr: dto.contentAr?.trim(),
+        showInFooter: dto.showInFooter,
+        order: dto.order,
+        status: dto.status,
+      },
+    });
+  }
+
+  async deleteSitePage(id: string): Promise<void> {
+    const existing = await this.prisma.sitePage.findUnique({
+      where: { id },
+    });
+
+    if (!existing) {
+      throw new NotFoundException('Site page not found');
+    }
+
+    await this.prisma.sitePage.delete({
+      where: { id },
+    });
+  }
+
+  private normalizeSlug(rawSlug: string): string {
+    return rawSlug.trim().toLowerCase();
+  }
+
+  private async assertUniqueSlug(slug: string, excludeId?: string) {
+    const duplicate = await this.prisma.sitePage.findFirst({
+      where: {
+        slug,
+        ...(excludeId
+          ? {
+              id: {
+                not: excludeId,
+              },
+            }
+          : {}),
+      },
+      select: { id: true },
+    });
+
+    if (duplicate) {
+      throw new BadRequestException('A page with this slug already exists');
+    }
   }
 }
 

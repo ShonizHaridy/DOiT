@@ -46,6 +46,23 @@ export interface HomeContent {
   banners: Banner[]
 }
 
+export interface InformationPageSummary {
+  id: string
+  slug: string
+  titleEn: string
+  titleAr: string
+  order: number
+}
+
+export interface InformationPage extends InformationPageSummary {
+  contentEn: string
+  contentAr: string
+  status?: boolean
+  showInFooter?: boolean
+  createdAt?: string
+  updatedAt?: string
+}
+
 export interface PopupOffer {
   id: string;
   headlineEn: string;
@@ -53,9 +70,10 @@ export interface PopupOffer {
   subHeadlineEn: string;
   subHeadlineAr: string;
   amount: number;
+  amountLabel?: string;
   voucherCode: string;
   targetedUser: 'first_time_customer' | 'all' | 'returning';
-  imageUrl?: string;
+  imageUrl?: string | null;
   startDate?: string;
   endDate?: string;
   status?: boolean;
@@ -163,4 +181,26 @@ export interface FeaturedProductsConfig {
   selectedProducts: string[];
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface CreateSitePageRequest {
+  titleEn: string
+  titleAr: string
+  slug: string
+  contentEn: string
+  contentAr: string
+  showInFooter?: boolean
+  order?: number
+  status?: boolean
+}
+
+export interface UpdateSitePageRequest {
+  titleEn?: string
+  titleAr?: string
+  slug?: string
+  contentEn?: string
+  contentAr?: string
+  showInFooter?: boolean
+  order?: number
+  status?: boolean
 }

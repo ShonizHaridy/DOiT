@@ -80,8 +80,8 @@ export const createSubCategory = async (
   data: CreateSubCategoryRequest
 ): Promise<SubCategory> => {
   const response = await apiClient.post<SubCategory>(
-    `/admin/categories/${categoryId}/sub-categories`,
-    data
+    '/admin/categories/subcategories',
+    { ...data, categoryId }
   );
   return response.data;
 };
@@ -91,14 +91,14 @@ export const updateSubCategory = async (
   data: UpdateSubCategoryRequest
 ): Promise<SubCategory> => {
   const response = await apiClient.put<SubCategory>(
-    `/admin/sub-categories/${id}`,
+    `/admin/categories/subcategories/${id}`,
     data
   );
   return response.data;
 };
 
 export const deleteSubCategory = async (id: string): Promise<void> => {
-  await apiClient.delete(`/admin/sub-categories/${id}`);
+  await apiClient.delete(`/admin/categories/subcategories/${id}`);
 };
 
 export const createProductList = async (
@@ -106,8 +106,8 @@ export const createProductList = async (
   data: CreateProductListRequest
 ): Promise<ProductListItem> => {
   const response = await apiClient.post<ProductListItem>(
-    `/admin/sub-categories/${subCategoryId}/product-lists`,
-    data
+    '/admin/categories/product-lists',
+    { ...data, subCategoryId }
   );
   return response.data;
 };
@@ -117,12 +117,12 @@ export const updateProductList = async (
   data: UpdateProductListRequest
 ): Promise<ProductListItem> => {
   const response = await apiClient.put<ProductListItem>(
-    `/admin/product-lists/${id}`,
+    `/admin/categories/product-lists/${id}`,
     data
   );
   return response.data;
 };
 
 export const deleteProductList = async (id: string): Promise<void> => {
-  await apiClient.delete(`/admin/product-lists/${id}`);
+  await apiClient.delete(`/admin/categories/product-lists/${id}`);
 };

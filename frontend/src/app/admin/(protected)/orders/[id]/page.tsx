@@ -1,12 +1,13 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { FormPageHeader } from '@/components/admin/forms'
 import StatusSelect from '@/components/admin/StatusSelect'
 import OrderStatusTimeline, { StatusStep } from '@/components/admin/OrderStatusTimeline'
 import { useAdminOrder, useUpdateOrderStatus } from '@/hooks/useOrders'
 import type { OrderStatus } from '@/types/order'
+import { toAbsoluteMediaUrl } from '@/lib/media-url'
 
 const statusOptions = [
   { value: 'ORDER_PLACED', label: 'New' },
@@ -35,13 +36,8 @@ export default function OrderDetailsPage() {
   const orderId = params?.id as string
   const { data: order, isLoading } = useAdminOrder(orderId)
   const { mutateAsync, isPending } = useUpdateOrderStatus()
-  const [orderStatus, setOrderStatus] = useState<OrderStatus | ''>('')
-
-  useEffect(() => {
-    if (order?.status) {
-      setOrderStatus(order.status as OrderStatus)
-    }
-  }, [order?.status])
+  const [statusOverride, setStatusOverride] = useState<OrderStatus | ''>('')
+  const orderStatus = statusOverride || (order?.status as OrderStatus | '')
 
   const statusSteps = useMemo<StatusStep[]>(() => {
     if (!order) return []
@@ -61,7 +57,7 @@ export default function OrderDetailsPage() {
 
   const handleStatusChange = async (value: string) => {
     const nextStatus = value as OrderStatus
-    setOrderStatus(nextStatus)
+    setStatusOverride(nextStatus)
     if (!order) return
     await mutateAsync({ orderId: order.id, status: nextStatus })
   }
@@ -121,6 +117,13 @@ export default function OrderDetailsPage() {
           </div>
         </div>
 
+        {order.notes && (
+          <div className="mb-6 rounded-lg border border-neutral-200 bg-neutral-50 p-4">
+            <p className="text-xs font-semibold text-neutral-500 mb-2">Order Notes</p>
+            <p className="text-sm text-neutral-800 whitespace-pre-line">{order.notes}</p>
+          </div>
+        )}
+
         <div className="flex gap-6">
           <div className="flex-1">
             <table className="w-full">
@@ -138,8 +141,8 @@ export default function OrderDetailsPage() {
                     <td className="py-4 pr-4">
                       <div className="flex items-start gap-3">
                         <div className="w-16 h-16 bg-neutral-100 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden">
-                          {product.productImage ? (
-                            <img src={product.productImage} alt={product.productName} className="w-full h-full object-cover" />
+                          {toAbsoluteMediaUrl(product.productImage) ? (
+                            <img src={toAbsoluteMediaUrl(product.productImage)} alt={product.productName} className="w-full h-full object-cover" />
                           ) : (
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-neutral-300">
                               <rect x="2" y="2" width="20" height="20" rx="2" stroke="currentColor" strokeWidth="1.5" />

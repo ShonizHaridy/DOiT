@@ -9,6 +9,8 @@ import { AdminContentController } from './content/admin-content.controller';
 import { AdminOffersController } from './offers/admin-offers.controller';
 import { AdminDashboardController } from './dashboard/admin-dashboard.controller';
 import { AdminProfileController } from './profile/admin-profile.controller';
+import { AdminShippingController } from './shipping/admin-shipping.controller';
+import { AdminUsersController } from './users/admin-users.controller';
 
 // Import all admin services
 import { AdminProductsService } from './products/admin-products.service';
@@ -19,6 +21,8 @@ import { AdminContentService } from './content/admin-content.service';
 import { AdminOffersService } from './offers/admin-offers.service';
 import { AdminDashboardService } from './dashboard/admin-dashboard.service';
 import { AdminProfileService } from './profile/admin-profile.service';
+import { AdminShippingService } from './shipping/admin-shipping.service';
+import { AdminUsersService } from './users/admin-users.service';
 
 @Module({
   controllers: [
@@ -30,6 +34,8 @@ import { AdminProfileService } from './profile/admin-profile.service';
     AdminOffersController,
     AdminDashboardController,
     AdminProfileController,
+    AdminShippingController,
+    AdminUsersController,
   ],
   providers: [
     AdminProductsService,
@@ -40,6 +46,8 @@ import { AdminProfileService } from './profile/admin-profile.service';
     AdminOffersService,
     AdminDashboardService,
     AdminProfileService,
+    AdminShippingService,
+    AdminUsersService,
   ],
   exports: [
     AdminProductsService,
@@ -50,6 +58,8 @@ import { AdminProfileService } from './profile/admin-profile.service';
     AdminOffersService,
     AdminDashboardService,
     AdminProfileService,
+    AdminShippingService,
+    AdminUsersService,
   ],
 })
 export class AdminModule {}

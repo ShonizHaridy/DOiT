@@ -3,11 +3,15 @@ import type {
   Banner,
   CreateBannerAdRequest,
   CreateHeroSectionRequest,
+  CreateSitePageRequest,
   CreatePopupOfferRequest,
   CreateVendorRequest,
+  InformationPage,
+  InformationPageSummary,
   HeroSection,
   HomeContent,
   PopupOffer,
+  UpdateSitePageRequest,
   UpdateBannerAdRequest,
   UpdateHeroSectionRequest,
   UpdatePopupOfferRequest,
@@ -25,6 +29,27 @@ export const getPopupOffer = async (): Promise<PopupOffer | null> => {
   const { data } = await apiClient.get<PopupOffer | null>('/content/popup-offer');
   return data;
 };
+
+export const claimPopupOffer = async (payload: {
+  email: string;
+  locale?: 'en' | 'ar';
+}): Promise<{ success: boolean }> => {
+  const { data } = await apiClient.post<{ success: boolean }>(
+    '/content/popup-offer/claim',
+    payload
+  );
+  return data;
+};
+
+export const getInformationPages = async (): Promise<InformationPageSummary[]> => {
+  const { data } = await apiClient.get<InformationPageSummary[]>('/content/information-pages')
+  return data
+}
+
+export const getInformationPageBySlug = async (slug: string): Promise<InformationPage> => {
+  const { data } = await apiClient.get<InformationPage>(`/content/information-pages/${slug}`)
+  return data
+}
 
 // ... existing customer operations
 
@@ -172,3 +197,25 @@ export const updateFeaturedProductsConfig = async (
   );
   return response.data;
 };
+
+export const getAdminSitePages = async (): Promise<InformationPage[]> => {
+  const { data } = await apiClient.get<InformationPage[]>('/admin/content/site-pages')
+  return data
+}
+
+export const createSitePage = async (data: CreateSitePageRequest): Promise<InformationPage> => {
+  const response = await apiClient.post<InformationPage>('/admin/content/site-pages', data)
+  return response.data
+}
+
+export const updateSitePage = async (
+  id: string,
+  data: UpdateSitePageRequest
+): Promise<InformationPage> => {
+  const response = await apiClient.put<InformationPage>(`/admin/content/site-pages/${id}`, data)
+  return response.data
+}
+
+export const deleteSitePage = async (id: string): Promise<void> => {
+  await apiClient.delete(`/admin/content/site-pages/${id}`)
+}

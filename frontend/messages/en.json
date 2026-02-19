@@ -38,6 +38,7 @@
   "footer": {
     "categories": "Categories",
     "services": "Services",
+    "information": "Information",
     "categoryItems": {
       "men": "Men",
       "women": "Women",
@@ -222,6 +223,7 @@
     "orderSummary": "Order summary",
     "subtotal": "Subtotal",
     "shipping": "Shipping",
+    "coupon": "Coupon",
     "total": "Total",
     "items": "{count, plural, one {# Item} other {# Items}}",
     "free": "FREE",
@@ -247,8 +249,19 @@
     "billingDifferent": "Use different billing address",
     "processing": "Processing...",
     "confirmOrder": "Confirm Order",
+    "emptyCheckoutTitle": "No items available for checkout",
+    "backToCart": "Back to cart",
+    "continueShopping": "Continue shopping",
     "cartEmpty": "Your cart is empty.",
     "submitError": "Unable to place order. Please try again.",
+    "customOrderDetails": "Order Details",
+    "customOrderImages": "Images",
+    "customOrderProductType": "Product Type",
+    "customOrderColor": "Color",
+    "customOrderGender": "Gender",
+    "customOrderSize": "Size",
+    "customOrderQuantity": "Quantity",
+    "customOrderDetailsLabel": "Details",
     "orderSuccessTitle": "Order placed successfully.",
     "orderNumber": "Order number: {number}",
     "viewOrders": "View orders",
@@ -273,7 +286,8 @@
       "governorateRequired": "Governorate is required",
       "phoneRequired": "Phone number is required",
       "phoneInvalid": "Valid phone number required",
-      "countryRequired": "Country is required"
+      "countryRequired": "Country is required",
+      "fixHighlighted": "Please fix the highlighted fields and try again."
     }
   },
   "cart": {

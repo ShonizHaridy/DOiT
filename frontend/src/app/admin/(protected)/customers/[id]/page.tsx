@@ -10,7 +10,7 @@ import FilterButton from '@/components/admin/FilterButton'
 import StatusBadge, { getStatusVariant } from '@/components/admin/StatusBadge'
 import { useCustomerById, useCustomerOrders, useUpdateCustomerStatus } from '@/hooks/useCustomer'
 
-const formatDate = (value?: string) => {
+const formatDate = (value?: string | Date | null) => {
   if (!value) return '---'
   const date = new Date(value)
   return Number.isNaN(date.getTime()) ? '---' : date.toLocaleDateString()

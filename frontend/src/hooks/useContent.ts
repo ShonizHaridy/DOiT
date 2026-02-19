@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import * as contentService from '@/services/content';
 import type {
+  CreateSitePageRequest,
   CreateHeroSectionRequest,
   UpdateHeroSectionRequest,
   CreateVendorRequest,
@@ -8,6 +9,7 @@ import type {
   CreateBannerAdRequest,
   UpdateBannerAdRequest,
   CreatePopupOfferRequest,
+  UpdateSitePageRequest,
   UpdatePopupOfferRequest,
   FeaturedProductsConfig,
 } from '@/types/content';
@@ -27,6 +29,30 @@ export const usePopupOffer = () => {
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 };
+
+export const useClaimPopupOffer = () => {
+  return useMutation({
+    mutationFn: (payload: { email: string; locale?: 'en' | 'ar' }) =>
+      contentService.claimPopupOffer(payload),
+  });
+};
+
+export const useInformationPages = () => {
+  return useQuery({
+    queryKey: ['content', 'information-pages'],
+    queryFn: () => contentService.getInformationPages(),
+    staleTime: 1000 * 60 * 10,
+  })
+}
+
+export const useInformationPage = (slug: string, enabled = true) => {
+  return useQuery({
+    queryKey: ['content', 'information-pages', slug],
+    queryFn: () => contentService.getInformationPageBySlug(slug),
+    enabled: enabled && Boolean(slug),
+    staleTime: 1000 * 60 * 10,
+  })
+}
 
 export const useHeroSections = () => {
   return useQuery({
@@ -62,6 +88,13 @@ export const useFeaturedProductsConfig = () => {
     queryFn: () => contentService.getFeaturedProductsConfig(),
   });
 };
+
+export const useAdminSitePages = () => {
+  return useQuery({
+    queryKey: ['admin', 'content', 'site-pages'],
+    queryFn: () => contentService.getAdminSitePages(),
+  })
+}
 
 
 // ... existing customer hooks
@@ -254,3 +287,40 @@ export const useUpdateFeaturedProductsConfig = () => {
     },
   });
 };
+
+export const useCreateSitePage = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: CreateSitePageRequest) => contentService.createSitePage(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'content', 'site-pages'] })
+      queryClient.invalidateQueries({ queryKey: ['content', 'information-pages'] })
+    },
+  })
+}
+
+export const useUpdateSitePage = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdateSitePageRequest }) =>
+      contentService.updateSitePage(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'content', 'site-pages'] })
+      queryClient.invalidateQueries({ queryKey: ['content', 'information-pages'] })
+    },
+  })
+}
+
+export const useDeleteSitePage = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: string) => contentService.deleteSitePage(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'content', 'site-pages'] })
+      queryClient.invalidateQueries({ queryKey: ['content', 'information-pages'] })
+    },
+  })
+}

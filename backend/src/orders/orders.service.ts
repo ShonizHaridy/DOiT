@@ -15,11 +15,14 @@ import {
   CreateOrderDto,
   CreateGuestOrderDto,
   CreateCustomOrderDto,
+  CouponValidationDto,
   CustomOrderDto,
   OrderDto,
   PaginatedCustomOrdersDto,
   PaginatedOrdersDto,
+  ShippingRateDto,
 } from './dto/orders.dto';
+import { EGYPT_GOVERNORATES } from 'src/common/constants/governorates.constant';
 
 // Type for order item data to ensure type safety
 interface OrderItemData {
@@ -42,6 +45,9 @@ interface OrderItemData {
 @Injectable()
 export class OrdersService {
   private readonly logger = new Logger(OrdersService.name);
+  private readonly governorateMap = new Map(
+    EGYPT_GOVERNORATES.map((governorate) => [governorate.toLowerCase(), governorate]),
+  );
 
   constructor(
     private prisma: PrismaService,
@@ -67,11 +73,129 @@ export class OrdersService {
     return status.toUpperCase().replace(/-/g, '_');
   }
 
+  private async resolveShippingPrice(governorate?: string): Promise<number> {
+    const fallback = 50;
+    const requestedGovernorate = governorate?.trim();
+    const normalizedGovernorate = requestedGovernorate
+      ? this.governorateMap.get(requestedGovernorate.toLowerCase()) ?? requestedGovernorate
+      : undefined;
+    if (!normalizedGovernorate) {
+      return fallback;
+    }
+
+    const shippingRateRows = await this.prisma.$queryRaw<Array<{ price: unknown }>>`
+      SELECT price
+      FROM shipping_rates
+      WHERE LOWER(governorate) = LOWER(${normalizedGovernorate})
+        AND status = TRUE
+      LIMIT 1
+    `;
+    const shippingRate = shippingRateRows[0];
+
+    return this.toNumber(shippingRate?.price) ?? fallback;
+  }
+
+  private isOfferCurrentlyActive(offer: {
+    status: boolean;
+    startDate: Date;
+    endDate: Date;
+  }) {
+    if (!offer.status) return false;
+    const now = new Date();
+    return now >= offer.startDate && now <= offer.endDate;
+  }
+
+  private async evaluateCoupon(
+    subtotal: number,
+    couponCode?: string,
+  ): Promise<CouponValidationDto> {
+    const normalizedCode = couponCode?.trim().toUpperCase() ?? '';
+    const baseResult: CouponValidationDto = {
+      valid: false,
+      code: normalizedCode,
+      discount: 0,
+      freeShipping: false,
+    };
+
+    if (!normalizedCode) {
+      return {
+        ...baseResult,
+        message: 'Coupon code is required',
+      };
+    }
+
+    const offer = await this.prisma.offer.findFirst({
+      where: {
+        code: {
+          equals: normalizedCode,
+          mode: 'insensitive',
+        },
+      },
+    });
+    if (!offer) {
+      return {
+        ...baseResult,
+        message: 'Invalid coupon code',
+      };
+    }
+    if (!this.isOfferCurrentlyActive(offer)) {
+      return {
+        ...baseResult,
+        message: 'Coupon is inactive or expired',
+      };
+    }
+
+    const minCartValue = this.toNumber(offer.minCartValue);
+    if (typeof minCartValue === 'number' && subtotal < minCartValue) {
+      return {
+        ...baseResult,
+        message: `Minimum cart value is ${minCartValue} EGP`,
+      };
+    }
+
+    let discount = 0;
+    let freeShipping = false;
+
+    if (offer.type === 'PERCENTAGE') {
+      discount = (subtotal * Number(offer.discountValue)) / 100;
+      if (offer.maxDiscount && discount > Number(offer.maxDiscount)) {
+        discount = Number(offer.maxDiscount);
+      }
+    } else if (offer.type === 'FIXED_AMOUNT') {
+      discount = Number(offer.discountValue);
+    } else if (offer.type === 'FREE_SHIPPING') {
+      freeShipping = true;
+    } else {
+      return {
+        ...baseResult,
+        message: 'Coupon type is not supported at checkout',
+      };
+    }
+
+    return {
+      valid: true,
+      code: normalizedCode,
+      discount: Math.max(0, Math.min(subtotal, discount)),
+      freeShipping,
+    };
+  }
+
   // ============================================
   // GUEST CHECKOUT
   // ============================================
   async createGuestOrder(dto: CreateGuestOrderDto): Promise<OrderDto> {
-    const { email, fullName, phoneNumber, addressLabel, fullAddress, items, paymentMethod, notes, couponCode } = dto;
+    const {
+      email,
+      fullName,
+      phoneNumber,
+      addressLabel,
+      fullAddress,
+      items,
+      paymentMethod,
+      notes,
+      couponCode,
+      governorate,
+    } = dto;
 
     // Check if customer exists, create if not
     let customer = await this.prisma.customer.findUnique({
@@ -135,7 +259,74 @@ export class OrdersService {
       paymentMethod,
       notes,
       couponCode,
+      governorate,
     });
+  }
+
+  private async resolveCustomOrderCustomerId(
+    dto: CreateCustomOrderDto,
+    authenticatedCustomerId?: string,
+  ): Promise<string> {
+    if (authenticatedCustomerId && authenticatedCustomerId.trim().length > 0) {
+      return authenticatedCustomerId.trim();
+    }
+
+    if (dto.customerId && dto.customerId.trim().length > 0) {
+      return dto.customerId.trim();
+    }
+
+    const email = dto.email?.trim().toLowerCase();
+    if (!email) {
+      return `guest-${Date.now().toString(36)}`;
+    }
+
+    const fullName = dto.fullName?.trim();
+    const phoneNumber = dto.phoneNumber?.trim();
+
+    const existingCustomer = await this.prisma.customer.findUnique({
+      where: { email },
+    });
+
+    if (existingCustomer) {
+      const updateData: { fullName?: string; phoneNumber?: string } = {};
+      const placeholderName = email.split('@')[0]?.trim().toLowerCase();
+      const currentName = existingCustomer.fullName?.trim().toLowerCase();
+      const canUpdateName = !currentName || currentName === placeholderName;
+
+      if (fullName && fullName.length > 0 && canUpdateName) {
+        updateData.fullName = fullName;
+      }
+      if (phoneNumber && phoneNumber.length > 0 && !existingCustomer.phoneNumber) {
+        updateData.phoneNumber = phoneNumber;
+      }
+
+      if (Object.keys(updateData).length > 0) {
+        await this.prisma.customer.update({
+          where: { id: existingCustomer.id },
+          data: updateData,
+        });
+      }
+
+      return existingCustomer.id;
+    }
+
+    const fallbackName = fullName && fullName.length > 0 ? fullName : email.split('@')[0];
+    const createdCustomer = await this.prisma.customer.create({
+      data: {
+        email,
+        fullName: fallbackName || 'Guest',
+        phoneNumber: phoneNumber && phoneNumber.length > 0 ? phoneNumber : undefined,
+        status: 'ACTIVE',
+      },
+    });
+
+    await this.notifyAdminNewCustomer({
+      id: createdCustomer.id,
+      email: createdCustomer.email,
+      fullName: createdCustomer.fullName,
+    });
+
+    return createdCustomer.id;
   }
 
   async createCustomOrder(
@@ -143,12 +334,7 @@ export class OrdersService {
     authenticatedCustomerId?: string,
   ): Promise<CustomOrderDto> {
     const orderNumber = `#C${Date.now().toString().slice(-8)}${Math.floor(Math.random() * 1000)}`;
-    const customerId =
-      authenticatedCustomerId && authenticatedCustomerId.trim().length > 0
-        ? authenticatedCustomerId.trim()
-        : dto.customerId && dto.customerId.trim().length > 0
-        ? dto.customerId.trim()
-        : `guest-${Date.now().toString(36)}`;
+    const customerId = await this.resolveCustomOrderCustomerId(dto, authenticatedCustomerId);
 
     const customOrder = await this.prisma.customOrder.create({
       data: {
@@ -181,6 +367,28 @@ export class OrdersService {
     return this.transformCustomOrder(customOrder);
   }
 
+  async validateCoupon(code: string, subtotal: number): Promise<CouponValidationDto> {
+    return this.evaluateCoupon(subtotal, code);
+  }
+
+  async getShippingRates(): Promise<ShippingRateDto[]> {
+    const rates = await this.prisma.$queryRaw<
+      Array<{ id: string; governorate: string; price: unknown; status: boolean }>
+    >`
+      SELECT id, governorate, price, status
+      FROM shipping_rates
+      WHERE status = TRUE
+      ORDER BY governorate ASC
+    `;
+
+    return rates.map((rate) => ({
+      id: rate.id,
+      governorate: rate.governorate,
+      price: this.toNumber(rate.price) ?? 0,
+      status: rate.status,
+    }));
+  }
+
   // ============================================
   // AUTHENTICATED CUSTOMER ORDER
   // ============================================
@@ -206,7 +414,7 @@ export class OrdersService {
     customerId: string,
     dto: CreateOrderDto,
   ): Promise<OrderDto> {
-    const { items, addressId, paymentMethod, notes, couponCode } = dto;
+    const { items, addressId, paymentMethod, notes, couponCode, governorate } = dto;
 
     // Validate and prepare order items
     const orderItemsData: OrderItemData[] = [];
@@ -264,24 +472,18 @@ export class OrdersService {
       });
     }
 
-    // Coupon logic
-    let discount = 0;
-    if (couponCode) {
-      const offer = await this.prisma.offer.findUnique({ where: { code: couponCode } });
-      if (offer && offer.status && new Date() >= offer.startDate && new Date() <= offer.endDate) {
-        if (offer.type === 'PERCENTAGE') {
-          discount = (subtotal * Number(offer.discountValue)) / 100;
-          if (offer.maxDiscount && discount > Number(offer.maxDiscount)) {
-            discount = Number(offer.maxDiscount);
-          }
-        } else if (offer.type === 'FIXED_AMOUNT') {
-          discount = Number(offer.discountValue);
-        }
-      }
-    }
-
-    const shipping = 50;
-    const total = subtotal - discount + shipping;
+    const couponEvaluation = couponCode
+      ? await this.evaluateCoupon(subtotal, couponCode)
+      : {
+          valid: false,
+          code: '',
+          discount: 0,
+          freeShipping: false,
+        };
+    const discount = couponEvaluation.valid ? couponEvaluation.discount : 0;
+    const shippingBasePrice = await this.resolveShippingPrice(governorate);
+    const shipping = couponEvaluation.freeShipping ? 0 : shippingBasePrice;
+    const total = Math.max(0, subtotal - discount + shipping);
     const orderNumber = `#${Date.now().toString().slice(-6)}${Math.floor(Math.random() * 1000)}`;
 
     // FIX 3: Stock locking in transaction with re-validation

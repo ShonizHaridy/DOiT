@@ -2,6 +2,7 @@ export interface AdminProfile {
   id: string
   adminId: string
   role: string
+  adminLevel: 'SUPER_ADMIN' | 'ADMIN'
   fullName: string
   email: string
   phoneNumber: string

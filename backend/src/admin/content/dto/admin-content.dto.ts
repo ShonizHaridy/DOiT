@@ -9,6 +9,8 @@ import {
   IsOptional,
   IsArray,
   IsNotEmpty,
+  Matches,
+  MaxLength,
 } from 'class-validator';
 
 // ============ Hero Section DTOs ============
@@ -216,5 +218,85 @@ export class UpdateFeaturedProductsDto {
   @IsArray()
   @IsString({ each: true })
   selectedProducts?: string[];
+}
+
+// ============ Site Page DTOs ============
+
+export class CreateSitePageDto {
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(120)
+  titleEn: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(120)
+  titleAr: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @Matches(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, {
+    message: 'Slug must be lowercase and can contain numbers and hyphens',
+  })
+  slug: string;
+
+  @IsString()
+  @IsNotEmpty()
+  contentEn: string;
+
+  @IsString()
+  @IsNotEmpty()
+  contentAr: string;
+
+  @IsOptional()
+  @IsBoolean()
+  showInFooter?: boolean;
+
+  @IsOptional()
+  @IsNumber()
+  order?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  status?: boolean;
+}
+
+export class UpdateSitePageDto {
+  @IsOptional()
+  @IsString()
+  @MaxLength(120)
+  titleEn?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(120)
+  titleAr?: string;
+
+  @IsOptional()
+  @IsString()
+  @Matches(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, {
+    message: 'Slug must be lowercase and can contain numbers and hyphens',
+  })
+  slug?: string;
+
+  @IsOptional()
+  @IsString()
+  contentEn?: string;
+
+  @IsOptional()
+  @IsString()
+  contentAr?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  showInFooter?: boolean;
+
+  @IsOptional()
+  @IsNumber()
+  order?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  status?: boolean;
 }
 

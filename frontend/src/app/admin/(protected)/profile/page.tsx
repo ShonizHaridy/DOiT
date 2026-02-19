@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
-import { Edit2, GalleryEdit, Lock1, LogoutCurve, ProfileCircle } from 'iconsax-reactjs'
+import { useState } from 'react'
+import { Edit2, Lock1, LogoutCurve, ProfileCircle } from 'iconsax-reactjs'
 import { useAdminProfile, useUpdateAdminProfile } from '@/hooks/useAdminProfile'
 import { useLogout } from '@/hooks/useAuth'
 
@@ -14,19 +14,6 @@ export default function ProfilePage() {
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [phoneNumber, setPhoneNumber] = useState('')
-
-  useEffect(() => {
-    if (!profile || isEditing) return
-    setFullName(profile.fullName ?? '')
-    setEmail(profile.email ?? '')
-    setPhoneNumber(profile.phoneNumber ?? '')
-  }, [profile, isEditing])
-
-  const initials = useMemo(() => {
-    const source = fullName || profile?.fullName || profile?.adminId || 'A'
-    const parts = source.trim().split(/\s+/)
-    return parts.slice(0, 2).map((part) => part[0]?.toUpperCase() ?? '').join('') || 'A'
-  }, [fullName, profile?.fullName, profile?.adminId])
 
   const openEdit = () => {
     if (!profile) return
@@ -75,7 +62,7 @@ export default function ProfilePage() {
       <div className="p-6">
         <div className="bg-white rounded-lg max-w-4xl p-6">
           <div className="flex items-center gap-2 border-b border-neutral-200 pb-3 mb-5">
-            <Edit2 size={22} className="text-neutral-500" />
+            <Edit2 size={30} className="text-neutral-500" />
             <h1 className="text-3xl font-semibold text-neutral-900">Edit Profile</h1>
           </div>
 
@@ -139,28 +126,14 @@ export default function ProfilePage() {
     <div className="p-6">
       <div className="bg-white rounded-lg max-w-4xl p-6">
         <div className="flex items-center gap-2 border-b border-neutral-200 pb-3 mb-5">
-          <ProfileCircle size={24} className="text-neutral-500" />
-          <h1 className="text-4xl font-semibold text-neutral-900">My Profile</h1>
+          <ProfileCircle size={30} className="text-neutral-500" />
+          <h1 className="text-3xl font-semibold text-neutral-900">My Profile</h1>
         </div>
 
         <div className="flex items-center gap-6 mb-6">
-          <div className="relative">
-            <div className="w-40 h-40 rounded-full overflow-hidden bg-neutral-200 flex items-center justify-center">
-              {profile.avatarUrl ? (
-                <img src={profile.avatarUrl} alt={profile.fullName} className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-neutral-200 to-neutral-300 flex items-center justify-center text-4xl font-semibold text-neutral-600">
-                  {initials}
-                </div>
-              )}
-            </div>
-            <button
-              type="button"
-              className="absolute bottom-1 right-3 w-10 h-10 rounded-xl border border-neutral-200 bg-neutral-100 flex items-center justify-center"
-            >
-              <GalleryEdit size={20} className="text-neutral-600" />
-            </button>
-          </div>
+          {/* <div className="w-40 h-40 rounded-full bg-neutral-100 border border-neutral-200 flex items-center justify-center">
+            <ProfileCircle size={96} className="text-neutral-500" />
+          </div> */}
 
           <div>
             <h2 className="text-5xl font-semibold text-neutral-900">{profile.fullName || profile.adminId}</h2>

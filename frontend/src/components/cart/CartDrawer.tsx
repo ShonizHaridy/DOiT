@@ -7,6 +7,7 @@ import { useLocale, useTranslations } from 'next-intl'
 import { CloseCircle, Add, Minus, TicketDiscount } from 'iconsax-reactjs'
 import { cn } from '@/lib/utils'
 import { useCartStore } from '@/store'
+import { validateCoupon } from '@/services/orders'
 
 export default function CartDrawer() {
   const {
@@ -23,6 +24,7 @@ export default function CartDrawer() {
 
   const [couponInput, setCouponInput] = useState('')
   const [couponError, setCouponError] = useState('')
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false)
   const locale = useLocale()
   const t = useTranslations('cart')
   const tProduct = useTranslations('product')
@@ -50,14 +52,28 @@ export default function CartDrawer() {
     return () => { document.body.style.overflow = '' }
   }, [isOpen])
 
-  const handleApplyCoupon = () => {
-    if (!couponInput.trim()) return
-    const success = applyCoupon(couponInput)
-    if (success) {
-      setCouponError('')
+  const handleApplyCoupon = async () => {
+    const code = couponInput.trim()
+    if (!code) return
+
+    setCouponError('')
+    setIsApplyingCoupon(true)
+    try {
+      const result = await validateCoupon({
+        code,
+        subtotal,
+      })
+      if (!result.valid) {
+        setCouponError(result.message || t('invalidCoupon'))
+        return
+      }
+
+      applyCoupon(result.code || code, result.discount, result.freeShipping)
       setCouponInput('')
-    } else {
+    } catch {
       setCouponError(t('invalidCoupon'))
+    } finally {
+      setIsApplyingCoupon(false)
     }
   }
 
@@ -236,9 +252,10 @@ export default function CartDrawer() {
                   </div>
                   <button
                     onClick={handleApplyCoupon}
+                    disabled={isApplyingCoupon}
                     className="px-4 py-2 bg-primary text-white text-sm rounded hover:bg-primary/90 transition-colors"
                   >
-                    {t('apply')}
+                    {isApplyingCoupon ? '...' : t('apply')}
                   </button>
                 </div>
               )}

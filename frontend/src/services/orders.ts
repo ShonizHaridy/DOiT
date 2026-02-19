@@ -6,6 +6,9 @@ import type {
   CreateOrderRequest,
   CreateGuestOrderRequest,
   CreateCustomOrderRequest,
+  CouponValidationRequest,
+  CouponValidationResponse,
+  ShippingRate,
   OrderStatistics,
   OrderStatus,
   AdminOrdersResponse,
@@ -33,6 +36,18 @@ export const createCustomOrder = async (
 ): Promise<CustomOrder> => {
   const response = await apiClient.post<CustomOrder>('/orders/custom', data);
   return response.data;
+};
+
+export const validateCoupon = async (
+  data: CouponValidationRequest
+): Promise<CouponValidationResponse> => {
+  const response = await apiClient.post<CouponValidationResponse>('/orders/coupon/validate', data);
+  return response.data;
+};
+
+export const getShippingRates = async (): Promise<ShippingRate[]> => {
+  const { data } = await apiClient.get<ShippingRate[]>('/orders/shipping-rates');
+  return data;
 };
 
 export const getCustomOrder = async (orderNumber: string): Promise<CustomOrder> => {

@@ -24,6 +24,7 @@ interface CartState {
   items: CartItem[]
   couponCode: string
   couponDiscount: number
+  couponFreeShipping: boolean
   isOpen: boolean
   
   // Actions
@@ -31,7 +32,7 @@ interface CartState {
   removeItem: (id: string) => void
   updateQuantity: (id: string, quantity: number) => void
   clearCart: () => void
-  applyCoupon: (code: string) => boolean
+  applyCoupon: (code: string, discountAmount: number, freeShipping?: boolean) => void
   removeCoupon: () => void
   openCart: () => void
   closeCart: () => void
@@ -49,6 +50,7 @@ export const useCartStore = create<CartState>()(
       items: [],
       couponCode: '',
       couponDiscount: 0,
+      couponFreeShipping: false,
       isOpen: false,
 
       addItem: (item) => {
@@ -110,24 +112,19 @@ export const useCartStore = create<CartState>()(
         }))
       },
 
-      clearCart: () => set({ items: [], couponCode: '', couponDiscount: 0 }),
+      clearCart: () => set({ items: [], couponCode: '', couponDiscount: 0, couponFreeShipping: false }),
 
-      applyCoupon: (code) => {
-        // Mock coupon validation
-        const validCoupons: Record<string, number> = {
-          'SAVE10': 10,
-          'SAVE20': 20,
-          'SUMMER25': 25,
-        }
-        const discount = validCoupons[code.toUpperCase()]
-        if (discount) {
-          set({ couponCode: code.toUpperCase(), couponDiscount: discount })
-          return true
-        }
-        return false
+      applyCoupon: (code, discountAmount, freeShipping = false) => {
+        const normalizedCode = code.trim().toUpperCase()
+        if (!normalizedCode) return
+        set({
+          couponCode: normalizedCode,
+          couponDiscount: Math.max(0, discountAmount),
+          couponFreeShipping: Boolean(freeShipping),
+        })
       },
 
-      removeCoupon: () => set({ couponCode: '', couponDiscount: 0 }),
+      removeCoupon: () => set({ couponCode: '', couponDiscount: 0, couponFreeShipping: false }),
 
       openCart: () => set({ isOpen: true }),
       closeCart: () => set({ isOpen: false }),
@@ -140,7 +137,7 @@ export const useCartStore = create<CartState>()(
       getTotal: () => {
         const subtotal = get().getSubtotal()
         const discount = get().couponDiscount
-        return subtotal - (subtotal * discount) / 100
+        return Math.max(0, subtotal - discount)
       },
 
       getItemCount: () => {
@@ -153,6 +150,7 @@ export const useCartStore = create<CartState>()(
         items: state.items,
         couponCode: state.couponCode,
         couponDiscount: state.couponDiscount,
+        couponFreeShipping: state.couponFreeShipping,
       }),
     }
   )

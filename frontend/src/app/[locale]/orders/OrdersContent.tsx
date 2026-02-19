@@ -10,6 +10,7 @@ import { useCustomOrders, useOrders } from '@/hooks/useOrders'
 import { useAuthStore } from '@/store'
 import type { CustomOrder, Order } from '@/types/order'
 import OrderStatusBadge, { type OrderUiStatusKey } from '@/components/ui/OrderStatusBadge'
+import { toAbsoluteMediaUrl } from '@/lib/media-url'
 
 type OrderTab = 'all' | OrderUiStatusKey
 
@@ -78,33 +79,38 @@ function StandardOrderDetails({ order, locale }: { order: Order; locale: string 
           {t('items')}: {itemCount}
         </p>
         <div className="space-y-3">
-          {order.items.map((item) => (
-            <div key={item.id} className="flex gap-3">
-              <div className="relative w-16 h-16 bg-bg-card rounded shrink-0">
-                <Image src={item.productImage} alt={item.productName} fill className="object-contain p-1" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h4 className="font-roboto font-bold text-sm line-clamp-1 mb-1">{item.productName}</h4>
-                <p className="text-xs text-text-body">
-                  {item.color} / {item.size} / {item.quantity}
-                </p>
-                <p className="text-xs text-text-body">
-                  {t('vendor')}: {item.vendor} | {t('type')}: {item.type} | {t('sku')}: {item.sku}
-                </p>
-              </div>
-              <div className="text-end">
-                <p className="font-medium text-sm">{item.price.toLocaleString()} {order.currency}</p>
-                {typeof item.originalPrice === 'number' && (
-                  <p className="text-xs text-text-placeholder line-through">
-                    {item.originalPrice.toLocaleString()} {order.currency}
+          {order.items.map((item) => {
+            const productImageUrl =
+              toAbsoluteMediaUrl(item.productImage) || '/placeholder-product.png'
+
+            return (
+              <div key={item.id} className="flex gap-3">
+                <div className="relative w-16 h-16 bg-bg-card rounded shrink-0">
+                  <Image src={productImageUrl} alt={item.productName} fill className="object-contain p-1" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-roboto font-bold text-sm line-clamp-1 mb-1">{item.productName}</h4>
+                  <p className="text-xs text-text-body">
+                    {item.color} / {item.size} / {item.quantity}
                   </p>
-                )}
-                <p className="font-bold text-sm">
-                  {(item.price * item.quantity).toLocaleString()} {order.currency}
-                </p>
+                  <p className="text-xs text-text-body">
+                    {t('vendor')}: {item.vendor} | {t('type')}: {item.type} | {t('sku')}: {item.sku}
+                  </p>
+                </div>
+                <div className="text-end">
+                  <p className="font-medium text-sm">{item.price.toLocaleString()} {order.currency}</p>
+                  {typeof item.originalPrice === 'number' && (
+                    <p className="text-xs text-text-placeholder line-through">
+                      {item.originalPrice.toLocaleString()} {order.currency}
+                    </p>
+                  )}
+                  <p className="font-bold text-sm">
+                    {(item.price * item.quantity).toLocaleString()} {order.currency}
+                  </p>
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </div>
     </>
@@ -114,6 +120,9 @@ function StandardOrderDetails({ order, locale }: { order: Order; locale: string 
 function CustomOrderDetails({ order, locale }: { order: CustomOrder; locale: string }) {
   const t = useTranslations('orders')
   const statusKey = getStatusKey(order.status)
+  const referenceImages = order.referenceImages
+    .map((imageUrl) => toAbsoluteMediaUrl(imageUrl))
+    .filter(Boolean)
 
   return (
     <>
@@ -150,11 +159,11 @@ function CustomOrderDetails({ order, locale }: { order: CustomOrder; locale: str
         <p className="text-sm text-primary mt-1">{order.details || '---'}</p>
       </div>
 
-      {order.referenceImages.length > 0 && (
+      {referenceImages.length > 0 && (
         <div className="mt-4">
           <p className="text-sm text-text-body mb-2">{t('referenceImages')}</p>
           <div className="flex flex-wrap gap-2">
-            {order.referenceImages.map((imageUrl) => (
+            {referenceImages.map((imageUrl) => (
               <a
                 key={imageUrl}
                 href={imageUrl}

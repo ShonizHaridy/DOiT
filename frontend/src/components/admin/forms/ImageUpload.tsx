@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils'
 import { GalleryAdd, CloseCircle, Trash } from 'iconsax-reactjs'
 import { useRef } from 'react'
 import { FieldError } from 'react-hook-form'
+import { toAbsoluteMediaUrl } from '@/lib/media-url'
 
 export interface UploadedImage {
   id: string
@@ -100,11 +101,23 @@ export default function ImageUpload({
             key={image.id}
             className="relative w-[100px] h-[80px] rounded-lg border border-neutral-200 overflow-hidden group"
           >
-            <img
-              src={image.url}
-              alt={image.name}
-              className="w-full h-full object-cover"
-            />
+            {(() => {
+              const imageUrl = toAbsoluteMediaUrl(image.url)
+              if (!imageUrl) {
+                return (
+                  <div className="w-full h-full bg-neutral-100 flex items-center justify-center">
+                    <Trash size={16} className="text-neutral-300" />
+                  </div>
+                )
+              }
+              return (
+                <img
+                  src={imageUrl}
+                  alt={image.name}
+                  className="w-full h-full object-cover"
+                />
+              )
+            })()}
             <button
               type="button"
               onClick={() => handleRemoveImage(image.id)}

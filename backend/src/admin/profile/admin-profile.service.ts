@@ -8,7 +8,6 @@ interface AdminProfileMeta {
   fullName?: string;
   phoneNumber?: string;
   avatarUrl?: string;
-  role?: string;
 }
 
 @Injectable()
@@ -24,6 +23,7 @@ export class AdminProfileService {
         id: true,
         adminId: true,
         email: true,
+        adminLevel: true,
       },
     });
 
@@ -37,7 +37,8 @@ export class AdminProfileService {
     return {
       id: admin.id,
       adminId: admin.adminId,
-      role: meta.role?.trim() || 'Supervisor',
+      role: admin.adminLevel === 'SUPER_ADMIN' ? 'Super Admin' : 'Admin',
+      adminLevel: admin.adminLevel,
       fullName: meta.fullName?.trim() || admin.adminId,
       email: admin.email,
       phoneNumber: meta.phoneNumber?.trim() || '',
@@ -57,7 +58,6 @@ export class AdminProfileService {
       fullName: dto.fullName?.trim() ?? current.fullName,
       phoneNumber: dto.phoneNumber?.trim() ?? current.phoneNumber,
       avatarUrl: dto.avatarUrl?.trim() ?? current.avatarUrl,
-      role: dto.role?.trim() ?? current.role,
     };
 
     if (nextEmail !== current.email) {

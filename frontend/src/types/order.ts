@@ -12,6 +12,7 @@ export interface CreateOrderRequest {
   paymentMethod?: string;
   notes?: string;
   couponCode?: string;
+  governorate?: string;
 }
 
 export interface CreateGuestOrderRequest extends CreateOrderRequest {
@@ -20,6 +21,7 @@ export interface CreateGuestOrderRequest extends CreateOrderRequest {
   phoneNumber: string;
   addressLabel: string;
   fullAddress: string;
+  governorate?: string;
 }
 
 export interface CreateCustomOrderRequest {
@@ -30,6 +32,31 @@ export interface CreateCustomOrderRequest {
   quantity: number;
   details: string;
   referenceImages?: string[];
+  email?: string;
+  fullName?: string;
+  phoneNumber?: string;
+}
+
+export interface CouponValidationRequest {
+  code: string;
+  subtotal: number;
+}
+
+export interface CouponValidationResponse {
+  valid: boolean;
+  code: string;
+  discount: number;
+  freeShipping: boolean;
+  message?: string;
+}
+
+export interface ShippingRate {
+  id: string;
+  governorate: string;
+  price: number;
+  status: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 // Response types

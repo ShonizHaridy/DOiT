@@ -1,5 +1,11 @@
 import axios from 'axios';
 import { useAuthStore } from '@/store';
+import {
+  clearAdminAuthStorage,
+  decodeJwtRole,
+  getAdminAuthSnapshot,
+  getCustomerAuthSnapshot,
+} from '@/lib/auth-storage'
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ||
@@ -12,19 +18,38 @@ export const apiClient = axios.create({
   },
 });
 
+const isAdminRoute = () =>
+  typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')
+
+const resolveCustomerToken = () => {
+  const storeToken = useAuthStore.getState().accessToken
+  const storeUserRole = useAuthStore.getState().user?.role
+  const storeTokenRole = decodeJwtRole(storeToken)
+
+  if (storeToken && (storeUserRole === 'customer' || storeTokenRole === 'customer')) {
+    return storeToken
+  }
+
+  return getCustomerAuthSnapshot().token
+}
+
+const resolveTokenByContext = () => {
+  if (typeof window === 'undefined') return null
+  if (isAdminRoute()) return getAdminAuthSnapshot().token
+  return resolveCustomerToken()
+}
+
 // Request interceptor to add auth token
 apiClient.interceptors.request.use(
   (config) => {
-    // Get token from localStorage or your auth store
-    const storeToken = useAuthStore.getState().accessToken;
-    const token =
-      storeToken ??
-      (typeof window !== 'undefined' ? localStorage.getItem('access_token') : null);
-    
+    const token = resolveTokenByContext()
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    } else if (config.headers && 'Authorization' in config.headers) {
+      delete (config.headers as Record<string, unknown>).Authorization
     }
-    
+
     return config;
   },
   (error) => {
@@ -38,26 +63,24 @@ apiClient.interceptors.response.use(
   (error) => {
     // Handle 401 Unauthorized (token expired)
     if (error.response?.status === 401 && typeof window !== 'undefined') {
-      const storeToken = useAuthStore.getState().accessToken;
-      const token =
-        storeToken ??
-        (typeof window !== 'undefined' ? localStorage.getItem('access_token') : null);
-      const hadAuthHeader = Boolean((error.config?.headers as any)?.Authorization);
+      const token = resolveTokenByContext()
+      const errorHeaders = error.config?.headers as Record<string, unknown> | undefined
+      const hadAuthHeader = Boolean(errorHeaders?.Authorization ?? errorHeaders?.authorization)
 
       if (!hadAuthHeader && !token) {
         return Promise.reject(error);
       }
 
-      localStorage.removeItem('access_token');
-      useAuthStore.getState().clearAuth();
-      const pathname = window.location.pathname;
-      const isAdminRoute = pathname.startsWith('/admin');
-
-      if (isAdminRoute) {
-        window.location.href = '/admin/login';
+      if (isAdminRoute()) {
+        clearAdminAuthStorage()
+        window.location.href = '/admin/login'
+      } else {
+        localStorage.removeItem('access_token')
+        localStorage.removeItem('doit-auth')
+        useAuthStore.getState().clearAuth()
       }
     }
-    
+
     return Promise.reject(error);
   }
 );

@@ -56,3 +56,16 @@ export class HomeContentDto {
   banners: BannerAdDto[];
 }
 
+export class InformationPageSummaryDto {
+  id: string;
+  slug: string;
+  titleEn: string;
+  titleAr: string;
+  order: number;
+}
+
+export class InformationPageDto extends InformationPageSummaryDto {
+  contentEn: string;
+  contentAr: string;
+}
+

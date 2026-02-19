@@ -15,7 +15,17 @@ import {
 import { JwtAuthGuard, RolesGuard } from '../../auth/guards';
 import { Roles } from 'src/auth/decorators/auth.decorators';
 import { AdminContentService } from './admin-content.service';
-import { CreateHeroSectionDto, UpdateHeroSectionDto, CreateVendorDto, UpdateVendorDto, CreateBannerDto, UpdateBannerDto, UpdateFeaturedProductsDto } from './dto/admin-content.dto';
+import {
+  CreateHeroSectionDto,
+  UpdateHeroSectionDto,
+  CreateVendorDto,
+  UpdateVendorDto,
+  CreateBannerDto,
+  UpdateBannerDto,
+  UpdateFeaturedProductsDto,
+  CreateSitePageDto,
+  UpdateSitePageDto,
+} from './dto/admin-content.dto';
 
 @Controller('admin/content')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -99,5 +109,27 @@ export class AdminContentController {
   @Put('featured-products')
   async updateFeaturedProductsConfig(@Body() dto: UpdateFeaturedProductsDto) {
     return this.adminContentService.updateFeaturedProductsConfig(dto);
+  }
+
+  // ============ SITE PAGES ============
+
+  @Get('site-pages')
+  async getSitePages() {
+    return this.adminContentService.getSitePages();
+  }
+
+  @Post('site-pages')
+  async createSitePage(@Body() dto: CreateSitePageDto) {
+    return this.adminContentService.createSitePage(dto);
+  }
+
+  @Put('site-pages/:id')
+  async updateSitePage(@Param('id') id: string, @Body() dto: UpdateSitePageDto) {
+    return this.adminContentService.updateSitePage(id, dto);
+  }
+
+  @Delete('site-pages/:id')
+  async deleteSitePage(@Param('id') id: string): Promise<void> {
+    return this.adminContentService.deleteSitePage(id);
   }
 }

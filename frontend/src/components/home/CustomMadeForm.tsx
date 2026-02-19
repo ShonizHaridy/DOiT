@@ -6,9 +6,8 @@ import { useForm } from 'react-hook-form'
 import { Gallery, CloseCircle } from 'iconsax-reactjs'
 import { Input, Select, Textarea, Button } from '@/components/ui'
 import { uploadCustomOrderImages } from '@/services/upload'
-import { createCustomOrder } from '@/services/orders'
-import { useAuthStore } from '@/store'
 import { useRouter } from '@/i18n/navigation'
+import { toAbsoluteMediaUrl } from '@/lib/media-url'
 
 interface FormData {
   productType: string
@@ -25,11 +24,9 @@ export default function CustomMadeForm() {
   const [images, setImages] = useState<Array<{ file: File; preview: string }>>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
-  const [submitSuccess, setSubmitSuccess] = useState<string | null>(null)
-  const accessToken = useAuthStore((state) => state.accessToken)
   const imagesRef = useRef<Array<{ file: File; preview: string }>>([])
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>({
+  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
     defaultValues: {
       productType: '',
       gender: '',
@@ -51,48 +48,43 @@ export default function CustomMadeForm() {
   }, [])
 
   const onSubmit = async (data: FormData) => {
+    let redirecting = false
+
     try {
       setSubmitError(null)
-      setSubmitSuccess(null)
       setIsSubmitting(true)
 
       const files = images.map((item) => item.file)
-      const referenceImages = files.length > 0 ? await uploadCustomOrderImages(files) : []
+      const uploadedReferenceImages = files.length > 0 ? await uploadCustomOrderImages(files) : []
+      const referenceImages = uploadedReferenceImages
+        .map((url) => toAbsoluteMediaUrl(url))
+        .filter(Boolean)
 
-      const customOrder = await createCustomOrder({
-        productType: data.productType,
-        color: data.color,
-        gender: data.gender,
-        size: data.size,
-        quantity: data.quantity,
-        details: data.details,
-        referenceImages,
-      })
-
-      setSubmitSuccess(`Order ${customOrder.orderNumber} was sent successfully.`)
-      images.forEach((item) => URL.revokeObjectURL(item.preview))
-      setImages([])
-      reset({
-        productType: '',
-        gender: '',
-        color: '',
-        size: '',
-        quantity: 1,
-        details: '',
-      })
-      const hasSession =
-        Boolean(accessToken) ||
-        (typeof window !== 'undefined' && Boolean(localStorage.getItem('access_token')))
-
-      if (hasSession) {
-        router.push('/orders')
-      } else {
-        router.push(`/orders/track/${encodeURIComponent(customOrder.orderNumber)}`)
+      // Save custom order data to localStorage so checkout can collect delivery info first
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(
+          'doit_pending_custom_order',
+          JSON.stringify({
+            productType: data.productType,
+            color: data.color,
+            gender: data.gender,
+            size: data.size,
+            quantity: data.quantity,
+            details: data.details,
+            referenceImages,
+          })
+        )
       }
+
+      // Keep form values visible until route transition to avoid flashing empty fields.
+      redirecting = true
+      router.push('/checkout?mode=custom')
     } catch {
-      setSubmitError('Failed to send custom order. Please try again.')
+      setSubmitError('Failed to upload images. Please try again.')
     } finally {
-      setIsSubmitting(false)
+      if (!redirecting) {
+        setIsSubmitting(false)
+      }
     }
   }
 
@@ -150,12 +142,6 @@ export default function CustomMadeForm() {
       {submitError && (
         <div className="mb-4 rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
           {submitError}
-        </div>
-      )}
-
-      {submitSuccess && (
-        <div className="mb-4 rounded border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
-          {submitSuccess}
         </div>
       )}
 

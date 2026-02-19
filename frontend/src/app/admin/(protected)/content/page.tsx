@@ -11,11 +11,12 @@ interface ContentSection {
 
 // Sample data
 const contentSections: ContentSection[] = [
-  { id: '1', name: 'Hero Section' },
-  { id: '2', name: 'Vendors Section' },
+  { id: '1', name: 'Home Hero Section' },
+  { id: '2', name: 'Home Vendors Section' },
   { id: '3', name: 'Banner Ads' },
   { id: '4', name: 'Featured Products' },
   { id: '5', name: 'Styles Section' },
+  { id: '6', name: 'Information Pages' },
 ]
 
 export default function ContentPage() {
@@ -41,6 +42,7 @@ export default function ContentPage() {
               '3': '/admin/content/banner-ads',
               '4': '/admin/content/featured-products',
               '5': '/admin/content/styles',
+              '6': '/admin/content/information-pages',
             }
             const route = routes[section.id]
             if (route) {
@@ -58,7 +60,7 @@ export default function ContentPage() {
         <div className="bg-white rounded-lg p-4">
           {/* Title */}
           <div className="mb-4">
-            <h1 className="text-2xl font-semibold text-neutral-900">Content Management</h1>
+            <h1 className="text-2xl font-semibold text-neutral-900">Content & Pages Management</h1>
           </div>
 
           {/* Table */}

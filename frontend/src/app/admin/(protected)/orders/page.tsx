@@ -323,7 +323,7 @@ export default function OrdersPage() {
       render: (order) => (
         <CustomerCell
           name={order.customer?.fullName ?? (order.customerId.startsWith('guest-') ? 'Guest' : order.customerId)}
-          detail={order.customer?.email ?? order.customerId}
+          detail={order.customer?.email || (order.customerId.startsWith('guest-') ? '---' : order.customerId)}
         />
       )
     },

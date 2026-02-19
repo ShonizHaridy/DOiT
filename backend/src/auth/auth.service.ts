@@ -177,6 +177,13 @@ export class AuthService {
     // Find admin
     const admin = await this.prisma.admin.findUnique({
       where: { adminId },
+      select: {
+        id: true,
+        adminId: true,
+        email: true,
+        password: true,
+        adminLevel: true,
+      },
     });
 
     if (!admin) {
@@ -195,6 +202,7 @@ export class AuthService {
       adminId: admin.adminId,
       email: admin.email,
       role: 'admin',
+      adminLevel: admin.adminLevel,
     };
 
     return {
@@ -203,6 +211,7 @@ export class AuthService {
         id: admin.id,
         email: admin.email,
         role: 'admin',
+        adminLevel: admin.adminLevel,
       },
     };
   }
@@ -309,6 +318,7 @@ export class AuthService {
           adminId,
           email,
           password: hashedPassword,
+          adminLevel: 'SUPER_ADMIN',
         },
       });
 
@@ -317,6 +327,18 @@ export class AuthService {
       console.log(`Email: ${email}`);
       console.log(`Password: ${password}`);
       console.log('⚠️  PLEASE CHANGE THE DEFAULT PASSWORD!');
+    } else if (existingAdmin.adminLevel !== 'SUPER_ADMIN') {
+      const hasAnySuperAdmin = await this.prisma.admin.findFirst({
+        where: { adminLevel: 'SUPER_ADMIN' },
+        select: { id: true },
+      });
+
+      if (!hasAnySuperAdmin) {
+        await this.prisma.admin.update({
+          where: { id: existingAdmin.id },
+          data: { adminLevel: 'SUPER_ADMIN' },
+        });
+      }
     }
   }
 }

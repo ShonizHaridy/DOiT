@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import * as authService from '@/services/auth';
 import { useAuthStore, useWishlistStore } from '@/store';
+import { clearAdminAuthStorage, persistAdminAuth } from '@/lib/auth-storage'
 import type {
   SendOtpRequest,
   VerifyOtpRequest,
@@ -44,13 +45,11 @@ export const useVerifyOtp = () => {
 
 export const useAdminLogin = () => {
   const queryClient = useQueryClient();
-  const setAuth = useAuthStore((state) => state.setAuth);
 
   return useMutation({
     mutationFn: (data: AdminLoginRequest) => authService.adminLogin(data),
     onSuccess: (data) => {
-      localStorage.setItem('access_token', data.accessToken);
-      setAuth(data);
+      persistAdminAuth(data)
       queryClient.invalidateQueries({ queryKey: ['admin', 'profile'] });
     },
   });
@@ -80,11 +79,22 @@ export const useLogout = () => {
   const clearWishlist = useWishlistStore((state) => state.clearWishlist);
 
   return () => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('doit-wishlist');
-    clearAuth();
-    clearWishlist();
+    const pathname = typeof window !== 'undefined' ? window.location.pathname : ''
+    const isAdminRoute = pathname.startsWith('/admin')
+
+    if (isAdminRoute) {
+      clearAdminAuthStorage()
+      queryClient.clear()
+      window.location.href = '/admin/login'
+      return
+    }
+
+    localStorage.removeItem('access_token')
+    localStorage.removeItem('doit-wishlist')
+    localStorage.removeItem('doit-auth')
+    clearAuth()
+    clearWishlist()
     queryClient.clear();
-    window.location.href = '/';
+    window.location.href = '/'
   };
 };

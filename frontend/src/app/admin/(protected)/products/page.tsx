@@ -12,6 +12,7 @@ import ActionButtons from '@/components/admin/ActionButtons'
 import { useAdminProducts, useToggleProductStatus } from '@/hooks/useProducts'
 import type { AdminProductListItem, ProductStatus } from '@/types/product'
 import { GallerySlash } from 'iconsax-reactjs'
+import { toAbsoluteMediaUrl } from '@/lib/media-url'
 
 const formatStatus = (status: ProductStatus) => {
   if (status === 'PUBLISHED') return 'Published'
@@ -43,14 +44,14 @@ const productFilterSections: FilterSection[] = [
 ]
 
 const getProductImageUrl = (product: AdminProductListItem) => {
-  if (product.imageUrl) return product.imageUrl
-  if (product.image) return product.image
+  if (product.imageUrl) return toAbsoluteMediaUrl(product.imageUrl)
+  if (product.image) return toAbsoluteMediaUrl(product.image)
   if (!product.images?.length) return null
 
   const firstImage = product.images[0]
-  if (typeof firstImage === 'string') return firstImage
+  if (typeof firstImage === 'string') return toAbsoluteMediaUrl(firstImage)
 
-  return firstImage.url ?? null
+  return toAbsoluteMediaUrl(firstImage.url) || null
 }
 
 function ProductThumbnail({ product }: { product: AdminProductListItem }) {

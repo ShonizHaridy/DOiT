@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import type { CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY, ROLES_KEY } from '../decorators/auth.decorators';
@@ -23,8 +23,15 @@ export class RolesGuard implements CanActivate {
 
     const { user } = context.switchToHttp().getRequest();
 
-    if (!user || !requiredRoles.some((role) => user.role === role)) {
-      throw new UnauthorizedException('Access Denied: Insufficient Permissions');
+    const hasRequiredRole = requiredRoles.some((requiredRole) => {
+      if (requiredRole === 'super_admin') {
+        return user?.role === 'admin' && user?.adminLevel === 'SUPER_ADMIN';
+      }
+      return user?.role === requiredRole;
+    });
+
+    if (!user || !hasRequiredRole) {
+      throw new ForbiddenException('Access denied: insufficient permissions');
     }
     return true;
   }

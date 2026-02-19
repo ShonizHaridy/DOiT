@@ -85,6 +85,31 @@ export class AdminOrdersService {
     return Number.isNaN(result) ? undefined : result;
   }
 
+  private extractCustomOrderCustomerField(details: string | null | undefined, label: string): string | undefined {
+    if (!details) return undefined;
+    const pattern = new RegExp(`^${label}:\\s*(.+)$`, 'im');
+    const match = details.match(pattern);
+    const value = match?.[1]?.trim();
+    return value && value.length > 0 ? value : undefined;
+  }
+
+  private resolveCustomOrderCustomerFallback(order: any): {
+    id: string;
+    fullName: string;
+    email: string;
+  } | undefined {
+    const nameFromDetails = this.extractCustomOrderCustomerField(order?.details, 'Name');
+    const emailFromDetails = this.extractCustomOrderCustomerField(order?.details, 'Email');
+
+    if (!nameFromDetails && !emailFromDetails) return undefined;
+
+    return {
+      id: order.customerId,
+      fullName: nameFromDetails ?? 'Guest',
+      email: emailFromDetails ?? '',
+    };
+  }
+
   async getOrders(
     page = 1,
     limit = 20,
@@ -197,7 +222,10 @@ export class AdminOrdersService {
 
     return {
       orders: orders.map((order) =>
-        this.transformCustomOrder(order, customersMap.get(order.customerId)),
+        this.transformCustomOrder(
+          order,
+          customersMap.get(order.customerId) ?? this.resolveCustomOrderCustomerFallback(order),
+        ),
       ),
       pagination: {
         page,
@@ -226,7 +254,10 @@ export class AdminOrdersService {
           })
         : null;
 
-    return this.transformCustomOrder(order, customer ?? undefined);
+    return this.transformCustomOrder(
+      order,
+      customer ?? this.resolveCustomOrderCustomerFallback(order),
+    );
   }
 
   async updateOrderStatus(id: string, dto: UpdateOrderStatusDto): Promise<AdminOrderDto> {
@@ -381,7 +412,7 @@ export class AdminOrdersService {
     ];
 
     const rows = orders.map((order) => {
-      const customer = customersMap.get(order.customerId);
+      const customer = customersMap.get(order.customerId) ?? this.resolveCustomOrderCustomerFallback(order);
       const customerName =
         customer?.fullName ?? (order.customerId.startsWith('guest-') ? 'Guest' : order.customerId);
       const customerEmail = customer?.email ?? '';

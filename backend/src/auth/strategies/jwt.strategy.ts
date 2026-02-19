@@ -9,6 +9,7 @@ interface JwtPayload {
   email: string;
   role: 'customer' | 'admin';
   adminId?: string;
+  adminLevel?: 'SUPER_ADMIN' | 'ADMIN';
 }
 
 @Injectable()
@@ -51,6 +52,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
           id: true,
           adminId: true,
           email: true,
+          adminLevel: true,
         },
       });
 

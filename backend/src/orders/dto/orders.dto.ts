@@ -11,6 +11,7 @@ import {
   Min,
   IsNotEmpty,
   IsEmail,
+  IsBoolean,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { OptionalField, ToNumber } from 'src/common/decorators/transform.decorator';
@@ -58,6 +59,10 @@ export class CreateOrderDto {
   @IsOptional()
   @IsString()
   couponCode?: string;
+
+  @IsOptional()
+  @IsString()
+  governorate?: string;
 }
 
 export class CreateGuestOrderDto {
@@ -98,6 +103,10 @@ export class CreateGuestOrderDto {
   @IsOptional()
   @IsString()
   couponCode?: string;
+
+  @IsOptional()
+  @IsString()
+  governorate?: string;
 }
 
 export class CreateCustomOrderDto {
@@ -133,6 +142,28 @@ export class CreateCustomOrderDto {
   @IsOptional()
   @IsString()
   customerId?: string;
+
+  @IsOptional()
+  @IsEmail()
+  email?: string;
+
+  @IsOptional()
+  @IsString()
+  fullName?: string;
+
+  @IsOptional()
+  @IsString()
+  phoneNumber?: string;
+}
+
+export class ValidateCouponDto {
+  @IsString()
+  @IsNotEmpty()
+  code: string;
+
+  @IsNumber()
+  @Min(0)
+  subtotal: number;
 }
 
 // ============================================
@@ -260,4 +291,28 @@ export class PaginatedCustomOrdersDto {
     total: number;
     totalPages: number;
   };
+}
+
+export class CouponValidationDto {
+  valid: boolean;
+  code: string;
+
+  @ToNumber()
+  discount: number;
+
+  freeShipping: boolean;
+
+  @OptionalField()
+  message?: string;
+}
+
+export class ShippingRateDto {
+  id: string;
+  governorate: string;
+
+  @ToNumber()
+  price: number;
+
+  @IsBoolean()
+  status: boolean;
 }

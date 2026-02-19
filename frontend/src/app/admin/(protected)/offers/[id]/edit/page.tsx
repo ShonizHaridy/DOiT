@@ -47,6 +47,31 @@ const parseNumber = (value: string) => {
   return Number.isNaN(parsed) ? undefined : parsed
 }
 
+const toInputNumber = (value: unknown) => {
+  if (value === null || value === undefined) return ''
+  if (typeof value === 'number') return value.toString()
+  if (typeof value === 'string') return value
+  if (typeof value === 'object') {
+    const candidate = value as {
+      toNumber?: () => number
+      toString?: () => string
+      $numberDecimal?: string
+    }
+    if (typeof candidate.toNumber === 'function') {
+      const parsed = candidate.toNumber()
+      return Number.isFinite(parsed) ? parsed.toString() : ''
+    }
+    if (typeof candidate.$numberDecimal === 'string') {
+      return candidate.$numberDecimal
+    }
+    if (typeof candidate.toString === 'function') {
+      const text = candidate.toString()
+      if (text && text !== '[object Object]') return text
+    }
+  }
+  return ''
+}
+
 const toIsoDate = (value: string) => {
   if (!value) return ''
   const date = new Date(value)
@@ -57,6 +82,18 @@ const toInputDate = (value?: string) => {
   if (!value) return ''
   const date = new Date(value)
   return Number.isNaN(date.getTime()) ? '' : date.toISOString().slice(0, 10)
+}
+
+type SelectOption = { value: string; label: string }
+
+const ensureSelectedOption = (
+  options: SelectOption[],
+  selectedValue: string,
+  fallbackLabel: string
+): SelectOption[] => {
+  if (!selectedValue) return options
+  if (options.some((option) => option.value === selectedValue)) return options
+  return [{ value: selectedValue, label: `${fallbackLabel}: ${selectedValue}` }, ...options]
 }
 
 export default function EditOfferPage() {
@@ -105,8 +142,31 @@ export default function EditOfferPage() {
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors }
   } = useForm<OfferFormData>()
+
+  const selectedApplyCategory = watch('applyCategory') ?? ''
+  const selectedApplySubCategory = watch('applySubCategory') ?? ''
+  const selectedApplyProductList = watch('applyProductList') ?? ''
+  const selectedApplyProductType = watch('applyProductType') ?? ''
+
+  const categorySelectOptions = useMemo(
+    () => ensureSelectedOption(categoryOptions, selectedApplyCategory, 'Current category'),
+    [categoryOptions, selectedApplyCategory]
+  )
+  const subCategorySelectOptions = useMemo(
+    () => ensureSelectedOption(subCategoryOptions, selectedApplySubCategory, 'Current sub category'),
+    [subCategoryOptions, selectedApplySubCategory]
+  )
+  const productListSelectOptions = useMemo(
+    () => ensureSelectedOption(productListOptions, selectedApplyProductList, 'Current product list'),
+    [productListOptions, selectedApplyProductList]
+  )
+  const productTypeSelectOptions = useMemo(
+    () => ensureSelectedOption(productTypeOptions, selectedApplyProductType, 'Current product type'),
+    [productTypeOptions, selectedApplyProductType]
+  )
 
   useEffect(() => {
     if (!offer) return
@@ -117,9 +177,9 @@ export default function EditOfferPage() {
       offerNameAr: offer.nameAr,
       offerCode: offer.code,
       offerType: offer.type,
-      discountValue: offer.discountValue.toString(),
-      minimumCartValue: offer.minCartValue?.toString() ?? '',
-      maximumDiscount: offer.maxDiscount?.toString() ?? '',
+      discountValue: toInputNumber(offer.discountValue),
+      minimumCartValue: toInputNumber(offer.minCartValue),
+      maximumDiscount: toInputNumber(offer.maxDiscount),
       applyCategory: offer.applyTo === 'CATEGORY' ? offer.targetId ?? '' : '',
       applySubCategory: offer.applyTo === 'SUB_CATEGORY' ? offer.targetId ?? '' : '',
       applyProductList: offer.applyTo === 'PRODUCT_LIST' ? offer.targetId ?? '' : '',
@@ -128,8 +188,8 @@ export default function EditOfferPage() {
       startTime: offer.startTime ?? '',
       endDate: toInputDate(offer.endDate),
       endTime: offer.endTime ?? '',
-      usageLimitTotal: offer.totalUsageLimit?.toString() ?? '',
-      usageLimitPerUser: offer.perUserLimit?.toString() ?? '',
+      usageLimitTotal: toInputNumber(offer.totalUsageLimit),
+      usageLimitPerUser: toInputNumber(offer.perUserLimit),
     })
   }, [offer, reset])
 
@@ -288,8 +348,9 @@ export default function EditOfferPage() {
               {applyTo === 'CATEGORY' && (
                 <div className="ml-6">
                   <FormSelect
-                    options={categoryOptions}
+                    options={categorySelectOptions}
                     placeholder="Select category"
+                    value={selectedApplyCategory}
                     {...register('applyCategory')}
                   />
                 </div>
@@ -309,8 +370,9 @@ export default function EditOfferPage() {
               {applyTo === 'SUB_CATEGORY' && (
                 <div className="ml-6">
                   <FormSelect
-                    options={subCategoryOptions}
+                    options={subCategorySelectOptions}
                     placeholder="Select sub category"
+                    value={selectedApplySubCategory}
                     {...register('applySubCategory')}
                   />
                 </div>
@@ -330,8 +392,9 @@ export default function EditOfferPage() {
               {applyTo === 'PRODUCT_LIST' && (
                 <div className="ml-6">
                   <FormSelect
-                    options={productListOptions}
+                    options={productListSelectOptions}
                     placeholder="Select product list"
+                    value={selectedApplyProductList}
                     {...register('applyProductList')}
                   />
                 </div>
@@ -351,8 +414,9 @@ export default function EditOfferPage() {
               {applyTo === 'PRODUCT_TYPE' && (
                 <div className="ml-6">
                   <FormSelect
-                    options={productTypeOptions}
+                    options={productTypeSelectOptions}
                     placeholder="Select product type"
+                    value={selectedApplyProductType}
                     {...register('applyProductType')}
                   />
                 </div>

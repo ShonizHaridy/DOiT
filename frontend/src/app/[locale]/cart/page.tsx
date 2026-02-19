@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useLocale, useTranslations } from 'next-intl'
 import { Add, Minus, Trash, TicketDiscount } from 'iconsax-reactjs'
 import { useCartStore } from '@/store'
+import { validateCoupon } from '@/services/orders'
 
 export default function CartPage() {
   const locale = useLocale()
@@ -16,11 +17,14 @@ export default function CartPage() {
     removeItem,
     updateQuantity,
     couponCode,
+    applyCoupon,
     removeCoupon,
     getSubtotal,
   } = useCartStore()
 
   const [couponInput, setCouponInput] = useState('')
+  const [couponError, setCouponError] = useState('')
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false)
 
   const subtotal = getSubtotal()
   const currency = items[0]?.currency ?? 'EGP'
@@ -31,6 +35,30 @@ export default function CartPage() {
     UNISEX: tProduct('genderValues.unisex'),
   }
   const formatGender = (value?: string) => (value ? genderLabels[value] ?? value : '')
+
+  const handleApplyCoupon = async () => {
+    const code = couponInput.trim()
+    if (!code) return
+
+    setCouponError('')
+    setIsApplyingCoupon(true)
+    try {
+      const result = await validateCoupon({
+        code,
+        subtotal,
+      })
+      if (!result.valid) {
+        setCouponError(result.message || t('invalidCoupon'))
+        return
+      }
+      applyCoupon(result.code || code, result.discount, result.freeShipping)
+      setCouponInput('')
+    } catch {
+      setCouponError(t('invalidCoupon'))
+    } finally {
+      setIsApplyingCoupon(false)
+    }
+  }
 
   if (items.length === 0) {
     return (
@@ -283,8 +311,17 @@ export default function CartPage() {
                       className="w-full ps-10 pe-3 py-2.5 border border-border-light rounded text-sm outline-none focus:border-primary"
                     />
                   </div>
+                  <button
+                    type="button"
+                    onClick={handleApplyCoupon}
+                    disabled={isApplyingCoupon}
+                    className="px-4 py-2 bg-primary text-white text-sm rounded hover:bg-primary/90 transition-colors disabled:opacity-60"
+                  >
+                    {isApplyingCoupon ? '...' : t('apply')}
+                  </button>
                 </div>
               )}
+              {couponError && <p className="text-xs text-red-500 mt-1">{couponError}</p>}
             </div>
 
             {/* Subtotal */}
